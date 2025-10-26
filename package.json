@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@react-native-voice/voice": "^3.2.4",
+    "react-icons": "^5.5.0",
+    "react-speech-recognition": "^4.0.1"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "^20.0.2"
+  }
+}

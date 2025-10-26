@@ -1,0 +1,64 @@
+{
+  "killed": [],
+  "timestamp": "2025-10-26T18:00:19.942786",
+  "denied": [
+    "C:\\Program Files\\NVIDIA Corporation\\NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe",
+    "C:\\Program Files\\VideoLAN\\VLC\\uninstall.exe",
+    "C:\\Program Files\\VideoLAN\\VLC\\vlc-cache-gen.exe",
+    "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
+    "C:\\ProgramData\\NVIDIA Corporation\\Downloader\\latest\\GFExperience.NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe",
+    "C:\\Program Files\\NVIDIA Corporation\\NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe",
+    "C:\\Program Files\\VideoLAN\\VLC\\uninstall.exe",
+    "C:\\Program Files\\VideoLAN\\VLC\\vlc-cache-gen.exe",
+    "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
+    "C:\\ProgramData\\NVIDIA Corporation\\Downloader\\latest\\GFExperience.NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe"
+  ],
+  "uwp_blocked": [
+    {
+      "keyword": "netflix",
+      "packageFamily": "4DF9E0F8.Netflix_mcm4njqhnhss8"
+    },
+    {
+      "keyword": "whatsapp",
+      "packageFamily": "5319275A.WhatsAppDesktop_cv1g1gvanyjgm"
+    },
+    {
+      "keyword": "steam",
+      "packageFamily": "MSTeams_8wekyb3d8bbwe"
+    },
+    {
+      "keyword": "epic",
+      "packageFamily": "Microsoft.Windows.CapturePicker_cw5n1h2txyewy"
+    },
+    {
+      "keyword": "primevideo",
+      "packageFamily": "AmazonVideo.PrimeVideo_pwbj9vvecjh7j"
+    },
+    {
+      "keyword": "netflix",
+      "packageFamily": "4DF9E0F8.Netflix_mcm4njqhnhss8"
+    },
+    {
+      "keyword": "whatsapp",
+      "packageFamily": "5319275A.WhatsAppDesktop_cv1g1gvanyjgm"
+    },
+    {
+      "keyword": "steam",
+      "packageFamily": "MSTeams_8wekyb3d8bbwe"
+    },
+    {
+      "keyword": "epic",
+      "packageFamily": "Microsoft.Windows.CapturePicker_cw5n1h2txyewy"
+    },
+    {
+      "keyword": "primevideo",
+      "packageFamily": "AmazonVideo.PrimeVideo_pwbj9vvecjh7j"
+    }
+  ],
+  "hosts_blocked": [
+    "web.whatsapp.com",
+    "whatsapp.com",
+    "netflix.com",
+    "youtube.com"
+  ]
+}

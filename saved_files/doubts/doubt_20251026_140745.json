@@ -1,0 +1,6 @@
+{
+  "topic": "what is python",
+  "response": "📘 **Doubt Analysis**\n🧩 **Topic:** what is python\n🔍 **Confidence: Medium**\n\n💬 **Clarification:**\nPython is a type of computer programming language that allows you to tell computers what to do. It's like giving instructions in English (or another human language) but the computer can understand it and perform tasks based on those instructions.\n\nFor example, if you want a computer to calculate 2 + 3, instead of typing the numbers directly into the calculator, you would write a short Python program that tells the computer \"Take the number 2, add the number 3, and give me the result.\" This way, you can make the computer do much more complex tasks like playing games, building websites, or even controlling robots.\n\nThink of Python as a magic spellbook that helps you communicate with computers to get them to do what you want!",
+  "confidence": "Medium",
+  "timestamp": "2025-10-26 14:07:45"
+}

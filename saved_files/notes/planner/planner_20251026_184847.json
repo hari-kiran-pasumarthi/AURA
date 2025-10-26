@@ -1,0 +1,45 @@
+{
+  "title": "AI Study Plan - 2025-10-26 18:48",
+  "summary": "📅 2 days planned covering 1 tasks.",
+  "content": "Tasks: python",
+  "schedule": [
+    {
+      "date": "2025-10-26",
+      "blocks": [
+        {
+          "task": "python",
+          "subject": "General",
+          "hours": 0.5,
+          "start_time": "07:30",
+          "end_time": "08:00",
+          "due": "2025-10-27",
+          "difficulty": 3
+        },
+        {
+          "task": "python",
+          "subject": "General",
+          "hours": 3.5,
+          "start_time": "08:30",
+          "end_time": "12:00",
+          "due": "2025-10-27",
+          "difficulty": 3
+        }
+      ]
+    },
+    {
+      "date": "2025-10-27",
+      "blocks": [
+        {
+          "task": "python",
+          "subject": "General",
+          "hours": 0.5,
+          "start_time": "07:30",
+          "end_time": "08:00",
+          "due": "2025-10-27",
+          "difficulty": 3
+        }
+      ]
+    }
+  ],
+  "timestamp": "2025-10-26T13:18:47.520425"
+}

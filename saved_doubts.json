@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2025-10-26 13:57:24",
+    "question": "what is python?",
+    "confidence": "Medium",
+    "response": "Python is a programming language that allows you to tell a computer exactly what to do. Think of it like giving instructions to a robot in English, but more precise and detailed. With Python, you can create all sorts of things like websites, games, or even tools that help people with their work. It's a popular choice among beginners because it's easy to learn and very versatile.\n\nJust as you might use different languages to communicate with friends from different countries, programmers use different programming languages for different tasks. Python is often chosen for its simplicity, readability, and the wide range of tasks it can handle.\n\nWhen you write code in Python, you're essentially creating a set of instructions that the computer follows one by one. This is like writing a recipe for the computer to follow and make something delicious!",
+    "events": [
+      "pause",
+      "tab_switch"
+    ]
+  },
+  {
+    "timestamp": "2025-10-26 14:02:52",
+    "question": "what is python?",
+    "confidence": "Medium",
+    "response": "Python is a programming language that allows you to tell a computer exactly what to do, just like giving instructions to a robot. It's designed to be easy to learn and use, making it an excellent choice for beginners and professionals alike.\n\nThink of it this way: if you want to bake a cake, you need a recipe. The recipe tells you step-by-step what ingredients to use and how to combine them to get the desired outcome - a delicious cake! Similarly, when programming with Python, you write code that acts as a set of instructions for your computer to follow, creating programs or applications to perform various tasks like playing games, controlling robots, or even predicting weather patterns.\n\nSo, Python is like your magical recipe book that teaches your computer what to do in a simple and understandable way!",
+    "events": [
+      "pause",
+      "tab_switch"
+    ]
+  },
+  {
+    "timestamp": "2025-10-26 14:07:42",
+    "question": "what is python",
+    "confidence": "Medium",
+    "response": "Python is a type of computer programming language that allows you to tell computers what to do. It's like giving instructions in English (or another human language) but the computer can understand it and perform tasks based on those instructions.\n\nFor example, if you want a computer to calculate 2 + 3, instead of typing the numbers directly into the calculator, you would write a short Python program that tells the computer \"Take the number 2, add the number 3, and give me the result.\" This way, you can make the computer do much more complex tasks like playing games, building websites, or even controlling robots.\n\nThink of Python as a magic spellbook that helps you communicate with computers to get them to do what you want!",
+    "events": [
+      "pause",
+      "tab_switch"
+    ]
+  }
+]

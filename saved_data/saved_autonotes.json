@@ -1,0 +1,63 @@
+[
+  {
+    "id": 1,
+    "title": "Text AutoNote",
+    "transcript": "Python is a popular, high-level, general-purpose programming language. \ud83d\udc0d It's famous for its clean, easy-to-read syntax that emphasizes readability, making it a favorite for beginners and experts alike.\n\n\nKey Features\nBeginner-Friendly: Its simple, English-like syntax means you can write and understand programs relatively quickly. It uses indentation (whitespace) to define code blocks, which forces clean formatting.\n\n\nInterpreted: Python code is executed line by line by an interpreter. This makes debugging easier, as you can often see errors immediately rather than having to compile the entire program first.\n\n\nVersatile: It's a \"general-purpose\" language, meaning it's not locked into one specific task. You can use it for a huge variety of applications.\n\n\nMassive Ecosystem: Python has a large standard library (\"batteries included\") that provides tools for many common tasks. It also has a huge community that contributes millions of third-party packages (libraries) for specialized jobs, like data analysis or web development.\n\nFree and Open-Source: It costs nothing to download, use, or share.\n\nWhat is Python Used For?\nPython's versatility means it shows up everywhere. Some of its most popular uses include:\n\nData Science & Machine Learning: This is one of its biggest strengths. Libraries like Pandas (for data analysis), NumPy (for numerical operations), and TensorFlow or PyTorch (for AI and machine learning) make it the go-to language for data professionals.",
+    "summary": "Python, a high-level programming language praised for its readability due to an English-like syntax emphasizing indentation over braces. Interpreted directly by Python's interpreter simplifies debugging and it serves as a multipurpose tool applicable in numerous fields such as data science.",
+    "highlights": [
+      "Python",
+      "easy-to-read",
+      "interpreted languages",
+      "versatile, general purpose language"
+    ],
+    "bullets": [
+      "Simple syntax similar to English makes Python beginner-friendly and understandable for experts too.",
+      "Python uses indentation instead of braces; this forces clean code formatting.",
+      "It's interpreted line by line making debugging easier as errors appear immediately rather than after compiling the entire program.",
+      "Its versatility allows usage in various applications beyond one specific task."
+    ],
+    "timestamp": "2025-10-25T10:20:30.420480"
+  },
+  {
+    "id": 2,
+    "title": "Text AutoNote",
+    "transcript": "Python is a popular, high-level, general-purpose programming language. \ud83d\udc0d It's famous for its clean, easy-to-read syntax that emphasizes readability, making it a favorite for beginners and experts alike.\n\n\nKey Features\nBeginner-Friendly: Its simple, English-like syntax means you can write and understand programs relatively quickly. It uses indentation (whitespace) to define code blocks, which forces clean formatting.\n\n\nInterpreted: Python code is executed line by line by an interpreter. This makes debugging easier, as you can often see errors immediately rather than having to compile the entire program first.\n\n\nVersatile: It's a \"general-purpose\" language, meaning it's not locked into one specific task. You can use it for a huge variety of applications.\n\n\nMassive Ecosystem: Python has a large standard library (\"batteries included\") that provides tools for many common tasks. It also has a huge community that contributes millions of third-party packages (libraries) for specialized jobs, like data analysis or web development.\n\nFree and Open-Source: It costs nothing to download, use, or share.\n\nWhat is Python Used For?\nPython's versatility means it shows up everywhere. Some of its most popular uses include:\n\nData Science & Machine Learning: This is one of its biggest strengths. Libraries like Pandas (for data analysis), NumPy (for numerical operations), and TensorFlow or PyTorch (for AI and machine learning) make it the go-to language for data professionals.",
+    "summary": "Python is an easy-to-read, general-purpose programming language with a vast ecosystem. It's used extensively in fields like Data Science and Machine Learning.",
+    "highlights": [
+      "Python",
+      "general-purpose",
+      "ecosystem",
+      "data science",
+      "machine learning"
+    ],
+    "bullets": [
+      "Python is beginner-friendly with simple syntax that uses indentation for code blocks, promoting clean formatting. Its interpreted nature allows line by line execution and immediate error feedback.",
+      "As a versatile language not confined to specific tasks, Python finds use in diverse applications.",
+      "Its large standard library offers tools needed for common tasks while its community contributes third-party packages tailored towards specialized jobs such as data analysis or web development. ",
+      "Python is free and open-source.",
+      "In the realm of Data Science & Machine Learning, Python's libraries like Pandas (for data analysis), NumPy (numerical operations) , TensorFlow or PyTorch are commonly used."
+    ],
+    "timestamp": "2025-10-25T10:22:14.228404"
+  },
+  {
+    "title": "python",
+    "transcript": "",
+    "summary": "\ud83d\udccb Summary:\nPython is an easy-to-read, general-purpose programming language with a vast ecosystem. It's used extensively in fields like Data Science and Machine Learning.\n\n\u2b50 Highlights:\nPython, general-purpose, ecosystem, data science, machine learning\n\n\ud83d\udd39 Bullets:\nPython is beginner-friendly with simple syntax that uses indentation for code blocks, promoting clean formatting. Its interpreted nature allows line by line execution and immediate error feedback.\nAs a versatile language not confined to specific tasks, Python finds use in diverse applications.\nIts large standard library offers tools needed for common tasks while its community contributes third-party packages tailored towards specialized jobs such as data analysis or web development. \nPython is free and open-source.\nIn the realm of Data Science & Machine Learning, Python's libraries like Pandas (for data analysis), NumPy (numerical operations) , TensorFlow or PyTorch are commonly used.",
+    "highlights": [
+      "Python",
+      "general-purpose",
+      "ecosystem",
+      "data science",
+      "machine learning"
+    ],
+    "bullets": [
+      "Python is beginner-friendly with simple syntax that uses indentation for code blocks, promoting clean formatting. Its interpreted nature allows line by line execution and immediate error feedback.",
+      "As a versatile language not confined to specific tasks, Python finds use in diverse applications.",
+      "Its large standard library offers tools needed for common tasks while its community contributes third-party packages tailored towards specialized jobs such as data analysis or web development.",
+      "Python is free and open-source.",
+      "In the realm of Data Science & Machine Learning, Python's libraries like Pandas (for data analysis), NumPy (numerical operations) , TensorFlow or PyTorch are commonly used."
+    ],
+    "id": 3,
+    "timestamp": "2025-10-25T10:26:21.015945"
+  }
+]

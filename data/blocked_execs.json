@@ -1,0 +1,14 @@
+{
+  "blocked": [
+    "C:\\Program Files\\NVIDIA Corporation\\NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe",
+    "C:\\Program Files\\VideoLAN\\VLC\\uninstall.exe",
+    "C:\\Program Files\\VideoLAN\\VLC\\vlc-cache-gen.exe",
+    "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
+    "C:\\ProgramData\\NVIDIA Corporation\\Downloader\\latest\\GFExperience.NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe",
+    "C:\\Users\\harik\\AppData\\Local\\Microsoft\\WindowsApps\\MSTeams_8wekyb3d8bbwe\\ms-teams.exe",
+    "C:\\Users\\harik\\AppData\\Local\\Microsoft\\WindowsApps\\MSTeams_8wekyb3d8bbwe\\ms-teams_autostarter.exe",
+    "C:\\Users\\harik\\AppData\\Local\\Microsoft\\WindowsApps\\MSTeams_8wekyb3d8bbwe\\ms-teams_modulehost_ac.exe",
+    "C:\\Users\\harik\\AppData\\Local\\Microsoft\\WindowsApps\\MSTeams_8wekyb3d8bbwe\\ms-teamsupdate.exe"
+  ],
+  "timestamp": "2025-10-26T17:49:49.578978"
+}

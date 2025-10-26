@@ -1,0 +1,2124 @@
+[
+  {
+    "module": "planner",
+    "title": "Study Plan Generated",
+    "content": "Generated a 15-day plan with 1 tasks and 2 active days.",
+    "metadata": {
+      "start_date": "2025-10-25",
+      "end_date": "2025-11-08",
+      "num_tasks": 1,
+      "tasks": [
+        {
+          "name": "completion of project",
+          "due": "2025-10-25",
+          "difficulty": 3
+        }
+      ],
+      "schedule_preview": [
+        {
+          "date": "2025-10-25",
+          "blocks": [
+            {
+              "task": "completion of project",
+              "subject": "General",
+              "hours": 4.0
+            }
+          ]
+        },
+        {
+          "date": "2025-10-26",
+          "blocks": [
+            {
+              "task": "completion of project",
+              "subject": "General",
+              "hours": 0.5
+            }
+          ]
+        }
+      ],
+      "daily_hours": 4.0
+    },
+    "timestamp": "2025-10-25T17:14:25.461816"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 19.976404086855084,
+        "clicks": 3,
+        "switches": 1,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:05:16.680006"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 3,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:05:36.590265"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 1,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:05:53.223313"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 7.216276496294614,
+        "clicks": 1,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:06:09.275040"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 56.06936685776836,
+        "clicks": 2,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:06:25.400371"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:06:41.374364"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 2.95518484736515,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:07:17.679165"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:07:33.772744"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:07:49.616991"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:08:05.474317"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 3.7863590848526054,
+        "clicks": 1,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:08:21.295073"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 1,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:08:55.284077"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:09:11.303885"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 59.912574905005876,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:09:27.286542"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 7.509455516802815,
+        "clicks": 3,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:09:43.807777"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 7.262509327646838,
+        "clicks": 2,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:10:00.454192"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 3.604796180052449,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:10:16.379418"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:10:35.328888"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 17.000360136622234,
+        "clicks": 1,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:10:57.049115"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 124.03037882729792,
+        "clicks": 2,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:11:13.141295"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:11:30.274633"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:11:46.204709"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 11.300164926565103,
+        "clicks": 1,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:12:02.454482"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 40.610156814635474,
+        "clicks": 1,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:12:18.661978"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 125.47942360868771,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:12:34.580854"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 0.0,
+        "clicks": 0,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:12:50.796216"
+  },
+  {
+    "module": "focus",
+    "title": "Focus State Evaluated",
+    "content": "User appears distracted or inactive.",
+    "metadata": {
+      "focused": false,
+      "suggest_pomodoro": true,
+      "stats": {
+        "kpm": 44.27004576679167,
+        "clicks": 2,
+        "switches": 0,
+        "study_ratio": 0.0
+      },
+      "total_events": 1
+    },
+    "timestamp": "2025-10-26T08:13:09.590203"
+  },
+  {
+    "module": "doubts",
+    "title": "Doubt Clarification Generated",
+    "content": "Doubt confidence: Medium. Context: what is python?",
+    "metadata": {
+      "confidence": "Medium",
+      "events": [
+        "pause",
+        "tab_switch"
+      ],
+      "context": "what is python?",
+      "ai_notes": [
+        "Confidence: Medium\n\nPython is a programming language that allows you to tell a computer exactly what to do. Think of it like giving instructions to a robot in English, but more precise and detailed. With Python, you can create all sorts of things like websites, games, or even tools that help people with their work. It's a popular choice among beginners because it's easy to learn and very versatile.\n\nJust as you might use different languages to communicate with friends from different countries, programmers use different programming languages for different tasks. Python is often chosen for its simplicity, readability, and the wide range of tasks it can handle.\n\nWhen you write code in Python, you're essentially creating a set of instructions that the computer follows one by one. This is like writing a recipe for the computer to follow and make something delicious!"
+      ],
+      "event_summary": {
+        "pause": 1,
+        "tab_switch": 1
+      }
+    },
+    "timestamp": "2025-10-26T08:27:24.039872"
+  },
+  {
+    "module": "doubts",
+    "title": "Doubt Clarification Generated",
+    "content": "Doubt confidence: Medium. Context: what is python?",
+    "metadata": {
+      "confidence": "Medium",
+      "events": [
+        "pause",
+        "tab_switch"
+      ],
+      "context": "what is python?",
+      "ai_notes": [
+        "Confidence: Medium\n\nPython is a programming language that allows you to tell a computer exactly what to do, just like giving instructions to a robot. It's designed to be easy to learn and use, making it an excellent choice for beginners and professionals alike.\n\nThink of it this way: if you want to bake a cake, you need a recipe. The recipe tells you step-by-step what ingredients to use and how to combine them to get the desired outcome - a delicious cake! Similarly, when programming with Python, you write code that acts as a set of instructions for your computer to follow, creating programs or applications to perform various tasks like playing games, controlling robots, or even predicting weather patterns.\n\nSo, Python is like your magical recipe book that teaches your computer what to do in a simple and understandable way!"
+      ],
+      "event_summary": {
+        "pause": 1,
+        "tab_switch": 1
+      }
+    },
+    "timestamp": "2025-10-26T08:32:52.139660"
+  },
+  {
+    "module": "doubts",
+    "title": "Doubt Clarification Generated",
+    "content": "Doubt confidence: Medium. Context: what is python",
+    "metadata": {
+      "confidence": "Medium",
+      "events": [
+        "pause",
+        "tab_switch"
+      ],
+      "context": "what is python",
+      "ai_notes": [
+        "Confidence: Medium\n\nPython is a type of computer programming language that allows you to tell computers what to do. It's like giving instructions in English (or another human language) but the computer can understand it and perform tasks based on those instructions.\n\nFor example, if you want a computer to calculate 2 + 3, instead of typing the numbers directly into the calculator, you would write a short Python program that tells the computer \"Take the number 2, add the number 3, and give me the result.\" This way, you can make the computer do much more complex tasks like playing games, building websites, or even controlling robots.\n\nThink of Python as a magic spellbook that helps you communicate with computers to get them to do what you want!"
+      ],
+      "event_summary": {
+        "pause": 1,
+        "tab_switch": 1
+      }
+    },
+    "timestamp": "2025-10-26T08:37:42.119441"
+  },
+  {
+    "module": "doubts",
+    "title": "Doubt Clarified: what is python",
+    "content": "AI explained the concept with 70.84% confidence.",
+    "metadata": {
+      "confidence": 70.84,
+      "events": [
+        "pause",
+        "tab_switch"
+      ],
+      "context": "what is python",
+      "ai_answer": "⚠️ Unable to connect to Ollama. Please ensure it is running.\n(HTTPConnectionPool(host='127.0.0.1', port=11434): Read timed out. (read timeout=45))",
+      "event_summary": {
+        "pause": 1,
+        "tab_switch": 1
+      }
+    },
+    "timestamp": "2025-10-26T09:40:50.004301"
+  },
+  {
+    "module": "doubts",
+    "title": "Doubt Clarified: what is python",
+    "content": "AI explained the concept with 75.0% confidence.",
+    "metadata": {
+      "confidence": 75.0,
+      "events": [
+        "pause",
+        "tab_switch"
+      ],
+      "context": "what is python",
+      "ai_answer": "Python is a high-level programming language that's known for its simplicity and versatility. It's widely used for a variety of tasks, such as web development, data analysis, artificial intelligence, machine learning, automation, and more!\n\nLet me give you an intuitive explanation with the help of some examples:\n\n1. **Simplicity**: Python has a clean syntax that is easy to read and understand, even for beginners. For example, here's how you might write a simple \"Hello, World!\" program in Python:\n\n```python\nprint(\"Hello, World!\")\n```\n\nIn contrast, the same program in C (another popular programming language) would look like this:\n\n```c\n#include <stdio.h>\nint main() {\n  printf(\"Hello, World!\");\n  return 0;\n}\n```\n\nYou can see that Python is much more concise and easier to understand!\n\n2. **Versatility**: Python is also a very versatile language. Here's an example of how you might calculate the sum of numbers from 1 to 10 in both Python and C:\n\n```python\nsum = 0\nfor i in range(1, 11):\n    sum += i\nprint(\"The sum is:\", sum)\n```\n\nAnd in C:\n\n```c\n#include <stdio.h>\nint main() {\n  int sum = 0;\n  for (int i = 1; i <= 10; ++i) {\n    sum += i;\n  }\n  printf(\"The sum is: %d\\n\", sum);\n  return 0;\n}\n```\n\nAgain, Python is more concise and easier to read. But where Python really shines is in areas like data analysis and machine learning. For example, you can use libraries like NumPy and pandas to work with data quickly and efficiently:\n\n```python\nimport numpy as np\narr = np.array([1, 2, 3, 4, 5])\nprint(arr)  # Output: [1 2 3 4 5]\n```\n\nThis is just a taste of what Python can do! I hope this gives you a good understanding of what Python is and why it's such a popular language. Happy coding!",
+      "event_summary": {
+        "pause": 1,
+        "tab_switch": 1
+      }
+    },
+    "timestamp": "2025-10-26T09:42:16.561676"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Study Planner Executed",
+    "content": "Generated 15 study days for 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-09",
+      "task_count": 1,
+      "schedule_preview": [
+        {
+          "date": "2025-10-26",
+          "blocks": [
+            {
+              "task": "python assignment",
+              "subject": "General",
+              "hours": 0.14,
+              "difficulty": 3,
+              "due": "2025-11-27"
+            }
+          ]
+        },
+        {
+          "date": "2025-10-27",
+          "blocks": [
+            {
+              "task": "python assignment",
+              "subject": "General",
+              "hours": 0.14,
+              "difficulty": 3,
+              "due": "2025-11-27"
+            }
+          ]
+        },
+        {
+          "date": "2025-10-28",
+          "blocks": [
+            {
+              "task": "python assignment",
+              "subject": "General",
+              "hours": 0.14,
+              "difficulty": 3,
+              "due": "2025-11-27"
+            }
+          ]
+        }
+      ],
+      "daily_limit": 4.0,
+      "calendar_status": {
+        "status": "success",
+        "count": 15
+      }
+    },
+    "timestamp": "2025-10-26T11:02:49.775857"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Study Planner Executed",
+    "content": "Generated 2 study days for 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-09",
+      "task_count": 1,
+      "schedule_preview": [
+        {
+          "date": "2025-10-26",
+          "blocks": [
+            {
+              "task": "python assignment",
+              "subject": "General",
+              "hours": 4.0,
+              "difficulty": 3,
+              "due": "2025-10-27"
+            }
+          ]
+        },
+        {
+          "date": "2025-10-27",
+          "blocks": [
+            {
+              "task": "python assignment",
+              "subject": "General",
+              "hours": 0.5,
+              "difficulty": 3,
+              "due": "2025-10-27"
+            }
+          ]
+        }
+      ],
+      "daily_limit": 4.0,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T11:03:46.135220"
+  },
+  {
+    "module": "planner",
+    "title": "Routine-Aware Smart Planner Executed",
+    "content": "Generated 2 routine-aware study days with specific time slots.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-09",
+      "task_count": 1,
+      "daily_limit": 4.0,
+      "schedule_preview": [
+        {
+          "date": "2025-10-26",
+          "blocks": [
+            {
+              "task": "python assignment",
+              "subject": "General",
+              "hours": 0.5,
+              "start_time": "07:30",
+              "end_time": "08:00",
+              "due": "2025-10-27",
+              "difficulty": 5
+            },
+            {
+              "task": "python assignment",
+              "subject": "General",
+              "hours": 3.5,
+              "start_time": "08:30",
+              "end_time": "12:00",
+              "due": "2025-10-27",
+              "difficulty": 5
+            }
+          ]
+        },
+        {
+          "date": "2025-10-27",
+          "blocks": [
+            {
+              "task": "python assignment",
+              "subject": "General",
+              "hours": 0.5,
+              "start_time": "07:30",
+              "end_time": "08:00",
+              "due": "2025-10-27",
+              "difficulty": 5
+            },
+            {
+              "task": "python assignment",
+              "subject": "General",
+              "hours": 3.0,
+              "start_time": "08:30",
+              "end_time": "11:30",
+              "due": "2025-10-27",
+              "difficulty": 5
+            }
+          ]
+        }
+      ],
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T11:16:39.000601"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 2 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 2,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T11:55:19.783116"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:02:14.150248"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:09:06.549440"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:11:31.624758"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:15:30.599795"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:19:34.667046"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:24:52.746281"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:41:54.636179"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:42:37.264601"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:44:44.360909"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:49:30.252943"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:51:35.788748"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T12:59:24.312960"
+  },
+  {
+    "module": "planner",
+    "title": "Smart Planner Executed",
+    "content": "Generated 2 study days with 1 tasks.",
+    "metadata": {
+      "start_date": "2025-10-26",
+      "end_date": "2025-11-02",
+      "task_count": 1,
+      "calendar_status": {
+        "status": "success",
+        "count": 2
+      }
+    },
+    "timestamp": "2025-10-26T13:18:47.518610"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "input_type": "Manual",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "🤖 writing simple scripts",
+        "data analysis ), numpy",
+        "building desktop applications",
+        "libraries like pandas",
+        "numerical operations ),",
+        "resembles plain english"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T15:35:07.829088"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "🤖 writing simple scripts",
+        "data analysis ), numpy",
+        "building desktop applications",
+        "libraries like pandas",
+        "numerical operations ),",
+        "resembles plain english"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T15:38:58.981514"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "🤖 writing simple scripts",
+        "vast standard library",
+        "purpose programming language",
+        "linux without modification",
+        "key features easy",
+        "batteries included \":",
+        "syntax allows programmers"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T15:40:52.395753"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "languages like c ++",
+        "vast standard library",
+        "resembles plain english",
+        "operating system files",
+        "makes debugging easier",
+        "linux without modification",
+        "guido van rossum",
+        "batteries included \":"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T15:42:49.137764"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "languages like c ++",
+        "vast standard library",
+        "resembles plain english",
+        "operating system files",
+        "makes debugging easier",
+        "linux without modification",
+        "guido van rossum",
+        "batteries included \":"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T15:43:04.811251"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "languages like c ++",
+        "vast standard library",
+        "resembles plain english",
+        "operating system files",
+        "linux without modification",
+        "guido van rossum",
+        "batteries included \":",
+        "purpose programming language"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T15:45:03.147481"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "building desktop applications",
+        "resembles plain english",
+        "operating system files",
+        "guido van rossum",
+        "batteries included \":",
+        "vast standard library"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T15:48:50.458572"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "building desktop applications",
+        "resembles plain english",
+        "operating system files",
+        "guido van rossum",
+        "batteries included \":",
+        "vast standard library"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T15:49:03.154334"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards from Manual Text Input",
+    "content": "10 flashcards generated.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "building desktop applications",
+        "resembles plain english",
+        "operating system files",
+        "guido van rossum",
+        "batteries included \":",
+        "vast standard library"
+      ],
+      "tags": [
+        "auto"
+      ],
+      "cards": [
+        {
+          "q": "Python's versatility makes it a powerful tool for many different industries and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and ____ and Flask",
+          "a": "web applications using frameworks like django",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Its ____, and its syntax allows programmers to express concepts in fewer lines of code than might be possible in languages like C++ or Java",
+          "a": "design philosophy emphasizes code readability",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "He named it Python not because of the snake 🐍, but because he was a big fan of the ____'s Flying Circus",
+          "a": "british comedy group monty python",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Software Development: ____, business software, and games",
+          "a": "building desktop applications",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "It's famous for its clean, easy-to-read syntax that ____, making it a top choice for both beginners and experienced developers",
+          "a": "resembles plain english",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a vast standard library, offering ready-to-use modules for many tasks, like working with web pages, data, or ____",
+          "a": "operating system files",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "A Brief History Python was created by ____ in the late 1980s and was first released in 1991",
+          "a": "guido van rossum",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a ____, offering ready-to-use modules for many tasks, like working with web pages, data, or operating system files",
+          "a": "vast standard library",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Python's versatility makes it a powerful tool for ____ and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and web applications using frameworks like Django and Flask",
+          "a": "many different industries",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Interpreted Language: Python code is executed line by line, which ____ and development faster",
+          "a": "makes debugging easier",
+          "tags": [
+            "auto"
+          ]
+        }
+      ]
+    },
+    "timestamp": "2025-10-26T15:53:24.694423"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "building desktop applications",
+        "resembles plain english",
+        "operating system files",
+        "guido van rossum",
+        "batteries included \":",
+        "vast standard library"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T15:53:24.698163"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards from Manual Text Input",
+    "content": "10 flashcards generated.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "building desktop applications",
+        "resembles plain english",
+        "operating system files",
+        "guido van rossum",
+        "batteries included \":",
+        "vast standard library"
+      ],
+      "tags": [
+        "auto"
+      ],
+      "cards": [
+        {
+          "q": "Python's versatility makes it a powerful tool for many different industries and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and ____ and Flask",
+          "a": "web applications using frameworks like django",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Its ____, and its syntax allows programmers to express concepts in fewer lines of code than might be possible in languages like C++ or Java",
+          "a": "design philosophy emphasizes code readability",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "He named it Python not because of the snake 🐍, but because he was a big fan of the ____'s Flying Circus",
+          "a": "british comedy group monty python",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Software Development: ____, business software, and games",
+          "a": "building desktop applications",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "It's famous for its clean, easy-to-read syntax that ____, making it a top choice for both beginners and experienced developers",
+          "a": "resembles plain english",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a vast standard library, offering ready-to-use modules for many tasks, like working with web pages, data, or ____",
+          "a": "operating system files",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "A Brief History Python was created by ____ in the late 1980s and was first released in 1991",
+          "a": "guido van rossum",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a ____, offering ready-to-use modules for many tasks, like working with web pages, data, or operating system files",
+          "a": "vast standard library",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Python's versatility makes it a powerful tool for ____ and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and web applications using frameworks like Django and Flask",
+          "a": "many different industries",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Interpreted Language: Python code is executed line by line, which ____ and development faster",
+          "a": "makes debugging easier",
+          "tags": [
+            "auto"
+          ]
+        }
+      ]
+    },
+    "timestamp": "2025-10-26T16:04:00.449990"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "building desktop applications",
+        "resembles plain english",
+        "operating system files",
+        "guido van rossum",
+        "batteries included \":",
+        "vast standard library"
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T16:04:00.453999"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards from Manual Text Input",
+    "content": "10 flashcards generated.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "cards": [
+        {
+          "q": "Python's versatility makes it a powerful tool for many different industries and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and ____ and Flask",
+          "a": "web applications using frameworks like django",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Its ____, and its syntax allows programmers to express concepts in fewer lines of code than might be possible in languages like C++ or Java",
+          "a": "design philosophy emphasizes code readability",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "He named it Python not because of the snake 🐍, but because he was a big fan of the ____'s Flying Circus.",
+          "a": "british comedy group monty python",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Software Development: ____, business software, and games",
+          "a": "building desktop applications",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "It's famous for its clean, easy-to-read syntax that ____, making it a top choice for both beginners and experienced developers",
+          "a": "resembles plain english",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a vast standard library, offering ready-to-use modules for many tasks, like working with web pages, data, or ____",
+          "a": "operating system files",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "A Brief History Python was created by ____ in the late 1980s and was first released in 1991",
+          "a": "guido van rossum",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a ____, offering ready-to-use modules for many tasks, like working with web pages, data, or operating system files",
+          "a": "vast standard library",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Python's versatility makes it a powerful tool for ____ and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and web applications using frameworks like Django and Flask",
+          "a": "many different industries",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Interpreted Language: Python code is executed line by line, which ____ and development faster",
+          "a": "makes debugging easier",
+          "tags": [
+            "auto"
+          ]
+        }
+      ],
+      "tags": [
+        "auto"
+      ]
+    },
+    "timestamp": "2025-10-26T16:14:06.260976"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Generated",
+    "content": "Generated 10 flashcards from Manual Text Input.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10
+    },
+    "timestamp": "2025-10-26T16:14:06.265294"
+  },
+  {
+    "module": "flashcards",
+    "title": "Manual Flashcards",
+    "content": "10 flashcards saved.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "tags": [
+        "manual"
+      ],
+      "cards": [
+        {
+          "q": "Python's versatility makes it a powerful tool for many different industries and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and ____ and Flask",
+          "a": "web applications using frameworks like django",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Its ____, and its syntax allows programmers to express concepts in fewer lines of code than might be possible in languages like C++ or Java",
+          "a": "design philosophy emphasizes code readability",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "He named it Python not because of the snake 🐍, but because he was a big fan of the ____'s Flying Circus.",
+          "a": "british comedy group monty python",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Software Development: ____, business software, and games",
+          "a": "building desktop applications",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "It's famous for its clean, easy-to-read syntax that ____, making it a top choice for both beginners and experienced developers",
+          "a": "resembles plain english",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a vast standard library, offering ready-to-use modules for many tasks, like working with web pages, data, or ____",
+          "a": "operating system files",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "A Brief History Python was created by ____ in the late 1980s and was first released in 1991",
+          "a": "guido van rossum",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a ____, offering ready-to-use modules for many tasks, like working with web pages, data, or operating system files",
+          "a": "vast standard library",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Python's versatility makes it a powerful tool for ____ and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and web applications using frameworks like Django and Flask",
+          "a": "many different industries",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Interpreted Language: Python code is executed line by line, which ____ and development faster",
+          "a": "makes debugging easier",
+          "tags": [
+            "auto"
+          ]
+        }
+      ]
+    },
+    "timestamp": "2025-10-26T16:14:10.843640"
+  },
+  {
+    "module": "flashcards",
+    "title": "Flashcards Saved",
+    "content": "Manually saved 10 flashcards.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "tags": [
+        "manual"
+      ],
+      "cards": [
+        {
+          "q": "Python's versatility makes it a powerful tool for many different industries and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and ____ and Flask",
+          "a": "web applications using frameworks like django",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Its ____, and its syntax allows programmers to express concepts in fewer lines of code than might be possible in languages like C++ or Java",
+          "a": "design philosophy emphasizes code readability",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "He named it Python not because of the snake 🐍, but because he was a big fan of the ____'s Flying Circus.",
+          "a": "british comedy group monty python",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Software Development: ____, business software, and games",
+          "a": "building desktop applications",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "It's famous for its clean, easy-to-read syntax that ____, making it a top choice for both beginners and experienced developers",
+          "a": "resembles plain english",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a vast standard library, offering ready-to-use modules for many tasks, like working with web pages, data, or ____",
+          "a": "operating system files",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "A Brief History Python was created by ____ in the late 1980s and was first released in 1991",
+          "a": "guido van rossum",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a ____, offering ready-to-use modules for many tasks, like working with web pages, data, or operating system files",
+          "a": "vast standard library",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Python's versatility makes it a powerful tool for ____ and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and web applications using frameworks like Django and Flask",
+          "a": "many different industries",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Interpreted Language: Python code is executed line by line, which ____ and development faster",
+          "a": "makes debugging easier",
+          "tags": [
+            "auto"
+          ]
+        }
+      ]
+    },
+    "timestamp": "2025-10-26T16:14:10.846078"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Check Complete",
+    "content": "No distracting apps were active.",
+    "metadata": {
+      "blocked_list": [
+        "instagram",
+        "facebook",
+        "youtube",
+        "tiktok"
+      ]
+    },
+    "timestamp": "2025-10-26T16:58:11.699463"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Config Updated",
+    "content": "Updated blocked app configuration.",
+    "metadata": {
+      "blocked_apps": [
+        "netflix.exe",
+        "netflix.com"
+      ]
+    },
+    "timestamp": "2025-10-26T16:59:35.671641"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Check Complete",
+    "content": "No distracting apps were active.",
+    "metadata": {
+      "blocked_list": [
+        "netflix.exe",
+        "netflix.com"
+      ]
+    },
+    "timestamp": "2025-10-26T16:59:37.906679"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Check Complete",
+    "content": "No distracting apps were active.",
+    "metadata": {
+      "blocked_list": [
+        "netflix.exe",
+        "netflix.com"
+      ]
+    },
+    "timestamp": "2025-10-26T16:59:40.289814"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Block Activated 🚫",
+    "content": "Closed 6 distracting apps.",
+    "metadata": {
+      "apps_closed": [
+        "gamelibraryappservice",
+        "ms-teams",
+        "ms-teams",
+        "video.ui",
+        "edgegameassist",
+        "whatsapp"
+      ],
+      "auto_blocked": [
+        "video",
+        "epicgames",
+        "teams",
+        "youtube",
+        "fortnite",
+        "whatsapp",
+        "netflix",
+        "vlc",
+        "game",
+        "facebook",
+        "x.exe",
+        "battle.net",
+        "music",
+        "valorant",
+        "zoom",
+        "netflix.com",
+        "reddit",
+        "spotify",
+        "tiktok",
+        "snapchat",
+        "netflix.exe",
+        "steam",
+        "telegram",
+        "pubg",
+        "roblox",
+        "media",
+        "twitter",
+        "primevideo",
+        "discord",
+        "instagram"
+      ],
+      "timestamp": "2025-10-26T17:02:52.479321"
+    },
+    "timestamp": "2025-10-26T17:02:52.480680"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Block Activated 🚫",
+    "content": "Closed 1 distracting apps.",
+    "metadata": {
+      "apps_closed": [
+        "whatsapp"
+      ],
+      "auto_blocked": [
+        "video",
+        "epicgames",
+        "teams",
+        "youtube",
+        "fortnite",
+        "whatsapp",
+        "netflix",
+        "vlc",
+        "game",
+        "facebook",
+        "x.exe",
+        "battle.net",
+        "music",
+        "valorant",
+        "zoom",
+        "netflix.com",
+        "reddit",
+        "spotify",
+        "tiktok",
+        "snapchat",
+        "netflix.exe",
+        "steam",
+        "telegram",
+        "pubg",
+        "roblox",
+        "media",
+        "twitter",
+        "primevideo",
+        "discord",
+        "instagram"
+      ],
+      "timestamp": "2025-10-26T17:03:11.784500"
+    },
+    "timestamp": "2025-10-26T17:03:11.785884"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Block Triggered 🚫",
+    "content": "Closed 3 apps instantly.",
+    "metadata": {
+      "apps_closed": [
+        "xboxpcapp",
+        "xboxpctray",
+        "xboxpcappft"
+      ]
+    },
+    "timestamp": "2025-10-26T17:05:28.127935"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Block Triggered 🚫",
+    "content": "Closed 3 apps instantly.",
+    "metadata": {
+      "apps_closed": [
+        "xboxpcapp",
+        "xboxpctray",
+        "xboxpcappft"
+      ]
+    },
+    "timestamp": "2025-10-26T17:05:28.139755"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Block Triggered 🚫",
+    "content": "Closed 1 apps instantly.",
+    "metadata": {
+      "apps_closed": [
+        "xboxpcapp"
+      ]
+    },
+    "timestamp": "2025-10-26T17:05:28.147808"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Block Triggered 🚫",
+    "content": "Closed 1 apps instantly.",
+    "metadata": {
+      "apps_closed": [
+        "xboxpcapp"
+      ]
+    },
+    "timestamp": "2025-10-26T17:05:28.156331"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Block Triggered 🚫",
+    "content": "Closed 1 apps instantly.",
+    "metadata": {
+      "apps_closed": [
+        "xboxpcapp"
+      ]
+    },
+    "timestamp": "2025-10-26T17:05:28.165038"
+  },
+  {
+    "module": "distraction",
+    "title": "Distraction Block Triggered 🚫",
+    "content": "Closed 1 apps instantly.",
+    "metadata": {
+      "apps_closed": [
+        "whatsapp"
+      ]
+    },
+    "timestamp": "2025-10-26T17:06:15.819906"
+  },
+  {
+    "module": "distraction",
+    "title": "🚫 Firewall Rules Created",
+    "content": "Blocked 14 entertainment apps.",
+    "metadata": {
+      "apps": [
+        "Netflix",
+        "Spotify",
+        "Instagram",
+        "TikTok",
+        "Facebook",
+        "PrimeVideo",
+        "Discord",
+        "Steam",
+        "EpicGames",
+        "VLC",
+        "WhatsApp",
+        "Telegram",
+        "YouTube",
+        "Twitter"
+      ],
+      "timestamp": "2025-10-26T17:17:38.667642"
+    },
+    "timestamp": "2025-10-26T17:17:38.669144"
+  },
+  {
+    "module": "distraction",
+    "title": "🚫 Full Block Activated",
+    "content": "Blocked 14 entertainment apps at system level.",
+    "metadata": {
+      "apps": [
+        "Netflix",
+        "Spotify",
+        "Instagram",
+        "TikTok",
+        "Discord",
+        "PrimeVideo",
+        "Steam",
+        "EpicGames",
+        "VLC",
+        "WhatsApp",
+        "Telegram",
+        "YouTube",
+        "Facebook",
+        "Twitter"
+      ],
+      "timestamp": "2025-10-26T17:22:29.794942"
+    },
+    "timestamp": "2025-10-26T17:22:29.796262"
+  },
+  {
+    "module": "distraction",
+    "title": "🚫 Full Block Activated",
+    "content": "Blocked 14 entertainment apps at system level.",
+    "metadata": {
+      "apps": [
+        "Netflix",
+        "Spotify",
+        "Instagram",
+        "TikTok",
+        "Discord",
+        "PrimeVideo",
+        "Steam",
+        "EpicGames",
+        "VLC",
+        "WhatsApp",
+        "Telegram",
+        "YouTube",
+        "Facebook",
+        "Twitter"
+      ],
+      "timestamp": "2025-10-26T17:27:58.363096"
+    },
+    "timestamp": "2025-10-26T17:27:58.364523"
+  },
+  {
+    "module": "distraction",
+    "title": "🚫 Full Block Activated",
+    "content": "Blocked 10 apps via registry and firewall.",
+    "metadata": {
+      "apps": [
+        "Discord.exe",
+        "Spotify.exe",
+        "Steam.exe",
+        "VLC.exe",
+        "Telegram.exe",
+        "WhatsApp.exe",
+        "Netflix.exe",
+        "Facebook.exe",
+        "YouTube.exe",
+        "Twitter.exe"
+      ],
+      "timestamp": "2025-10-26T17:34:50.573853"
+    },
+    "timestamp": "2025-10-26T17:34:50.575276"
+  },
+  {
+    "module": "distraction",
+    "title": "🚫 Full Block Activated",
+    "content": "Blocked 10 apps via registry and firewall.",
+    "metadata": {
+      "apps": [
+        "Discord.exe",
+        "Spotify.exe",
+        "Steam.exe",
+        "VLC.exe",
+        "Telegram.exe",
+        "WhatsApp.exe",
+        "Netflix.exe",
+        "Facebook.exe",
+        "YouTube.exe",
+        "Twitter.exe"
+      ],
+      "timestamp": "2025-10-26T17:35:47.099560"
+    },
+    "timestamp": "2025-10-26T17:35:47.100809"
+  },
+  {
+    "module": "distraction",
+    "title": "🚫 Apps Permission Blocked",
+    "content": "Denied execute on 9 executables.",
+    "metadata": {
+      "count": 9,
+      "files": [
+        "C:\\Program Files\\NVIDIA Corporation\\NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe",
+        "C:\\Program Files\\VideoLAN\\VLC\\uninstall.exe",
+        "C:\\Program Files\\VideoLAN\\VLC\\vlc-cache-gen.exe",
+        "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
+        "C:\\ProgramData\\NVIDIA Corporation\\Downloader\\latest\\GFExperience.NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe",
+        "C:\\Users\\harik\\AppData\\Local\\Microsoft\\WindowsApps\\MSTeams_8wekyb3d8bbwe\\ms-teams.exe",
+        "C:\\Users\\harik\\AppData\\Local\\Microsoft\\WindowsApps\\MSTeams_8wekyb3d8bbwe\\ms-teams_autostarter.exe",
+        "C:\\Users\\harik\\AppData\\Local\\Microsoft\\WindowsApps\\MSTeams_8wekyb3d8bbwe\\ms-teams_modulehost_ac.exe",
+        "C:\\Users\\harik\\AppData\\Local\\Microsoft\\WindowsApps\\MSTeams_8wekyb3d8bbwe\\ms-teamsupdate.exe"
+      ],
+      "timestamp": "2025-10-26T17:49:49.570755"
+    },
+    "timestamp": "2025-10-26T17:49:49.572094"
+  },
+  {
+    "module": "distraction",
+    "title": "🚫 Focus Mode Enforced",
+    "content": "Enforced blocks: 5 exes denied; 5 UWP rules; 4 domains.",
+    "metadata": {
+      "denied_exes": [
+        "C:\\Program Files\\NVIDIA Corporation\\NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe",
+        "C:\\Program Files\\VideoLAN\\VLC\\uninstall.exe",
+        "C:\\Program Files\\VideoLAN\\VLC\\vlc-cache-gen.exe",
+        "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
+        "C:\\ProgramData\\NVIDIA Corporation\\Downloader\\latest\\GFExperience.NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe"
+      ],
+      "uwp_blocked": [
+        {
+          "keyword": "netflix",
+          "packageFamily": "4DF9E0F8.Netflix_mcm4njqhnhss8"
+        },
+        {
+          "keyword": "whatsapp",
+          "packageFamily": "5319275A.WhatsAppDesktop_cv1g1gvanyjgm"
+        },
+        {
+          "keyword": "steam",
+          "packageFamily": "MSTeams_8wekyb3d8bbwe"
+        },
+        {
+          "keyword": "epic",
+          "packageFamily": "Microsoft.Windows.CapturePicker_cw5n1h2txyewy"
+        },
+        {
+          "keyword": "primevideo",
+          "packageFamily": "AmazonVideo.PrimeVideo_pwbj9vvecjh7j"
+        }
+      ],
+      "hosts_blocked": [
+        "web.whatsapp.com",
+        "whatsapp.com",
+        "netflix.com",
+        "youtube.com"
+      ],
+      "killed": [
+        {
+          "name": "whatsapp",
+          "pid": 23856
+        }
+      ],
+      "timestamp": "2025-10-26T18:01:01.455986"
+    },
+    "timestamp": "2025-10-26T18:01:01.456784"
+  },
+  {
+    "module": "distraction",
+    "title": "🚫 Focus Mode Enforced",
+    "content": "Enforced blocks: 5 exes denied; 5 UWP rules; 0 domains.",
+    "metadata": {
+      "denied_exes": [
+        "C:\\Program Files\\NVIDIA Corporation\\NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe",
+        "C:\\Program Files\\VideoLAN\\VLC\\uninstall.exe",
+        "C:\\Program Files\\VideoLAN\\VLC\\vlc-cache-gen.exe",
+        "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
+        "C:\\ProgramData\\NVIDIA Corporation\\Downloader\\latest\\GFExperience.NvStreamSrv\\SteamLauncher\\NVIDIA.SteamLauncher.exe"
+      ],
+      "uwp_blocked": [
+        {
+          "keyword": "netflix",
+          "packageFamily": "4DF9E0F8.Netflix_mcm4njqhnhss8"
+        },
+        {
+          "keyword": "whatsapp",
+          "packageFamily": "5319275A.WhatsAppDesktop_cv1g1gvanyjgm"
+        },
+        {
+          "keyword": "steam",
+          "packageFamily": "MSTeams_8wekyb3d8bbwe"
+        },
+        {
+          "keyword": "epic",
+          "packageFamily": "Microsoft.Windows.CapturePicker_cw5n1h2txyewy"
+        },
+        {
+          "keyword": "primevideo",
+          "packageFamily": "AmazonVideo.PrimeVideo_pwbj9vvecjh7j"
+        }
+      ],
+      "hosts_blocked": [],
+      "killed": [],
+      "timestamp": "2025-10-26T18:01:40.565717"
+    },
+    "timestamp": "2025-10-26T18:01:40.566333"
+  }
+]

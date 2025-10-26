@@ -1,0 +1,279 @@
+[
+  {
+    "id": "20251025173843",
+    "title": "Text AutoNote",
+    "transcript": "Python is a popular, high-level, general-purpose programming language. 🐍 It's famous for its clean, easy-to-read syntax that emphasizes readability, making it a favorite for beginners and experts alike.\n\n\nKey Features\nBeginner-Friendly: Its simple, English-like syntax means you can write and understand programs relatively quickly. It uses indentation (whitespace) to define code blocks, which forces clean formatting.\n\n\nInterpreted: Python code is executed line by line by an interpreter. This makes debugging easier, as you can often see errors immediately rather than having to compile the entire program first.\n\n\nVersatile: It's a \"general-purpose\" language, meaning it's not locked into one specific task. You can use it for a huge variety of applications.\n\n\nMassive Ecosystem: Python has a large standard library (\"batteries included\") that provides tools for many common tasks. It also has a huge community that contributes millions of third-party packages (libraries) for specialized jobs, like data analysis or web development.\n\nFree and Open-Source: It costs nothing to download, use, or share.\n\nWhat is Python Used For?\nPython's versatility means it shows up everywhere. Some of its most popular uses include:\n\nData Science & Machine Learning: This is one of its biggest strengths. Libraries like Pandas (for data analysis), NumPy (for numerical operations), and TensorFlow or PyTorch (for AI and machine learning) make it the go-to language for data professionals.",
+    "summary": "Python is a versatile, general-purpose programming language known for its readability due to an English-like syntax. It's interpreted line by line which simplifies debugging and offers flexibility through indentation that enforces code cleanliness.",
+    "highlights": [
+      "interpreted",
+      "batteries included",
+      "AI & machine learning"
+    ],
+    "bullets": [
+      "Python is beginner-friendly with simple syntax using English words.",
+      "It uses whitespace for code blocks, forcing a readable formatting style.",
+      "Interpreter executes Python line by line facilitating immediate debugging upon errors.",
+      "Nonetheless popular in data science and machine learning sectors due to powerful libraries like Pandas, NumPy, TensorFlow, or PyTorch."
+    ],
+    "timestamp": "2025-10-25T17:38:43.595094"
+  },
+  {
+    "title": "python",
+    "transcript": "",
+    "summary": "📋 Summary:\nPython is a versatile, general-purpose programming language known for its readability due to an English-like syntax. It's interpreted line by line which simplifies debugging and offers flexibility through indentation that enforces code cleanliness.\n\n⭐ Highlights:\ninterpreted, batteries included, AI & machine learning\n\n🔹 Bullets:\nPython is beginner-friendly with simple syntax using English words.\nIt uses whitespace for code blocks, forcing a readable formatting style.\nInterpreter executes Python line by line facilitating immediate debugging upon errors.\nNonetheless popular in data science and machine learning sectors due to powerful libraries like Pandas, NumPy, TensorFlow, or PyTorch.",
+    "highlights": [
+      "interpreted",
+      "batteries included",
+      "AI & machine learning"
+    ],
+    "bullets": [
+      "Python is beginner-friendly with simple syntax using English words.",
+      "It uses whitespace for code blocks, forcing a readable formatting style.",
+      "Interpreter executes Python line by line facilitating immediate debugging upon errors.",
+      "Nonetheless popular in data science and machine learning sectors due to powerful libraries like Pandas, NumPy, TensorFlow, or PyTorch."
+    ],
+    "id": "20251025173851",
+    "timestamp": "2025-10-25T17:38:51.703763"
+  },
+  {
+    "id": "20251025174744",
+    "title": "Text AutoNote",
+    "transcript": "Python is a popular, high-level, general-purpose programming language. 🐍 It's famous for its clean, easy-to-read syntax that emphasizes readability, making it a favorite for beginners and experts alike.\n\n\nKey Features\nBeginner-Friendly: Its simple, English-like syntax means you can write and understand programs relatively quickly. It uses indentation (whitespace) to define code blocks, which forces clean formatting.\n\n\nInterpreted: Python code is executed line by line by an interpreter. This makes debugging easier, as you can often see errors immediately rather than having to compile the entire program first.\n\n\nVersatile: It's a \"general-purpose\" language, meaning it's not locked into one specific task. You can use it for a huge variety of applications.\n\n\nMassive Ecosystem: Python has a large standard library (\"batteries included\") that provides tools for many common tasks. It also has a huge community that contributes millions of third-party packages (libraries) for specialized jobs, like data analysis or web development.\n\nFree and Open-Source: It costs nothing to download, use, or share.\n\nWhat is Python Used For?\nPython's versatility means it shows up everywhere. Some of its most popular uses include:\n\nData Science & Machine Learning: This is one of its biggest strengths. Libraries like Pandas (for data analysis), NumPy (for numerical operations), and TensorFlow or PyTorch (for AI and machine learning) make it the go-to language for data professionals.",
+    "summary": "Python is a popular, high-level general-purpose programming language known for its easy-to-read syntax. It's versatile enough to be used in various applications and boasts an extensive ecosystem of third-party packages.",
+    "highlights": [
+      "highly readable Python",
+      "interpreted nature simplifying debugging process",
+      "massive standard library for common tasks, along with community contributions",
+      "free to download and share without cost"
+    ],
+    "bullets": [
+      "Python uses indentation (whitespace) instead of brackets or braces.",
+      "Interpreter executes Python code line by line.",
+      "A large standard library that includes tools for common tasks",
+      "Vast community contributes to millions of third-party packages in data analysis, web development and more.",
+      "Popular uses include Data Science & Machine Learning with libraries like Pandas, NumPy, TensorFlow or PyTorch"
+    ],
+    "timestamp": "2025-10-25T17:47:44.099265"
+  },
+  {
+    "id": "20251026042116",
+    "title": "Text AutoNote",
+    "summary": "Python is a high-level, general-purpose programming language known for its readability due to English-like syntax. It's interpreted rather than compiled and has an extensive ecosystem of third-party packages.",
+    "content": "Python is a high-level, general-purpose programming language known for its readability due to English-like syntax. It's interpreted rather than compiled and has an extensive ecosystem of third-party packages.",
+    "transcript": "Python is a popular, high-level, general-purpose programming language. 🐍 It's famous for its clean, easy-to-read syntax that emphasizes readability, making it a favorite for beginners and experts alike.\n\n\nKey Features\nBeginner-Friendly: Its simple, English-like syntax means you can write and understand programs relatively quickly. It uses indentation (whitespace) to define code blocks, which forces clean formatting.\n\n\nInterpreted: Python code is executed line by line by an interpreter. This makes debugging easier, as you can often see errors immediately rather than having to compile the entire program first.\n\n\nVersatile: It's a \"general-purpose\" language, meaning it's not locked into one specific task. You can use it for a huge variety of applications.\n\n\nMassive Ecosystem: Python has a large standard library (\"batteries included\") that provides tools for many common tasks. It also has a huge community that contributes millions of third-party packages (libraries) for specialized jobs, like data analysis or web development.\n\nFree and Open-Source: It costs nothing to download, use, or share.\n\nWhat is Python Used For?\nPython's versatility means it shows up everywhere. Some of its most popular uses include:\n\nData Science & Machine Learning: This is one of its biggest strengths. Libraries like Pandas (for data analysis), NumPy (for numerical operations), and TensorFlow or PyTorch (for AI and machine learning) make it the go-to language for data professionals",
+    "highlights": [
+      "clean, easy-to-read syntax",
+      "interpreted execution model",
+      "versatile application development",
+      "massive standard library & community contributions"
+    ],
+    "bullets": [
+      "Indentation defines code blocks for clear formatting.",
+      "Immediate error feedback during debugging due to line-by-line interpretation.",
+      "Used in data science, machine learning with Pandas, NumPy, TensorFlow or PyTorch.",
+      "Free and Open Source software (FOSS)",
+      "Huge ecosystem of third-party packages for specialized jobs."
+    ],
+    "timestamp": "2025-10-26T04:21:16.942985"
+  },
+  {
+    "id": "20251026042404",
+    "title": "Text AutoNote",
+    "summary": "Python is a high-level, general-purpose programming language known for its readable syntax. It's free to use or share and has extensive standard libraries complemented by third-party packages.",
+    "content": "Python is a high-level, general-purpose programming language known for its readable syntax. It's free to use or share and has extensive standard libraries complemented by third-party packages.",
+    "transcript": "Python is a popular, high-level, general-purpose programming language. 🐍 It's famous for its clean, easy-to-read syntax that emphasizes readability, making it a favorite for beginners and experts alike.\n\n\nKey Features\nBeginner-Friendly: Its simple, English-like syntax means you can write and understand programs relatively quickly. It uses indentation (whitespace) to define code blocks, which forces clean formatting.\n\n\nInterpreted: Python code is executed line by line by an interpreter. This makes debugging easier, as you can often see errors immediately rather than having to compile the entire program first.\n\n\nVersatile: It's a \"general-purpose\" language, meaning it's not locked into one specific task. You can use it for a huge variety of applications.\n\n\nMassive Ecosystem: Python has a large standard library (\"batteries included\") that provides tools for many common tasks. It also has a huge community that contributes millions of third-party packages (libraries) for specialized jobs, like data analysis or web development.\n\nFree and Open-Source: It costs nothing to download, use, or share.\n\nWhat is Python Used For?\nPython's versatility means it shows up everywhere. Some of its most popular uses include:\n\nData Science & Machine Learning: This is one of its biggest strengths. Libraries like Pandas (for data analysis), NumPy (for numerical operations), and TensorFlow or PyTorch (for AI and machine learning) make it the go-to language for data professionals",
+    "highlights": [
+      "Easy Syntax",
+      "Interpreted Language",
+      "Versatile Use Cases",
+      "Massive Ecosystem"
+    ],
+    "bullets": [
+      "English-like syntax for quick program comprehension.",
+      "Line by line execution simplifies debugging process due to immediate error display.",
+      "Not limited to one task, Python supports diverse applications ranging from web development to AI and machine learning.",
+      "Includes standard libraries covering various common tasks with a plethora of third-party packages for specialized job requirements."
+    ],
+    "timestamp": "2025-10-26T04:24:04.936200"
+  },
+  {
+    "title": "python",
+    "transcript": "",
+    "summary": "📋 Summary:\nPython is a high-level, general-purpose programming language known for its readable syntax. It's free to use or share and has extensive standard libraries complemented by third-party packages.\n\n⭐ Highlights:\nEasy Syntax, Interpreted Language, Versatile Use Cases, Massive Ecosystem\n\n🔹 Bullets:\nEnglish-like syntax for quick program comprehension.\nLine by line execution simplifies debugging process due to immediate error display.\nNot limited to one task, Python supports diverse applications ranging from web development to AI and machine learning.\nIncludes standard libraries covering various common tasks with a plethora of third-party packages for specialized job requirements.",
+    "highlights": [
+      "Easy Syntax",
+      "Interpreted Language",
+      "Versatile Use Cases",
+      "Massive Ecosystem"
+    ],
+    "bullets": [
+      "English-like syntax for quick program comprehension.",
+      "Line by line execution simplifies debugging process due to immediate error display.",
+      "Not limited to one task, Python supports diverse applications ranging from web development to AI and machine learning.",
+      "Includes standard libraries covering various common tasks with a plethora of third-party packages for specialized job requirements."
+    ],
+    "id": "20251026042426",
+    "timestamp": "2025-10-26T04:24:26.162046"
+  },
+  {
+    "id": "20251026052800",
+    "title": "Text AutoNote",
+    "summary": "Python, a high-level programming language known for its readability due to simple syntax resembling English. It's interpreted line by line making debugging easier through immediate error feedback and is versatile enough to be used in various tasks including data science & machine learning with specialized libraries like Pandas, NumPy, TensorFlow or PyTorch.",
+    "content": "Python, a high-level programming language known for its readability due to simple syntax resembling English. It's interpreted line by line making debugging easier through immediate error feedback and is versatile enough to be used in various tasks including data science & machine learning with specialized libraries like Pandas, NumPy, TensorFlow or PyTorch.",
+    "transcript": "Python is a popular, high-level, general-purpose programming language. 🐍 It's famous for its clean, easy-to-read syntax that emphasizes readability, making it a favorite for beginners and experts alike.\n\n\nKey Features\nBeginner-Friendly: Its simple, English-like syntax means you can write and understand programs relatively quickly. It uses indentation (whitespace) to define code blocks, which forces clean formatting.\n\n\nInterpreted: Python code is executed line by line by an interpreter. This makes debugging easier, as you can often see errors immediately rather than having to compile the entire program first.\n\n\nVersatile: It's a \"general-purpose\" language, meaning it's not locked into one specific task. You can use it for a huge variety of applications.\n\n\nMassive Ecosystem: Python has a large standard library (\"batteries included\") that provides tools for many common tasks. It also has a huge community that contributes millions of third-party packages (libraries) for specialized jobs, like data analysis or web development.\n\nFree and Open-Source: It costs nothing to download, use, or share.\n\nWhat is Python Used For?\nPython's versatility means it shows up everywhere. Some of its most popular uses include:\n\nData Science & Machine Learning: This is one of its biggest strengths. Libraries like Pandas (for data analysis), NumPy (for numerical operations), and TensorFlow or PyTorch (for AI and machine learning) make it the go-to language for data professionals",
+    "highlights": [
+      "High-level language",
+      "Easy syntax for beginners",
+      "Interpreted/line by line execution mode",
+      "Versatile and general purpose programming tool",
+      "Rich standard library with third-party packages"
+    ],
+    "keywords": [
+      "High-level language",
+      "Easy syntax for beginners",
+      "Interpreted/line by line execution mode",
+      "Versatile and general purpose programming tool",
+      "Rich standard library with third-party packages"
+    ],
+    "bullets": [
+      "Python promotes readability through indentation.",
+      "It is commonly used in data science, AI, web development due to versatility of libraries like Pandas and TensorFlow/PyTorch",
+      "Free & open-source"
+    ],
+    "timestamp": "2025-10-26T05:28:00.685620"
+  },
+  {
+    "title": "test 1",
+    "transcript": "",
+    "summary": "📋 Summary:\nPython, a high-level programming language known for its readability due to simple syntax resembling English. It's interpreted line by line making debugging easier through immediate error feedback and is versatile enough to be used in various tasks including data science & machine learning with specialized libraries like Pandas, NumPy, TensorFlow or PyTorch.\n\n⭐ Highlights:\nHigh-level language, Easy syntax for beginners, Interpreted/line by line execution mode, Versatile and general purpose programming tool, Rich standard library with third-party packages\n\n🔹 Bullets:\nPython promotes readability through indentation.\nIt is commonly used in data science, AI, web development due to versatility of libraries like Pandas and TensorFlow/PyTorch\nFree & open-source",
+    "highlights": [
+      "High-level language",
+      "Easy syntax for beginners",
+      "Interpreted/line by line execution mode",
+      "Versatile and general purpose programming tool",
+      "Rich standard library with third-party packages"
+    ],
+    "bullets": [
+      "Python promotes readability through indentation.",
+      "It is commonly used in data science, AI, web development due to versatility of libraries like Pandas and TensorFlow/PyTorch",
+      "Free & open-source"
+    ],
+    "id": "20251026052813",
+    "timestamp": "2025-10-26T05:28:13.371550",
+    "keywords": [
+      "High-level language",
+      "Easy syntax for beginners",
+      "Interpreted/line by line execution mode",
+      "Versatile and general purpose programming tool",
+      "Rich standard library with third-party packages"
+    ]
+  },
+  {
+    "id": "20251026054557",
+    "title": "AutoNote Summary",
+    "summary": "The Sugarcane Multi-Agent System is designed to facilitate decision making in sugarcane farming using three AI agents integrated with a React frontend, FastAPI backend, and Google Gemini LLM. Users can upload CSV files, trigger individual or combined agent workflows via the API endpoints, and view results on a dashboard that presents structured data along with recommendations for farm management.",
+    "content": "The Sugarcane Multi-Agent System is designed to facilitate decision making in sugarcane farming using three AI agents integrated with a React frontend, FastAPI backend, and Google Gemini LLM. Users can upload CSV files, trigger individual or combined agent workflows via the API endpoints, and view results on a dashboard that presents structured data along with recommendations for farm management.",
+    "transcript": "Project Documentation: Sugarcane Multi-Agent System \n \n1. Project Overview \nThis project is a Multi-Agent System designed for sugarcane farming datasets. \nIt simulates a workflow with three AI-powered agents: \n1. Collector Agent– Reads CSV dataset, validates, and summarizes data. \n2. Analyzer Agent – Performs statistical analysis and finds insights. \n3. Advisor Agent  – Provides recommendations for decision-making. \nThe system is built using: \n• \nFrontend: React.js (LangChainDashboard UI) \n• \nBackend: FastAPI (Python) \n• \nLLM Integration: Google Gemini API (Generative AI) \nUsers can: \n• \nUpload CSV files \n• \nTrigger agents individually or in sequence \n• \nView results in a dashboard \n \n2. Project Architecture \nReact Frontend   <----->   FastAPI Backend   <----->   Gemini LLM \n       ↑                                          ↑ \n     User UI                               Agents (Collector, Analyzer, Advisor) \n \n3. Frontend (React: LangChainDashboard.jsx) \n  Key Features \n• \nCSV Upload → Sends CSV to backend (/upload-csv). \n• \nAgent Buttons → Triggers backend APIs (/agent/collector, /agent/analyzer, \n/agent/advisor). \n• \nRun All → Executes full pipeline (/agent/run-all). \n• \nTable View → Displays sugarcane dataset with quality, moisture, sugar content, and \nlocation. \n \n\n  Important Functions \n• \nsimulateAgentWork(agentId) → Calls backend API for selected agent. \n• \nhandleFileUpload(event) → Uploads CSV file to backend. \n• \nresetWorkflow() → Resets all agent results. \n  Frontend APIs Used \n• \nPOST /upload-csv → Uploads CSV file \n• \nGET /data → Fetches dataset records \n• \nPOST /agent/collector → Runs Collector Agent \n• \nPOST /agent/analyzer → Runs Analyzer Agent \n• \nPOST /agent/advisor → Runs Advisor Agent \n• \nPOST /agent/run-all → Runs all agents in sequence \n \n4. Backend (FastAPI: main.py) \n  Endpoints \nMethod \nEndpoint \nDescription \nGET \n/ \nAPI Root (lists endpoints) \nPOST \n/upload-csv \nUploads CSV, validates columns, saves data \nGET \n/data \nReturns uploaded dataset \nPOST \n/agent/collector \nRuns Collector Agent \nPOST \n/agent/analyzer \nRuns Analyzer Agent \nPOST \n/agent/advisor \nRuns Advisor Agent \nPOST \n/agent/run-all \nRuns all agents sequentially \nGET \n/health \nHealth check \n  Backend Functions \n• \nupdate_data_from_csv(file_path) → Reads and stores dataset. \n• \nget_uploaded_data() → Fetches stored dataset for frontend. \n• \nrun_collector(model) → Summarizes dataset using Gemini. \n• \nrun_analyzer(model) → Performs statistics, correlations, missing values check, then \nsummarizes with Gemini. \n• \nrun_advisor(model) → Generates recommendations for factory managers. \n\n \n5. Workflow (Step-by-Step) \nStep 1: Upload CSV \n• \nUser uploads CSV via frontend. \n• \nFile sent → POST /upload-csv. \n• \nBackend validates and stores data in memory (shared_data). \nStep 2: Run Collector Agent \n• \nAPI: POST /agent/collector. \n• \nReads dataset → Summarizes structure (columns, sample data, datatypes). \nStep 3: Run Analyzer Agent \n• \nAPI: POST /agent/analyzer. \n• \nComputes: \no \nStatistical summary \no \nCorrelation matrix \no \nMissing values \n• \nSends structured results to Gemini → Generates insights. \nStep 4: Run Advisor Agent \n• \nAPI: POST /agent/advisor. \n• \nUses analysis + dataset to provide actionable recommendations for sugarcane \nmanagement. \nStep 5: Run All Agents \n• \nAPI: POST /agent/run-all. \n• \nExecutes all agents sequentially (Collector → Analyzer → Advisor). \n• \nReturns combined results. \n \n6. How to Run the Project \n  Backend \ncd backend \npython -m uvicorn main:app --reload \n• \nRuns server at http://127.0.0.1:8000 \n• \nAPI Docs: http://127.0.0.1:8000/docs \n\n \n7. Example CSV Format \nbatch \nquality \nmoisture \nsugar_content \nlocation \nB001 \n85 \n12.5 \n14.2 \nField A \nB002 \n92 \n11.8 \n15.1 \nField B \nB003 \n78 \n13.2 \n13.5 \nField C \n \n8. LLM (Gemini API) \n• \nIntegrated using google.generativeai. \n• \nModel: \"gemini-1.5-flash\". \n• \nUsed inside Collector, Analyzer, and Advisor to generate human-readable insights in \nnumbered points. \n \n9. Benefits of System \n• \nAutomation → Saves manual effort in analyzing datasets. \n• \nAI-Powered Insights → Clear recommendations for farming/factory decisions. \n• \nScalable → Can be extended for other crops and datasets. \n \n\n",
+    "highlights": [
+      "Multi-Agent System",
+      "React Frontend",
+      "FastAPI Backend",
+      "Google Gemini LLM"
+    ],
+    "keywords": [
+      "Multi-Agent System",
+      "React Frontend",
+      "FastAPI Backend",
+      "Google Gemini LLM"
+    ],
+    "bullets": [
+      "{'bullet_title': 'Project Overview and AI Agents Summary', 'points': ['Multi-Agent System for sugarcane datasets simulation.', 'Three agents: Collector, Analyzer, Advisor.']}",
+      "{'bullet_title': 'Frontend Features Description and Endpoint Details', 'points': ['CSV upload with the ability to trigger agent workflows individually or in sequence.', 'A table view displays dataset records categorized by quality, moisture, sugar content, location.']}",
+      "{'bullet_title': 'Backend API Endpoints and Functionalities', 'points': ['API endpoint for CSV upload.', 'Data storage via shared data in backend memory.']}",
+      "{'bullet_title': 'Workflow Steps Explanation', 'points': [\"Uploading the dataset and validating it with Collector Agent's run function.\", 'Running Analyzer to compute statistical summary, correlation matrix, missing values.']}",
+      "{'bullet_title': 'How to Run Project Information', 'points': ['Server can be started locally using `uvicorn main:app --reload` command.', \"API documentation is accessible on the server's local address.\"]}",
+      "{'bullet_title': 'LLM Integration and Usage', 'points': ['Google Gemini API integrated for summarizing dataset structure, generating insights.', 'Utilized within each agent to provide human-readable recommendations.']}",
+      "{'bullet_title': 'System Benefits and Scope', 'points': ['Automation in data analysis saves manual effort, providing clear decision making.', 'The system can be easily extended for other crops or datasets.']}"
+    ],
+    "timestamp": "2025-10-26T05:45:57.813365"
+  },
+  {
+    "title": "sugarcane",
+    "transcript": "",
+    "summary": "📋 Summary:\nThe Sugarcane Multi-Agent System is designed to facilitate decision making in sugarcane farming using three AI agents integrated with a React frontend, FastAPI backend, and Google Gemini LLM. Users can upload CSV files, trigger individual or combined agent workflows via the API endpoints, and view results on a dashboard that presents structured data along with recommendations for farm management.\n\n⭐ Highlights:\nMulti-Agent System, React Frontend, FastAPI Backend, Google Gemini LLM\n\n🔹 Bullets:\n{'bullet_title': 'Project Overview and AI Agents Summary', 'points': ['Multi-Agent System for sugarcane datasets simulation.', 'Three agents: Collector, Analyzer, Advisor.']}\n{'bullet_title': 'Frontend Features Description and Endpoint Details', 'points': ['CSV upload with the ability to trigger agent workflows individually or in sequence.', 'A table view displays dataset records categorized by quality, moisture, sugar content, location.']}\n{'bullet_title': 'Backend API Endpoints and Functionalities', 'points': ['API endpoint for CSV upload.', 'Data storage via shared data in backend memory.']}\n{'bullet_title': 'Workflow Steps Explanation', 'points': [\"Uploading the dataset and validating it with Collector Agent's run function.\", 'Running Analyzer to compute statistical summary, correlation matrix, missing values.']}\n{'bullet_title': 'How to Run Project Information', 'points': ['Server can be started locally using `uvicorn main:app --reload` command.', \"API documentation is accessible on the server's local address.\"]}\n{'bullet_title': 'LLM Integration and Usage', 'points': ['Google Gemini API integrated for summarizing dataset structure, generating insights.', 'Utilized within each agent to provide human-readable recommendations.']}\n{'bullet_title': 'System Benefits and Scope', 'points': ['Automation in data analysis saves manual effort, providing clear decision making.', 'The system can be easily extended for other crops or datasets.']}",
+    "highlights": [
+      "Multi-Agent System",
+      "React Frontend",
+      "FastAPI Backend",
+      "Google Gemini LLM"
+    ],
+    "bullets": [
+      "{'bullet_title': 'Project Overview and AI Agents Summary', 'points': ['Multi-Agent System for sugarcane datasets simulation.', 'Three agents: Collector, Analyzer, Advisor.']}",
+      "{'bullet_title': 'Frontend Features Description and Endpoint Details', 'points': ['CSV upload with the ability to trigger agent workflows individually or in sequence.', 'A table view displays dataset records categorized by quality, moisture, sugar content, location.']}",
+      "{'bullet_title': 'Backend API Endpoints and Functionalities', 'points': ['API endpoint for CSV upload.', 'Data storage via shared data in backend memory.']}",
+      "{'bullet_title': 'Workflow Steps Explanation', 'points': [\"Uploading the dataset and validating it with Collector Agent's run function.\", 'Running Analyzer to compute statistical summary, correlation matrix, missing values.']}",
+      "{'bullet_title': 'How to Run Project Information', 'points': ['Server can be started locally using `uvicorn main:app --reload` command.', \"API documentation is accessible on the server's local address.\"]}",
+      "{'bullet_title': 'LLM Integration and Usage', 'points': ['Google Gemini API integrated for summarizing dataset structure, generating insights.', 'Utilized within each agent to provide human-readable recommendations.']}",
+      "{'bullet_title': 'System Benefits and Scope', 'points': ['Automation in data analysis saves manual effort, providing clear decision making.', 'The system can be easily extended for other crops or datasets.']}"
+    ],
+    "id": "20251026054621",
+    "timestamp": "2025-10-26T05:46:21.743924",
+    "keywords": [
+      "Multi-Agent System",
+      "React Frontend",
+      "FastAPI Backend",
+      "Google Gemini LLM"
+    ]
+  },
+  {
+    "id": "20251026070643",
+    "title": "AutoNote Summary",
+    "summary": "Python is a high-level programming language known for easy readability due to simple syntax that resembles plain English. It's versatile in data science, AI modeling, web development backends with Django or Flask.",
+    "content": "Python is a high-level programming language known for easy readability due to simple syntax that resembles plain English. It's versatile in data science, AI modeling, web development backends with Django or Flask.",
+    "transcript": "Python is a popular, high-level, and general-purpose programming language. 🐍 It's known for its simple, easy-to-read syntax, which often resembles plain English. This design philosophy emphasizes code readability, allowing programmers to express complex ideas in fewer lines of code than many other languages.\n\n\nIt's an interpreted language, which means the code is executed line by line, making it easier to debug and excellent for rapid development.\n\nKey Features\nEasy to Learn & Use: Its straightforward syntax makes it an outstanding choice for beginners.\n\nLarge Standard Library: It comes with a vast library of pre-written code (modules) for common tasks, so you don't have to build everything from scratch.\n\nVast Ecosystem: Beyond the standard library, Python has a massive collection of third-party packages (like pip, its package manager) for specialized tasks.\n\nCross-Platform: Python code can run on Windows, macOS, Linux, and other operating systems without modification.\n\nFree and Open-Source: It's completely free to use and distribute, even for commercial purposes, and its development is managed by a large community.\n\nCommon Uses\nPython's versatility makes it a powerful tool in many different fields:\n\nWeb Development: Building the server-side (backend) of websites using frameworks like Django and Flask.\n\nData Science & Machine Learning: Analyzing data, creating visualizations, and building artificial intelligence (AI) models. This is one of its most popular uses, powered by libraries like Pandas, NumPy, Scikit-learn, and TensorFlow.",
+    "highlights": [
+      "high-level and general-purpose",
+      "simple syntax emphasizing code readability",
+      "interpreted language for easy debugging and rapid development"
+    ],
+    "keywords": [
+      "high-level and general-purpose",
+      "simple syntax emphasizing code readability",
+      "interpreted language for easy debugging and rapid development"
+    ],
+    "bullets": [
+      "- Beginner-friendly due to straightforward syntax.",
+      "- Comes with a large standard library, eliminating the need to write basic functionalities from scratch.",
+      "- Offers an extensive ecosystem of third-party packages for specialized tasks through pip package manager.",
+      "- Cross-platform compatibility across Windows, macOS, Linux and more operating systems without code modifications.",
+      "- Free usage with zero commercial licensing fees or restrictions on distribution.",
+      "- A vibrant community managing its development openly."
+    ],
+    "timestamp": "2025-10-26T07:06:43.379049"
+  },
+  {
+    "title": "test 2",
+    "transcript": "",
+    "summary": "📋 Summary:\nPython is a high-level programming language known for easy readability due to simple syntax that resembles plain English. It's versatile in data science, AI modeling, web development backends with Django or Flask.\n\n⭐ Highlights:\nhigh-level and general-purpose, simple syntax emphasizing code readability, interpreted language for easy debugging and rapid development\n\n🔹 Bullets:\n- Beginner-friendly due to straightforward syntax.\n- Comes with a large standard library, eliminating the need to write basic functionalities from scratch.\n- Offers an extensive ecosystem of third-party packages for specialized tasks through pip package manager.\n- Cross-platform compatibility across Windows, macOS, Linux and more operating systems without code modifications.\n- Free usage with zero commercial licensing fees or restrictions on distribution.\n- A vibrant community managing its development openly.",
+    "highlights": [
+      "high-level and general-purpose",
+      "simple syntax emphasizing code readability",
+      "interpreted language for easy debugging and rapid development"
+    ],
+    "bullets": [
+      "- Beginner-friendly due to straightforward syntax.",
+      "- Comes with a large standard library, eliminating the need to write basic functionalities from scratch.",
+      "- Offers an extensive ecosystem of third-party packages for specialized tasks through pip package manager.",
+      "- Cross-platform compatibility across Windows, macOS, Linux and more operating systems without code modifications.",
+      "- Free usage with zero commercial licensing fees or restrictions on distribution.",
+      "- A vibrant community managing its development openly."
+    ],
+    "id": "20251026070659",
+    "timestamp": "2025-10-26T07:06:59.400532",
+    "keywords": [
+      "high-level and general-purpose",
+      "simple syntax emphasizing code readability",
+      "interpreted language for easy debugging and rapid development"
+    ]
+  }
+]

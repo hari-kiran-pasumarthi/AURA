@@ -1,0 +1,219 @@
+📝 AutoNote Entry
+Title: AutoNote Summary
+Timestamp: 2025-10-26T05:45:57.813365
+
+=== Summary ===
+The Sugarcane Multi-Agent System is designed to facilitate decision making in sugarcane farming using three AI agents integrated with a React frontend, FastAPI backend, and Google Gemini LLM. Users can upload CSV files, trigger individual or combined agent workflows via the API endpoints, and view results on a dashboard that presents structured data along with recommendations for farm management.
+
+=== Highlights ===
+Multi-Agent System
+React Frontend
+FastAPI Backend
+Google Gemini LLM
+
+=== Bullets ===
+{'bullet_title': 'Project Overview and AI Agents Summary', 'points': ['Multi-Agent System for sugarcane datasets simulation.', 'Three agents: Collector, Analyzer, Advisor.']}
+{'bullet_title': 'Frontend Features Description and Endpoint Details', 'points': ['CSV upload with the ability to trigger agent workflows individually or in sequence.', 'A table view displays dataset records categorized by quality, moisture, sugar content, location.']}
+{'bullet_title': 'Backend API Endpoints and Functionalities', 'points': ['API endpoint for CSV upload.', 'Data storage via shared data in backend memory.']}
+{'bullet_title': 'Workflow Steps Explanation', 'points': ["Uploading the dataset and validating it with Collector Agent's run function.", 'Running Analyzer to compute statistical summary, correlation matrix, missing values.']}
+{'bullet_title': 'How to Run Project Information', 'points': ['Server can be started locally using `uvicorn main:app --reload` command.', "API documentation is accessible on the server's local address."]}
+{'bullet_title': 'LLM Integration and Usage', 'points': ['Google Gemini API integrated for summarizing dataset structure, generating insights.', 'Utilized within each agent to provide human-readable recommendations.']}
+{'bullet_title': 'System Benefits and Scope', 'points': ['Automation in data analysis saves manual effort, providing clear decision making.', 'The system can be easily extended for other crops or datasets.']}
+
+=== Transcript ===
+Project Documentation: Sugarcane Multi-Agent System 
+ 
+1. Project Overview 
+This project is a Multi-Agent System designed for sugarcane farming datasets. 
+It simulates a workflow with three AI-powered agents: 
+1. Collector Agent– Reads CSV dataset, validates, and summarizes data. 
+2. Analyzer Agent – Performs statistical analysis and finds insights. 
+3. Advisor Agent  – Provides recommendations for decision-making. 
+The system is built using: 
+• 
+Frontend: React.js (LangChainDashboard UI) 
+• 
+Backend: FastAPI (Python) 
+• 
+LLM Integration: Google Gemini API (Generative AI) 
+Users can: 
+• 
+Upload CSV files 
+• 
+Trigger agents individually or in sequence 
+• 
+View results in a dashboard 
+ 
+2. Project Architecture 
+React Frontend   <----->   FastAPI Backend   <----->   Gemini LLM 
+       ↑                                          ↑ 
+     User UI                               Agents (Collector, Analyzer, Advisor) 
+ 
+3. Frontend (React: LangChainDashboard.jsx) 
+  Key Features 
+• 
+CSV Upload → Sends CSV to backend (/upload-csv). 
+• 
+Agent Buttons → Triggers backend APIs (/agent/collector, /agent/analyzer, 
+/agent/advisor). 
+• 
+Run All → Executes full pipeline (/agent/run-all). 
+• 
+Table View → Displays sugarcane dataset with quality, moisture, sugar content, and 
+location. 
+ 
+
+  Important Functions 
+• 
+simulateAgentWork(agentId) → Calls backend API for selected agent. 
+• 
+handleFileUpload(event) → Uploads CSV file to backend. 
+• 
+resetWorkflow() → Resets all agent results. 
+  Frontend APIs Used 
+• 
+POST /upload-csv → Uploads CSV file 
+• 
+GET /data → Fetches dataset records 
+• 
+POST /agent/collector → Runs Collector Agent 
+• 
+POST /agent/analyzer → Runs Analyzer Agent 
+• 
+POST /agent/advisor → Runs Advisor Agent 
+• 
+POST /agent/run-all → Runs all agents in sequence 
+ 
+4. Backend (FastAPI: main.py) 
+  Endpoints 
+Method 
+Endpoint 
+Description 
+GET 
+/ 
+API Root (lists endpoints) 
+POST 
+/upload-csv 
+Uploads CSV, validates columns, saves data 
+GET 
+/data 
+Returns uploaded dataset 
+POST 
+/agent/collector 
+Runs Collector Agent 
+POST 
+/agent/analyzer 
+Runs Analyzer Agent 
+POST 
+/agent/advisor 
+Runs Advisor Agent 
+POST 
+/agent/run-all 
+Runs all agents sequentially 
+GET 
+/health 
+Health check 
+  Backend Functions 
+• 
+update_data_from_csv(file_path) → Reads and stores dataset. 
+• 
+get_uploaded_data() → Fetches stored dataset for frontend. 
+• 
+run_collector(model) → Summarizes dataset using Gemini. 
+• 
+run_analyzer(model) → Performs statistics, correlations, missing values check, then 
+summarizes with Gemini. 
+• 
+run_advisor(model) → Generates recommendations for factory managers. 
+
+ 
+5. Workflow (Step-by-Step) 
+Step 1: Upload CSV 
+• 
+User uploads CSV via frontend. 
+• 
+File sent → POST /upload-csv. 
+• 
+Backend validates and stores data in memory (shared_data). 
+Step 2: Run Collector Agent 
+• 
+API: POST /agent/collector. 
+• 
+Reads dataset → Summarizes structure (columns, sample data, datatypes). 
+Step 3: Run Analyzer Agent 
+• 
+API: POST /agent/analyzer. 
+• 
+Computes: 
+o 
+Statistical summary 
+o 
+Correlation matrix 
+o 
+Missing values 
+• 
+Sends structured results to Gemini → Generates insights. 
+Step 4: Run Advisor Agent 
+• 
+API: POST /agent/advisor. 
+• 
+Uses analysis + dataset to provide actionable recommendations for sugarcane 
+management. 
+Step 5: Run All Agents 
+• 
+API: POST /agent/run-all. 
+• 
+Executes all agents sequentially (Collector → Analyzer → Advisor). 
+• 
+Returns combined results. 
+ 
+6. How to Run the Project 
+  Backend 
+cd backend 
+python -m uvicorn main:app --reload 
+• 
+Runs server at http://127.0.0.1:8000 
+• 
+API Docs: http://127.0.0.1:8000/docs 
+
+ 
+7. Example CSV Format 
+batch 
+quality 
+moisture 
+sugar_content 
+location 
+B001 
+85 
+12.5 
+14.2 
+Field A 
+B002 
+92 
+11.8 
+15.1 
+Field B 
+B003 
+78 
+13.2 
+13.5 
+Field C 
+ 
+8. LLM (Gemini API) 
+• 
+Integrated using google.generativeai. 
+• 
+Model: "gemini-1.5-flash". 
+• 
+Used inside Collector, Analyzer, and Advisor to generate human-readable insights in 
+numbered points. 
+ 
+9. Benefits of System 
+• 
+Automation → Saves manual effort in analyzing datasets. 
+• 
+AI-Powered Insights → Clear recommendations for farming/factory decisions. 
+• 
+Scalable → Can be extended for other crops and datasets. 
+ 
+

@@ -1,0 +1,98 @@
+[
+  {
+    "title": "Flashcards from Manual Text Input",
+    "content": "10 flashcards generated.",
+    "metadata": {
+      "source": "Manual Text Input",
+      "num_cards": 10,
+      "top_phrases": [
+        "web applications using frameworks like django",
+        "design philosophy emphasizes code readability",
+        "british comedy group monty python",
+        "languages like c ++",
+        "building desktop applications",
+        "resembles plain english",
+        "operating system files",
+        "guido van rossum",
+        "batteries included \":",
+        "vast standard library"
+      ],
+      "tags": [
+        "auto"
+      ],
+      "cards": [
+        {
+          "q": "Python's versatility makes it a powerful tool for many different industries and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and ____ and Flask",
+          "a": "web applications using frameworks like django",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Its ____, and its syntax allows programmers to express concepts in fewer lines of code than might be possible in languages like C++ or Java",
+          "a": "design philosophy emphasizes code readability",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "He named it Python not because of the snake 🐍, but because he was a big fan of the ____'s Flying Circus",
+          "a": "british comedy group monty python",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Software Development: ____, business software, and games",
+          "a": "building desktop applications",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "It's famous for its clean, easy-to-read syntax that ____, making it a top choice for both beginners and experienced developers",
+          "a": "resembles plain english",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a vast standard library, offering ready-to-use modules for many tasks, like working with web pages, data, or ____",
+          "a": "operating system files",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "A Brief History Python was created by ____ in the late 1980s and was first released in 1991",
+          "a": "guido van rossum",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "\"Batteries Included\": It comes with a ____, offering ready-to-use modules for many tasks, like working with web pages, data, or operating system files",
+          "a": "vast standard library",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Python's versatility makes it a powerful tool for ____ and tasks: Web Development: 💻 Building the \"back-end\" (server-side) of websites and web applications using frameworks like Django and Flask",
+          "a": "many different industries",
+          "tags": [
+            "auto"
+          ]
+        },
+        {
+          "q": "Interpreted Language: Python code is executed line by line, which ____ and development faster",
+          "a": "makes debugging easier",
+          "tags": [
+            "auto"
+          ]
+        }
+      ]
+    },
+    "timestamp": "2025-10-26T16:04:00.448625"
+  }
+]

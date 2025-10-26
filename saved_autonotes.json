@@ -1,0 +1,70 @@
+[
+  {
+    "id": 1,
+    "title": "Text AutoNote",
+    "transcript": "Python is a popular, high-level, general-purpose programming language. \ud83d\udc0d It's famous for its clean, easy-to-read syntax that emphasizes readability, making it a favorite for beginners and experts alike.\n\n\nKey Features\nBeginner-Friendly: Its simple, English-like syntax means you can write and understand programs relatively quickly. It uses indentation (whitespace) to define code blocks, which forces clean formatting.\n\n\nInterpreted: Python code is executed line by line by an interpreter. This makes debugging easier, as you can often see errors immediately rather than having to compile the entire program first.\n\n\nVersatile: It's a \"general-purpose\" language, meaning it's not locked into one specific task. You can use it for a huge variety of applications.\n\n\nMassive Ecosystem: Python has a large standard library (\"batteries included\") that provides tools for many common tasks. It also has a huge community that contributes millions of third-party packages (libraries) for specialized jobs, like data analysis or web development.\n\nFree and Open-Source: It costs nothing to download, use, or share.\n\nWhat is Python Used For?\nPython's versatility means it shows up everywhere. Some of its most popular uses include:\n\nData Science & Machine Learning: This is one of its biggest strengths. Libraries like Pandas (for data analysis), NumPy (for numerical operations), and TensorFlow or PyTorch (for AI and machine learning) make it the go-to language for data professionals.",
+    "summary": "Python is a high-level, general-purpose programming language known for its readability due to English-like syntax. It's interpreted line by line which simplifies debugging.",
+    "highlights": [
+      "simple syntax",
+      "interpreted execution",
+      "versatile applications"
+    ],
+    "bullets": [
+      "Python has a simple, readable syntax that is easy even for beginners.",
+      "Code in Python executes sequentially and requires no compilation beforehand.",
+      "It can be used across various fields including data science, machine learning, web development, among others."
+    ],
+    "timestamp": "2025-10-25T17:07:54.361450"
+  },
+  {
+    "title": "python",
+    "transcript": "",
+    "summary": "\ud83d\udccb Summary:\nPython is a high-level, general-purpose programming language known for its readability due to English-like syntax. It's interpreted line by line which simplifies debugging.\n\n\u2b50 Highlights:\nsimple syntax, interpreted execution, versatile applications\n\n\ud83d\udd39 Bullets:\nPython has a simple, readable syntax that is easy even for beginners.\nCode in Python executes sequentially and requires no compilation beforehand.\nIt can be used across various fields including data science, machine learning, web development, among others.",
+    "highlights": [
+      "simple syntax",
+      "interpreted execution",
+      "versatile applications"
+    ],
+    "bullets": [
+      "Python has a simple, readable syntax that is easy even for beginners.",
+      "Code in Python executes sequentially and requires no compilation beforehand.",
+      "It can be used across various fields including data science, machine learning, web development, among others."
+    ],
+    "id": 2,
+    "timestamp": "2025-10-25T17:08:04.544303"
+  },
+  {
+    "id": 3,
+    "title": "Text AutoNote",
+    "transcript": "Python is a popular, high-level, general-purpose programming language. \ud83d\udc0d It's famous for its clean, easy-to-read syntax that emphasizes readability, making it a favorite for beginners and experts alike.\n\n\nKey Features\nBeginner-Friendly: Its simple, English-like syntax means you can write and understand programs relatively quickly. It uses indentation (whitespace) to define code blocks, which forces clean formatting.\n\n\nInterpreted: Python code is executed line by line by an interpreter. This makes debugging easier, as you can often see errors immediately rather than having to compile the entire program first.\n\n\nVersatile: It's a \"general-purpose\" language, meaning it's not locked into one specific task. You can use it for a huge variety of applications.\n\n\nMassive Ecosystem: Python has a large standard library (\"batteries included\") that provides tools for many common tasks. It also has a huge community that contributes millions of third-party packages (libraries) for specialized jobs, like data analysis or web development.\n\nFree and Open-Source: It costs nothing to download, use, or share.\n\nWhat is Python Used For?\nPython's versatility means it shows up everywhere. Some of its most popular uses include:\n\nData Science & Machine Learning: This is one of its biggest strengths. Libraries like Pandas (for data analysis), NumPy (for numerical operations), and TensorFlow or PyTorch (for AI and machine learning) make it the go-to language for data professionals.",
+    "summary": "Python is a versatile, easy-to-learn programming language with an extensive ecosystem. Key features include its simple syntax that uses indentation to define code blocks and being interpreted line by line which facilitates debugging.",
+    "highlights": [
+      "simple syntax",
+      "indentation coding",
+      "interpreted execution"
+    ],
+    "bullets": [
+      "Python emphasizes readability with English-like syntax.",
+      "Indents replace braces, enforcing neat code formatting.",
+      "Line by line interpretation aids immediate error detection."
+    ],
+    "timestamp": "2025-10-25T17:24:10.447878"
+  },
+  {
+    "title": "python",
+    "transcript": "",
+    "summary": "\ud83d\udccb Summary:\nPython is a versatile, easy-to-learn programming language with an extensive ecosystem. Key features include its simple syntax that uses indentation to define code blocks and being interpreted line by line which facilitates debugging.\n\n\u2b50 Highlights:\nsimple syntax, indentation coding, interpreted execution\n\n\ud83d\udd39 Bullets:\nPython emphasizes readability with English-like syntax.\nIndents replace braces, enforcing neat code formatting.\nLine by line interpretation aids immediate error detection.",
+    "highlights": [
+      "simple syntax",
+      "indentation coding",
+      "interpreted execution"
+    ],
+    "bullets": [
+      "Python emphasizes readability with English-like syntax.",
+      "Indents replace braces, enforcing neat code formatting.",
+      "Line by line interpretation aids immediate error detection."
+    ],
+    "id": 4,
+    "timestamp": "2025-10-25T17:24:20.944042"
+  }
+]
