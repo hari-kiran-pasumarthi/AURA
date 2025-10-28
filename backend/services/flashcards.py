@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from models.schemas import FlashcardRequest, FlashcardResponse, Flashcard
-from utils.save_helper import save_data, save_entry
+from backend.models.schemas import FlashcardRequest, FlashcardResponse, Flashcard
+from backend.utils.save_helper import save_data, save_entry
 from pypdf import PdfReader
 from rake_nltk import Rake
 from sumy.parsers.plaintext import PlaintextParser
