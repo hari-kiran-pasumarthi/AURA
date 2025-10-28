@@ -1,6 +1,6 @@
 from typing import List
 from statistics import mean
-from ..models.schemas import FocusEvent, FocusSuggestResponse
+from models.schemas import FocusEvent, FocusSuggestResponse
 from backend.utils.save_helper import save_entry  # ✅ Unified logger
 
 # Apps considered productive/study-related
