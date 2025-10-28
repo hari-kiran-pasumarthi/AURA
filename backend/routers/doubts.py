@@ -1,8 +1,8 @@
 import os, json, time
 from fastapi import APIRouter, HTTPException
 from typing import List
-from ..models.schemas import DoubtEvent, DoubtReport
-from ..services import doubt_logger
+from models.schemas import DoubtEvent, DoubtReport
+from services import doubt_logger
 
 router = APIRouter()
 
