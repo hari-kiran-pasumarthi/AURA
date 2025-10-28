@@ -1,6 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, FileResponse
+import os, json
+from datetime import datetime
+
+# Import routers using relative imports (adjust if your package layout differs)
 from backend.routers import (
     autonote,
     focus,
@@ -14,15 +19,9 @@ from backend.routers import (
     confusion,
     chatbot,
 )
-import os, json, glob
-from datetime import datetime
 
-# ----------------------------------------------------
-# 🚀 FastAPI Initialization
-# ----------------------------------------------------
-app = FastAPI(title="Smart Study Assistant API", version="1.0.0")
+app = FastAPI(title="The AURA", version="1.0.0")
 
-# 🌍 Enable CORS for frontend communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,9 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ----------------------------------------------------
-# 🔌 Include All Routers
-# ----------------------------------------------------
+# Include routers
 app.include_router(autonote.router, prefix="/autonote", tags=["AutoNote AI"])
 app.include_router(focus.router, prefix="/focus", tags=["FocusSense"])
 app.include_router(planner.router, tags=["Planner"])
@@ -46,9 +43,6 @@ app.include_router(braindump.router, prefix="/braindump", tags=["AutoSave BrainD
 app.include_router(confusion.router, prefix="/confusion", tags=["Concept Confusion Detector"])
 app.include_router(chatbot.router, prefix="/chatbot", tags=["ChatBot"])
 
-# ----------------------------------------------------
-# 🏠 Root Route
-# ----------------------------------------------------
 @app.get("/")
 def root():
     return {
@@ -62,13 +56,9 @@ def root():
 async def favicon():
     return ""
 
-
-# ----------------------------------------------------
-# 📊 Smart Study Dashboard
-# ----------------------------------------------------
+# Dashboard route (unchanged)
 @app.get("/dashboard", response_class=HTMLResponse)
 async def unified_dashboard():
-    """Simple browser view to check all module logs."""
     SAVE_DIR = "saved_data"
     LOG_FILE = os.path.join(SAVE_DIR, "smart_study_log.json")
 
@@ -92,7 +82,6 @@ async def unified_dashboard():
         <h1>📘 Smart Study Assistant Dashboard</h1>
         <p>All saved session logs are listed below.</p>
     """
-
     logs = []
     if os.path.exists(LOG_FILE):
         try:
@@ -127,24 +116,14 @@ async def unified_dashboard():
     html += "</body></html>"
     return HTMLResponse(content=html)
 
-
-# ----------------------------------------------------
-# 🗂️ Universal Saved Notes Scanner
-# ----------------------------------------------------
+# Notes scanner (unchanged except imports)
 @app.get("/notes/list/{module}")
 async def list_saved_notes(module: str):
-    """
-    🧠 Smart Study file scanner (final optimized version)
-    Searches all possible directories for saved module data:
-    ✅ saved_files/
-    ✅ saved_data/
-    ✅ backend/saved_data/
-    """
     entries = []
     search_dirs = [
-        "saved_files",             # new structure
-        "saved_data",              # your current flashcard folder
-        os.path.join("backend", "saved_data"),  # legacy support
+        "saved_files",
+        "saved_data",
+        os.path.join("backend", "saved_data"),
     ]
 
     for base_dir in search_dirs:
@@ -166,13 +145,25 @@ async def list_saved_notes(module: str):
                     except Exception as e:
                         print(f"⚠️ Failed to read {file_path}: {e}")
 
-    # Add timestamp if missing
     for entry in entries:
         if "timestamp" not in entry:
             entry["timestamp"] = datetime.utcnow().isoformat()
 
-    # Sort newest first
     entries.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-
     print(f"📦 Total entries found for '{module}': {len(entries)}")
     return {"entries": entries}
+
+# -----------------------
+# Serve React build files
+# -----------------------
+frontend_build_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "build"))
+
+if os.path.isdir(frontend_build_dir):
+    app.mount("/static", StaticFiles(directory=os.path.join(frontend_build_dir, "static")), name="static")
+
+    @app.get("/{full_path:path}", response_class=HTMLResponse)
+    async def spa_index(request: Request, full_path: str):
+        index_path = os.path.join(frontend_build_dir, "index.html")
+        return FileResponse(index_path)
+else:
+    print(f"⚠️ React build directory not found at: {frontend_build_dir}")
