@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.schemas import TimePredictRequest, TimePredictResponse
-from services import time_predictor
+from backend.models.schemas import TimePredictRequest, TimePredictResponse
+from backend.services import time_predictor
 
 router = APIRouter()
 
