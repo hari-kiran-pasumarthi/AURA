@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.services.gpt_connector import ask_gpt
+from services.gpt_connector import ask_gpt
 
 router = APIRouter()
 
