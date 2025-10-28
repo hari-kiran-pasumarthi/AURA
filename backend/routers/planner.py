@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from backend.models.schemas import PlannerRequest, PlannerResponse
-from backendservices import planner
+from backend.services import planner
 from backend.services.smart_calendar import save_to_calendar, list_calendar
 
 router = APIRouter(prefix="/planner", tags=["Planner"])
