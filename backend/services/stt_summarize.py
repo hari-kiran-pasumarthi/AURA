@@ -1,6 +1,6 @@
 from typing import List
 from transformers import pipeline
-from backend.utils.save_helper import save_entry  # ✅ Unified logger for Smart Study
+from utils.save_helper import save_entry  # ✅ Unified logger for Smart Study
 
 # Lazy global summarization model
 _summarizer = None
