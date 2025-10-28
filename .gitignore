@@ -1,2 +1,55 @@
-node_modules
-".env" 
+# === Node & React Frontend ===
+node_modules/
+build/
+dist/
+.expo/
+.expo-shared/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local environment files
+.env
+.env.*
+frontend/.env
+backend/.env
+
+# === Python & FastAPI Backend ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+*.bak
+*.swp
+venv/
+.env/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.coverage
+
+# === OS & Editor Files ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.iml
+
+# === Build Artifacts ===
+*.egg-info/
+pip-wheel-metadata/
+__pypackages__/
+*.spec
+
+# === Test & Temporary ===
+tests/__pycache__/
+tmp/
+temp/
+*.tmp
+
+# === Misc ===
+# Don’t track the compiled React Native web build
+web-build/
