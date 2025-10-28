@@ -24,7 +24,7 @@ app = FastAPI(title="The AURA", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[ "https://aura-three-phi.vercel.app/",   # your Vercel site URL 
+    allow_origins=[ "https://aura-three-phi.vercel.app",   # your Vercel site URL 
                   ],
     allow_credentials=True,
     allow_methods=["*"],
