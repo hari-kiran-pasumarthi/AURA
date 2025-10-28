@@ -1,4 +1,4 @@
-from ..models.schemas import TimePredictRequest, TimePredictResponse
+from models.schemas import TimePredictRequest, TimePredictResponse
 from sklearn.linear_model import LinearRegression
 import numpy as np
 from backend.utils.save_helper import save_entry  # ✅ Unified logger for Smart Study
