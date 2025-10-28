@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from models.schemas import FocusEvent, FocusSuggestResponse
-from services import focus_detect
+from backend.models.schemas import FocusEvent, FocusSuggestResponse
+from backend.services import focus_detect
 import time
 
 router = APIRouter()
