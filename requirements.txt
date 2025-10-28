@@ -14,6 +14,7 @@ textstat
 rake-nltk
 nltk
 whisper
+pytesseract
 
 
 pypdf
