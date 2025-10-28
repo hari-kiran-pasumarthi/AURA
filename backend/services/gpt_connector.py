@@ -1,5 +1,5 @@
 import ollama
-from backend.utils.save_helper import save_entry  # ✅ unified Smart Study logger
+from utils.save_helper import save_entry  # ✅ unified Smart Study logger
 
 # Default model for Ollama
 DEFAULT_MODEL = "llama3"
