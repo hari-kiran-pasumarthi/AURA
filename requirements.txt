@@ -31,3 +31,4 @@ psutil
 pynput
 
 APScheduler
+PyMuPDF
