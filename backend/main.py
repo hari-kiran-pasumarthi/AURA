@@ -6,7 +6,7 @@ import os, json
 from datetime import datetime
 
 # Import routers using relative imports (adjust if your package layout differs)
-from routers import (
+from backend.routers import (
     autonote,
     focus,
     planner,
