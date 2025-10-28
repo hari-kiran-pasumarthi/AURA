@@ -1,8 +1,8 @@
 from typing import List
 from collections import Counter
 import json, os, requests, time
-from models.schemas import DoubtEvent, DoubtReport
-from utils.save_helper import save_entry
+from backend.models.schemas import DoubtEvent, DoubtReport
+from backend.utils.save_helper import save_entry
 
 # 🧭 Event classification
 HARD_SIGNS = {"tab_switch", "rewind"}
