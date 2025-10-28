@@ -1,4 +1,4 @@
-from ..models.schemas import PlannerRequest, PlannerResponse
+from models.schemas import PlannerRequest, PlannerResponse
 from datetime import date, timedelta, datetime
 from typing import List, Dict, Any
 import os, json
