@@ -2,8 +2,8 @@ from models.schemas import PlannerRequest, PlannerResponse
 from datetime import date, timedelta, datetime
 from typing import List, Dict, Any
 import os, json
-from utils.save_helper import save_entry
-from services.smart_calendar import save_to_calendar
+from backend.utils.save_helper import save_entry
+from backend.services.smart_calendar import save_to_calendar
 
 # 🕒 Default daily routine
 DEFAULT_ROUTINE = [
