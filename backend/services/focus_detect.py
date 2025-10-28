@@ -1,7 +1,7 @@
 from typing import List
 from statistics import mean
-from models.schemas import FocusEvent, FocusSuggestResponse
-from utils.save_helper import save_entry  # ✅ Unified logger
+from backend.models.schemas import FocusEvent, FocusSuggestResponse
+from backend.utils.save_helper import save_entry  # ✅ Unified logger
 
 # Apps considered productive/study-related
 STUDY_APPS = {"code", "vscode", "pycharm", "word", "excel", "onenote", "pdf", "notepad", "chrome"}
