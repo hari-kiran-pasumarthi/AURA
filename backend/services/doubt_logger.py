@@ -1,7 +1,7 @@
 from typing import List
 from collections import Counter
 import json, os, requests, time
-from ..models.schemas import DoubtEvent, DoubtReport
+from models.schemas import DoubtEvent, DoubtReport
 from backend.utils.save_helper import save_entry
 
 # 🧭 Event classification
