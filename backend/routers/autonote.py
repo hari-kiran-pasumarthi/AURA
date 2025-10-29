@@ -7,8 +7,21 @@ from datetime import datetime
 router = APIRouter()
 
 # ✅ Ollama Config
-OLLAMA_URL = OLLAMA_URL = "https://ollama-railway-hr3a.onrender.com/api/generate"
-OLLAMA_MODEL = "phi3:mini"
+OLLAMA_BASE = os.getenv("OLLAMA_URL", "https://ollama-railway-hr3a.onrender.com")
+
+def ensure_model_loaded(model_name="phi3:mini"):
+    """Ensure the given model is available on the Ollama server."""
+    try:
+        print(f"🧠 Ensuring model '{model_name}' is available on Ollama...")
+        pull_url = f"{OLLAMA_BASE}/api/pull"
+        payload = {"model": model_name}
+        response = requests.post(pull_url, json=payload, timeout=600)
+        if response.status_code == 200:
+            print(f"✅ Model '{model_name}' is ready to use.")
+        else:
+            print(f"⚠️ Ollama model pull failed: {response.text}")
+    except Exception as e:
+        print(f"❌ Error ensuring model: {e}")
 
 # ✅ File Saving Paths
 BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
