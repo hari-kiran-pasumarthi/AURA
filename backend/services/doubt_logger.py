@@ -8,7 +8,7 @@ from backend.utils.save_helper import save_entry
 HARD_SIGNS = {"tab_switch", "rewind"}
 SOFT_SIGNS = {"pause", "scroll_up"}
 
-OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
+OLLAMA_URL = "https://ollama-railway-hr3a.onrender.com/api/generate"
 DOUBT_LOG_PATH = os.path.join("saved_data", "doubts", "saved_doubts.json")
 os.makedirs(os.path.dirname(DOUBT_LOG_PATH), exist_ok=True)
 
