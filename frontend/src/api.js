@@ -2,7 +2,7 @@ import axios from "axios";
 
 // ✅ Configure your FastAPI base URL here
 const API = axios.create({
-  baseURL: "https://loyal-beauty-production.up.railway.app", // Change to your LAN IP if testing on phone
+  baseURL: process.env.NEXT_PUBLIC_API_URL, // Change to your LAN IP if testing on phone
 });
 
 // ✅ AutoNote – Speech-to-text or note transcription
