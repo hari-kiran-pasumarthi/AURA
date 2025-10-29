@@ -2,10 +2,33 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
-import os, json, subprocess, shutil, time
+import os, json, time
 from datetime import datetime
+import requests
 
-# Import routers using relative imports (adjust if your package layout differs)
+# -------------------------------
+# Ollama remote connection config
+# -------------------------------
+OLLAMA_URL = os.getenv("OLLAMA_URL", "https://ollama-railway-hr3a.onrender.com")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "phi3:mini")
+
+def ensure_model_loaded(model_name=OLLAMA_MODEL):
+    """Ensure Ollama model exists on the remote Render instance."""
+    try:
+        pull_url = f"{OLLAMA_URL}/api/pull"
+        payload = {"model": model_name}
+        print(f"🧠 Ensuring model '{model_name}' is available on Ollama at {OLLAMA_URL}...")
+        r = requests.post(pull_url, json=payload, timeout=600)
+        if r.status_code == 200:
+            print(f"✅ Model '{model_name}' pull started/verified.")
+        else:
+            print(f"⚠️ Ollama returned {r.status_code}: {r.text}")
+    except Exception as e:
+        print(f"❌ Could not ensure model '{model_name}': {e}")
+
+# ------------------------------------
+# Import routers for all your features
+# ------------------------------------
 from backend.routers import (
     autonote,
     focus,
@@ -20,40 +43,25 @@ from backend.routers import (
     chatbot,
 )
 
-def ensure_ollama_running():
-    # Install curl if missing
-    subprocess.run("apt-get update -y && apt-get install -y curl", shell=True, check=False)
-
-    # Install Ollama if missing
-    if not shutil.which("ollama"):
-        print("⚙️ Installing Ollama binary...")
-        subprocess.run(
-            "curl -fsSL https://ollama.com/download/ollama-linux-amd64.tgz | tar -xz -C /usr/local/bin",
-            shell=True,
-            check=False,
-        )
-        print("✅ Ollama installed successfully.")
-
-    # Start Ollama in the background
-    try:
-        subprocess.Popen(["ollama", "serve"])
-        print("🚀 Ollama server starting...")
-        time.sleep(10)  # give it time to start
-    except Exception as e:
-        print("❌ Failed to start Ollama:", e)
-
-ensure_ollama_running()
-
+# ------------------
+# Initialize FastAPI
+# ------------------
 app = FastAPI(title="The AURA", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[ "https://aura-three-phi.vercel.app",   # your Vercel site URL 
-                  ],
+    allow_origins=[
+        "https://aura-three-phi.vercel.app",  # your Vercel frontend
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Load model on startup
+@app.on_event("startup")
+async def startup_event():
+    ensure_model_loaded()
 
 # Include routers
 app.include_router(autonote.router, prefix="/autonote", tags=["AutoNote AI"])
@@ -74,14 +82,13 @@ def root():
         "ok": True,
         "service": "Smart Study Assistant API",
         "version": "1.0.0",
-        "dashboard": "/dashboard",
+        "ollama_model": OLLAMA_MODEL,
+        "ollama_url": OLLAMA_URL,
     }
 
-@app.get("/favicon.ico")
-async def favicon():
-    return ""
-
-# Dashboard route (unchanged)
+# ---------------------------
+# Dashboard and log rendering
+# ---------------------------
 @app.get("/dashboard", response_class=HTMLResponse)
 async def unified_dashboard():
     SAVE_DIR = "saved_data"
@@ -141,46 +148,9 @@ async def unified_dashboard():
     html += "</body></html>"
     return HTMLResponse(content=html)
 
-# Notes scanner (unchanged except imports)
-@app.get("/notes/list/{module}")
-async def list_saved_notes(module: str):
-    entries = []
-    search_dirs = [
-        "saved_files",
-        "saved_data",
-        os.path.join("backend", "saved_data"),
-    ]
-
-    for base_dir in search_dirs:
-        if not os.path.exists(base_dir):
-            continue
-
-        for root, _, files in os.walk(base_dir):
-            for file in files:
-                if file.endswith(".json") and module.lower() in file.lower():
-                    file_path = os.path.join(root, file)
-                    try:
-                        with open(file_path, "r", encoding="utf-8") as f:
-                            data = json.load(f)
-                            if isinstance(data, dict):
-                                entries.append(data)
-                            elif isinstance(data, list):
-                                entries.extend(data)
-                        print(f"✅ Loaded: {file_path}")
-                    except Exception as e:
-                        print(f"⚠️ Failed to read {file_path}: {e}")
-
-    for entry in entries:
-        if "timestamp" not in entry:
-            entry["timestamp"] = datetime.utcnow().isoformat()
-
-    entries.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-    print(f"📦 Total entries found for '{module}': {len(entries)}")
-    return {"entries": entries}
-
-# -----------------------
-# Serve React build files
-# -----------------------
+# -------------------------------------
+# Serve frontend React build (if exists)
+# -------------------------------------
 frontend_build_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "build"))
 
 if os.path.isdir(frontend_build_dir):
