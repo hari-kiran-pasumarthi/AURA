@@ -9,7 +9,7 @@ router = APIRouter()
 # ✅ Ollama Config
 OLLAMA_BASE = os.getenv("OLLAMA_URL", "https://ollama-railway-hr3a.onrender.com")
 
-def ensure_model_loaded(OLLAMA_MODEL="phi3:mini"):
+def ensure_model_loaded(OLLAMA_MODEL ="phi3:mini"):
     """Ensure the given model is available on the Ollama server."""
     try:
         print(f"🧠 Ensuring model '{OLLAMA_MODEL}' is available on Ollama...")
