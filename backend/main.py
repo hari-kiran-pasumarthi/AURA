@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
-import os, json
+import os, json, subprocess, shutil
 from datetime import datetime
 
 # Import routers using relative imports (adjust if your package layout differs)
@@ -19,6 +19,15 @@ from backend.routers import (
     confusion,
     chatbot,
 )
+
+if not shutil.which("ollama"):
+    print("⚙️ Installing Ollama binary...")
+    subprocess.run(
+        "curl -fsSL https://ollama.com/download/ollama-linux-amd64.tgz | tar -xz -C /usr/local/bin",
+        shell=True,
+        check=False,
+    )
+    print("✅ Ollama installed successfully.")
 
 app = FastAPI(title="The AURA", version="1.0.0")
 
