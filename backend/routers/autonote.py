@@ -7,7 +7,7 @@ from datetime import datetime
 router = APIRouter()
 
 # ✅ Ollama Config
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_URL = OLLAMA_URL = "https://ollama-railway-hr3a.onrender.com/api/generate"
 OLLAMA_MODEL = "phi3:mini"
 
 # ✅ File Saving Paths
