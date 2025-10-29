@@ -12,7 +12,7 @@ class ConfusionRequest(BaseModel):
 class ConfusionResponse(BaseModel):
     explanation: str
 
-OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
+OLLAMA_URL = "https://ollama-railway-hr3a.onrender.com"
 
 @router.post("/analyze", response_model=ConfusionResponse)
 async def analyze_confusion(req: ConfusionRequest):
