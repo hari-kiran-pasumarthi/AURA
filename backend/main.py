@@ -20,14 +20,29 @@ from backend.routers import (
     chatbot,
 )
 
-if not shutil.which("ollama"):
-    print("⚙️ Installing Ollama binary...")
-    subprocess.run(
-        "curl -fsSL https://ollama.com/download/ollama-linux-amd64.tgz | tar -xz -C /usr/local/bin",
-        shell=True,
-        check=False,
-    )
-    print("✅ Ollama installed successfully.")
+def ensure_ollama():
+    # Ensure curl is installed
+    try:
+        subprocess.run("apt-get update -y && apt-get install -y curl", shell=True, check=True)
+        print("✅ curl installed.")
+    except Exception as e:
+        print("⚠️ Failed to install curl:", e)
+
+    # Ensure Ollama binary exists
+    if not shutil.which("ollama"):
+        print("⚙️ Installing Ollama binary...")
+        try:
+            subprocess.run(
+                "curl -fsSL https://ollama.com/download/ollama-linux-amd64.tgz | tar -xz -C /usr/local/bin",
+                shell=True,
+                check=True,
+            )
+            print("✅ Ollama installed successfully.")
+        except Exception as e:
+            print("❌ Ollama installation failed:", e)
+
+# 🚀 Run this on startup
+ensure_ollama()
 
 app = FastAPI(title="The AURA", version="1.0.0")
 
