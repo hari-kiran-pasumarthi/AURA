@@ -9,15 +9,15 @@ router = APIRouter()
 # ✅ Ollama Config
 OLLAMA_BASE = os.getenv("OLLAMA_URL", "https://ollama-railway-hr3a.onrender.com")
 
-def ensure_model_loaded(model_name="phi3:mini"):
+def ensure_model_loaded(OLLAMA_MODEL="phi3:mini"):
     """Ensure the given model is available on the Ollama server."""
     try:
-        print(f"🧠 Ensuring model '{model_name}' is available on Ollama...")
+        print(f"🧠 Ensuring model '{OLLAMA_MODEL}' is available on Ollama...")
         pull_url = f"{OLLAMA_BASE}/api/pull"
-        payload = {"model": model_name}
+        payload = {"model": OLLAMA_MODEL}
         response = requests.post(pull_url, json=payload, timeout=600)
         if response.status_code == 200:
-            print(f"✅ Model '{model_name}' is ready to use.")
+            print(f"✅ Model '{OLLAMA_MODEL}' is ready to use.")
         else:
             print(f"⚠️ Ollama model pull failed: {response.text}")
     except Exception as e:
