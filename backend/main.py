@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
-import os, json, subprocess, shutil
+import os, json, subprocess, shutil, time
 from datetime import datetime
 
 # Import routers using relative imports (adjust if your package layout differs)
@@ -20,29 +20,29 @@ from backend.routers import (
     chatbot,
 )
 
-def ensure_ollama():
-    # Ensure curl is installed
-    try:
-        subprocess.run("apt-get update -y && apt-get install -y curl", shell=True, check=True)
-        print("✅ curl installed.")
-    except Exception as e:
-        print("⚠️ Failed to install curl:", e)
+def ensure_ollama_running():
+    # Install curl if missing
+    subprocess.run("apt-get update -y && apt-get install -y curl", shell=True, check=False)
 
-    # Ensure Ollama binary exists
+    # Install Ollama if missing
     if not shutil.which("ollama"):
         print("⚙️ Installing Ollama binary...")
-        try:
-            subprocess.run(
-                "curl -fsSL https://ollama.com/download/ollama-linux-amd64.tgz | tar -xz -C /usr/local/bin",
-                shell=True,
-                check=True,
-            )
-            print("✅ Ollama installed successfully.")
-        except Exception as e:
-            print("❌ Ollama installation failed:", e)
+        subprocess.run(
+            "curl -fsSL https://ollama.com/download/ollama-linux-amd64.tgz | tar -xz -C /usr/local/bin",
+            shell=True,
+            check=False,
+        )
+        print("✅ Ollama installed successfully.")
 
-# 🚀 Run this on startup
-ensure_ollama()
+    # Start Ollama in the background
+    try:
+        subprocess.Popen(["ollama", "serve"])
+        print("🚀 Ollama server starting...")
+        time.sleep(10)  # give it time to start
+    except Exception as e:
+        print("❌ Failed to start Ollama:", e)
+
+ensure_ollama_running()
 
 app = FastAPI(title="The AURA", version="1.0.0")
 
