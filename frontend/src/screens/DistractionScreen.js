@@ -55,12 +55,12 @@ export default function DistractionSniperScreen() {
   // Buttons call the backend endpoints you added earlier
   const handleStartBlock = async () => {
     // endpoint that runs kill_and_rename + hosts blocking
-    await runAction("http://127.0.0.1:8000/distraction/block-simple", "✅ Focus Mode activated");
+    await runAction("https://loyal-beauty-production.up.railway.app/distraction/block-simple", "✅ Focus Mode activated");
   };
 
   const handleStopBlock = async () => {
     // endpoint that runs rollback_distraction_blocker.ps1
-    await runAction("http://127.0.0.1:8000/distraction/rollback", "✅ Focus Mode ended", false);
+    await runAction("https://loyal-beauty-production.up.railway.app/distraction/rollback", "✅ Focus Mode ended", false);
     setBlocked([]);
   };
 
