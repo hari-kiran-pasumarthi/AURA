@@ -19,7 +19,7 @@ export default function FocusScreen() {
   useEffect(() => {
     const checkAgent = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/focus/status");
+        const res = await fetch("https://loyal-beauty-production.up.railway.app/focus/status");
         if (res.ok) {
           const data = await res.json();
           setAgentStatus(data.active);
@@ -63,7 +63,7 @@ export default function FocusScreen() {
     if (isRunning) {
       poll = setInterval(async () => {
         try {
-          const res = await fetch("http://127.0.0.1:8000/focus/latest");
+          const res = await fetch("https://loyal-beauty-production.up.railway.app/focus/latest");
           if (res.ok) {
             const data = await res.json();
             if (data.reason) {
@@ -92,7 +92,7 @@ export default function FocusScreen() {
     setFeedback("Analyzing your focus...");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/focus/latest");
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/focus/latest");
       if (!res.ok) throw new Error(`Backend Error: ${res.status}`);
       const data = await res.json();
 
