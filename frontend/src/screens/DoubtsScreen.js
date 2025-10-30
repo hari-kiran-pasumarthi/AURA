@@ -24,7 +24,7 @@ export default function DoubtsScreen() {
         { timestamp: Date.now(), event: "tab_switch", context: input },
       ];
 
-      const res = await fetch("http://127.0.0.1:8000/doubts/report", {
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/doubts/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -76,7 +76,7 @@ ${explanation.join("\n\n")}
         confidence: msg.confidence || "N/A",
       };
 
-      const res = await fetch("http://127.0.0.1:8000/doubts/save", {
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/doubts/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
