@@ -32,7 +32,7 @@ export default function FlashcardsScreen() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const uploadRes = await fetch("http://127.0.0.1:8000/flashcards/upload-pdf/", {
+        const uploadRes = await fetch("https://loyal-beauty-production.up.railway.app/flashcards/upload-pdf/", {
           method: "POST",
           body: formData,
         });
@@ -45,7 +45,7 @@ export default function FlashcardsScreen() {
         payload.text = text;
       }
 
-      const res = await fetch("http://127.0.0.1:8000/flashcards/generate", {
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/flashcards/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -83,7 +83,7 @@ export default function FlashcardsScreen() {
         },
       };
 
-      const res = await fetch("http://127.0.0.1:8000/flashcards/save", {
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/flashcards/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
