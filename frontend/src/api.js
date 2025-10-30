@@ -1,8 +1,10 @@
 import axios from "axios";
 
-// ✅ Configure your FastAPI base URL here
+// ✅ Configure your FastAPI backend base URL
 const API = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL, "https://loyal-beauty-production.up.railway.app" // Change to your LAN IP if testing on phone
+  baseURL:
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://loyal-beauty-production.up.railway.app", // fallback to your live backend
 });
 
 // ✅ AutoNote – Speech-to-text or note transcription
@@ -25,7 +27,7 @@ export const doubts = (question) =>
 export const flashcards = (topic) =>
   API.post("/flashcards/generate", { topic });
 
-// ✅ Mood – Logs mood and note (connected to saved file directory)
+// ✅ Mood – Logs mood and note
 export const mood = (mood, intensity = 5, notes = "") =>
   API.post("/mood/log", { mood, intensity, notes });
 
@@ -43,7 +45,7 @@ export const brainDump = (text) =>
 
 // ✅ Confusion – Analyzes confusion and provides clarity tips
 export const confusion = (question) =>
-  API.post("/confusion/analyze", { question });
+  API.post("/confusion/analyze", { text: question });
 
 // ✅ Chatbot – General study assistant Q&A
 export const chatbot = (query) =>
