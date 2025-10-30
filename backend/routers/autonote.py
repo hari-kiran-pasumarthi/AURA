@@ -8,7 +8,7 @@ router = APIRouter()
 
 # ✅ Groq API setup
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL_NAME = "llama3-8b-8192"
+MODEL_NAME = "llama-3.1-8b-instant"
 
 # ✅ File Saving Paths
 BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
