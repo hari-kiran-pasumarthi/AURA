@@ -17,7 +17,7 @@ export default function ConfusionScreen() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/confusion/analyze", {
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/confusion/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: userMsg.text }),
