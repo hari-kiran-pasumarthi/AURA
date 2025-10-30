@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 
 export default function AutoNoteScreen() {
-  const API_BASE = "https://loyal-beauty-production.up.railway.app/";
+  const API_BASE = "https://loyal-beauty-production.up.railway.app";
 
   const [note, setNote] = useState("");
   const [summary, setSummary] = useState("");
