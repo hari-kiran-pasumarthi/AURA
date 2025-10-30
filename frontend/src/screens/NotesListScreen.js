@@ -8,7 +8,7 @@ export default function NotesListScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedNote, setSelectedNote] = useState(null);
 
-  const API_BASE = "http://127.0.0.1:8000";
+  const API_BASE = "https://loyal-beauty-production.up.railway.app/";
 
   // 🧠 Fetch saved notes for the selected module
   useEffect(() => {
