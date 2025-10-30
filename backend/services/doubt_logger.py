@@ -1,91 +1,127 @@
 from typing import List
 from collections import Counter
-import json, os, requests, time
+import json, os, time
+from groq import Groq
 from backend.models.schemas import DoubtEvent, DoubtReport
 from backend.utils.save_helper import save_entry
+
+# ===================================
+# ⚙️ GROQ CONFIGURATION
+# ===================================
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise ValueError("❌ Missing GROQ_API_KEY environment variable. Please set it in your environment.")
+
+client = Groq(api_key=GROQ_API_KEY)
+MODEL_NAME = "llama-3.1-8b-instant"
+
+# ===================================
+# 💾 FILE PATHS
+# ===================================
+DOUBT_LOG_PATH = os.path.join("saved_data", "doubts", "saved_doubts.json")
+os.makedirs(os.path.dirname(DOUBT_LOG_PATH), exist_ok=True)
 
 # 🧭 Event classification
 HARD_SIGNS = {"tab_switch", "rewind"}
 SOFT_SIGNS = {"pause", "scroll_up"}
 
-OLLAMA_URL = "https://ollama-railway-hr3a.onrender.com/api/generate"
-DOUBT_LOG_PATH = os.path.join("saved_data", "doubts", "saved_doubts.json")
-os.makedirs(os.path.dirname(DOUBT_LOG_PATH), exist_ok=True)
 
-
-# 🔹 Call Ollama model
-def call_ollama(question: str) -> str:
+# ===================================
+# 🧠 CALL GROQ LLM
+# ===================================
+def call_groq(question: str) -> str:
     """
-    Generate clear, simplified explanation using local Ollama model.
-    Fallback text ensures stability if Ollama isn't reachable.
+    Generate a clear, student-friendly explanation using Groq Cloud.
+    Fallback text ensures stability even if the API fails.
     """
     try:
-        response = requests.post(
-            OLLAMA_URL,
-            json={
-                "model": "mistral",  # change to llama3/phi3 if preferred
-                "prompt": (
-                    f"Explain this concept clearly and simply for a student:\n\n"
-                    f"{question}\n\n"
-                    "Focus on examples, intuition, and conceptual clarity."
-                ),
-                "stream": False
-            },
-            timeout=45,
+        start_time = time.time()
+        completion = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        f"Explain this concept clearly and simply for a student:\n\n"
+                        f"{question}\n\n"
+                        f"Focus on examples, intuition, and conceptual clarity."
+                    )
+                }
+            ],
+            temperature=0.6,
+            stream=True,
         )
-        if response.status_code == 200:
-            reply = response.json().get("response", "").strip()
-            return reply or "No explanation returned from the AI model."
-        else:
-            return f"⚠️ Ollama error: {response.text}"
+
+        ai_answer = ""
+        for chunk in completion:
+            ai_answer += chunk.choices[0].delta.content or ""
+
+        duration = round(time.time() - start_time, 1)
+        print(f"✅ Groq responded in {duration}s. Length={len(ai_answer)} chars")
+
+        if not ai_answer.strip():
+            return "🤖 No response generated. Please try rephrasing your question."
+
+        return ai_answer.strip()
+
     except Exception as e:
-        return f"⚠️ Unable to connect to Ollama. Please ensure it is running.\n({e})"
+        return f"⚠️ Unable to reach Groq Cloud. ({e})"
 
 
-# 🔹 Compute realistic numeric confidence
+# ===================================
+# 🎯 CONFIDENCE COMPUTATION
+# ===================================
 def compute_confidence(events: List[DoubtEvent], ai_answer: str = "") -> float:
     """
     Heuristic confidence (0–100) based on confusion intensity and AI clarity.
     """
-    confidence = 80.0  # base value
+    confidence = 80.0  # base
 
     # Apply penalties for confusion indicators
     hard_penalty = sum(1 for e in events if e.event in HARD_SIGNS) * 10
     soft_penalty = sum(1 for e in events if e.event in SOFT_SIGNS) * 5
     confidence -= (hard_penalty + soft_penalty)
 
-    # Add small reward for longer, detailed answers
+    # Reward longer, detailed answers
     length_bonus = min(len(ai_answer) / 25, 10)
     confidence += length_bonus
 
-    # Clip to valid range
+    # Clamp within range
     confidence = max(0, min(100, confidence))
     return round(confidence, 2)
 
 
-# 🔹 Save locally for history
+# ===================================
+# 💾 SAVE TO LOCAL HISTORY
+# ===================================
 def save_to_history(entry: dict):
     """
-    Persist the doubt clarification entry to saved_data/doubts/saved_doubts.json
+    Save the doubt clarification entry to saved_data/doubts/saved_doubts.json
     """
     try:
         if not os.path.exists(DOUBT_LOG_PATH):
             with open(DOUBT_LOG_PATH, "w") as f:
                 json.dump([], f, indent=2)
+
         with open(DOUBT_LOG_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
+
         data.append(entry)
         with open(DOUBT_LOG_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+
         print(f"✅ Doubt saved locally: {entry.get('question', '')[:60]}")
+
     except Exception as e:
         print(f"⚠️ Could not save doubt history: {e}")
 
 
-# 🔹 Main doubt analyzer
+# ===================================
+# 🔍 MAIN ANALYZER
+# ===================================
 def report(events: List[DoubtEvent]) -> DoubtReport:
     """
-    Detect confusion patterns, generate AI clarifications,
+    Detect confusion patterns, generate Groq explanations,
     compute heuristic confidence, and persist all results.
     """
     ctr = Counter(e.event for e in events)
@@ -94,8 +130,8 @@ def report(events: List[DoubtEvent]) -> DoubtReport:
     # Extract the main question context
     question = ctx[-1] if ctx else "No valid question provided."
 
-    # Generate AI response
-    ai_answer = call_ollama(question)
+    # Generate AI explanation
+    ai_answer = call_groq(question)
 
     # Compute heuristic confidence
     confidence = compute_confidence(events, ai_answer)
@@ -121,7 +157,7 @@ def report(events: List[DoubtEvent]) -> DoubtReport:
     except Exception as e:
         print(f"⚠️ Failed to log doubt analysis: {e}")
 
-    # Save locally for future viewing
+    # Save locally for future use
     save_to_history({
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "question": question,
