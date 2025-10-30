@@ -6,14 +6,22 @@ from rake_nltk import Rake
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.luhn import LuhnSummarizer
+import nltk
 import os, re, json
 from datetime import datetime
 from typing import List
 
 router = APIRouter(tags=["Flashcards"])
 
+# ✅ Ensure NLTK stopwords are available (for cloud deployment)
+try:
+    nltk.data.find("corpora/stopwords")
+except LookupError:
+    nltk.download("stopwords")
+
 UPLOAD_DIR = "uploaded_pdfs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 
 # 📤 Upload PDF
 @router.post("/upload-pdf/")
