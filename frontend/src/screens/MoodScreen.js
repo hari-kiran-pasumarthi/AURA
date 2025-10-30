@@ -31,7 +31,7 @@ export default function MoodScreen() {
       const formData = new FormData();
       formData.append("image", blob, "mood.jpg");
 
-      const res = await fetch("http://127.0.0.1:8000/mood/detect", {
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/detect", {
         method: "POST",
         body: formData,
       });
@@ -63,7 +63,7 @@ export default function MoodScreen() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/mood/log", {
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEntry),
@@ -89,7 +89,7 @@ export default function MoodScreen() {
 
   const fetchSavedLogs = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/mood/logs");
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/logs");
       if (!res.ok) throw new Error("Failed to fetch logs");
       const data = await res.json();
       console.log("✅ Logs fetched from backend:", data.logs);
