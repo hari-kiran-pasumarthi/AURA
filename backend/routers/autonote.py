@@ -1,32 +1,14 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from fastapi.responses import StreamingResponse
-import os, json, requests, tempfile, whisper, fitz, pytesseract, re
+from groq import Groq
+import os, json, tempfile, whisper, fitz, pytesseract, re
 from PIL import Image
 from datetime import datetime
 
 router = APIRouter()
 
-# ✅ Ollama Config
-OLLAMA_BASE = os.getenv("OLLAMA_URL", "https://ollama-railway-hr3a.onrender.com")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")  # <-- add model name
-OLLAMA_URL = f"{OLLAMA_BASE.rstrip('/')}/api/generate"  # <-- correct endpoint
-
-def ensure_model_loaded(model_name=OLLAMA_MODEL):
-    """Ensure the given model is available on the Ollama server."""
-    try:
-        print(f"🧠 Ensuring model '{model_name}' is available on Ollama...")
-        pull_url = f"{OLLAMA_BASE.rstrip('/')}/api/pull"
-        payload = {"model": model_name}
-        response = requests.post(pull_url, json=payload, timeout=600)
-        if response.status_code == 200:
-            print(f"✅ Model '{model_name}' is ready to use.")
-        else:
-            print(f"⚠️ Ollama model pull failed: {response.text}")
-    except Exception as e:
-        print(f"❌ Error ensuring model: {e}")
-
-# ✅ Call this once when the router loads
-ensure_model_loaded()
+# ✅ Groq API setup
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+MODEL_NAME = "llama3-8b-8192"
 
 # ✅ File Saving Paths
 BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -39,6 +21,7 @@ if not os.path.exists(SAVE_FILE):
         json.dump([], f, indent=2)
 
 
+# ----------------------------- HELPERS -----------------------------
 def flatten_list(items):
     if isinstance(items, list):
         return [str(i.get("description", i)) if isinstance(i, dict) else str(i) for i in items]
@@ -46,6 +29,7 @@ def flatten_list(items):
 
 
 def save_autonote_to_server(title, transcript, summary, highlights, bullets):
+    """Store the summarized note into a file and JSON log."""
     try:
         preview = summary or (transcript[:200] + "...") if transcript else "[No content]"
         entry = {
@@ -81,9 +65,9 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets):
         print(f"⚠️ Failed to save AutoNote: {e}")
 
 
-# 🧠 --- SUMMARIZATION CORE ---
+# ----------------------------- SUMMARIZATION -----------------------------
 def summarize_content(text):
-    """Send content to Ollama and summarize."""
+    """Send content to Groq (Llama3) and summarize."""
     if not text.strip():
         raise HTTPException(400, "Input text is empty.")
 
@@ -101,16 +85,16 @@ Output ONLY valid JSON in this format:
 Text:
 \"\"\"{text}\"\"\"
 """
+
     try:
-        payload = {"model": OLLAMA_MODEL, "prompt": prompt, "stream": False}
-        response = requests.post(OLLAMA_URL, json=payload, timeout=120)
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+        ai_output = response.choices[0].message.content.strip()
 
-        if response.status_code != 200:
-            raise HTTPException(500, f"Ollama returned {response.status_code}: {response.text}")
-
-        result = response.json()
-        ai_output = result.get("response", "").strip()
-
+        # Try JSON extraction
         start, end = ai_output.find("{"), ai_output.rfind("}")
         if start != -1 and end != -1:
             try:
@@ -120,10 +104,11 @@ Text:
                 bullets = flatten_list(parsed.get("bullets", []))
                 save_autonote_to_server("AutoNote Summary", text, summary, highlights, bullets)
                 return {"summary": summary, "highlights": highlights, "bullets": bullets}
-            except Exception:
+            except json.JSONDecodeError:
                 pass
 
-        print("⚠️ Ollama output not JSON — applying fallback parsing.")
+        # Fallback if not valid JSON
+        print("⚠️ Groq output not JSON — using fallback parsing.")
         summary_match = re.search(r"(?i)(summary|overview)[:\-]?\s*(.+?)(?:\n[A-Z]|$)", ai_output, re.DOTALL)
         highlights_match = re.findall(r"[\-\*\•]\s*(.+)", ai_output)
         bullets_match = re.findall(r"\d+\.\s*(.+)", ai_output)
@@ -139,12 +124,10 @@ Text:
         return {"summary": summary, "highlights": highlights, "bullets": bullets}
 
     except Exception as e:
-        import traceback
-        print("❌ Summarization failed:\n", traceback.format_exc())
         raise HTTPException(500, f"Summarization failed: {e}")
 
 
-# 📝 TEXT SUMMARIZATION
+# ----------------------------- ENDPOINTS -----------------------------
 @router.post("/transcribe")
 async def summarize_text(req: dict):
     text = req.get("text", "")
@@ -156,9 +139,9 @@ async def summarize_text(req: dict):
     }
 
 
-# 🎧 AUDIO SUMMARIZATION
 @router.post("/audio")
 async def summarize_audio(file: UploadFile = File(...)):
+    """Handle audio summarization via Whisper."""
     with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
         temp_audio.write(await file.read())
         temp_audio_path = temp_audio.name
