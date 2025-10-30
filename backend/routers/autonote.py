@@ -8,7 +8,7 @@ router = APIRouter()
 
 # ✅ Ollama Config
 OLLAMA_BASE = os.getenv("OLLAMA_URL", "https://ollama-railway-hr3a.onrender.com")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "phi3:mini")  # <-- add model name
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")  # <-- add model name
 OLLAMA_URL = f"{OLLAMA_BASE.rstrip('/')}/api/generate"  # <-- correct endpoint
 
 def ensure_model_loaded(model_name=OLLAMA_MODEL):
