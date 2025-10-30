@@ -27,8 +27,8 @@ export default function SavedFolderScreen() {
         try {
           const url =
             mod === "doubts"
-              ? "http://127.0.0.1:8000/doubts/history"
-              : `http://127.0.0.1:8000/notes/list/${mod}`;
+              ? "https://loyal-beauty-production.up.railway.app/doubts/history"
+              : `https://loyal-beauty-production.up.railway.app/notes/list/${mod}`;
 
           const res = await fetch(url);
           const data = await res.json();
@@ -52,7 +52,7 @@ export default function SavedFolderScreen() {
 
     const fetchMoodLogs = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/mood/logs");
+        const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/logs");
         const data = await res.json();
         console.log("✅ Mood logs fetched:", data.logs);
         setMoodLogs(Array.isArray(data.logs) ? data.logs : []);
