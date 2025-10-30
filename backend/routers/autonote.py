@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi.responses import StreamingResponse
 from groq import Groq
 import os, json, tempfile, whisper, fitz, pytesseract, re
 from PIL import Image
@@ -8,7 +9,7 @@ router = APIRouter()
 
 # ✅ Groq API setup
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL_NAME = "llama-3.1-8b-instant"
+MODEL_NAME = "llama-3.1-8b-instant"  # ✅ updated model
 
 # ✅ File Saving Paths
 BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -67,7 +68,7 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets):
 
 # ----------------------------- SUMMARIZATION -----------------------------
 def summarize_content(text):
-    """Send content to Groq (Llama3) and summarize."""
+    """Send content to Groq (Llama3.1) and summarize."""
     if not text.strip():
         raise HTTPException(400, "Input text is empty.")
 
@@ -107,7 +108,6 @@ Text:
             except json.JSONDecodeError:
                 pass
 
-        # Fallback if not valid JSON
         print("⚠️ Groq output not JSON — using fallback parsing.")
         summary_match = re.search(r"(?i)(summary|overview)[:\-]?\s*(.+?)(?:\n[A-Z]|$)", ai_output, re.DOTALL)
         highlights_match = re.findall(r"[\-\*\•]\s*(.+)", ai_output)
@@ -128,6 +128,30 @@ Text:
 
 
 # ----------------------------- ENDPOINTS -----------------------------
+
+# 🧠 STREAMING SUMMARIZATION
+@router.post("/stream")
+async def stream_summary(req: dict):
+    if not req.get("text", "").strip():
+        raise HTTPException(400, "Please provide text.")
+
+    def groq_stream():
+        try:
+            completion = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=[{"role": "user", "content": req["text"]}],
+                stream=True,
+            )
+            for chunk in completion:
+                delta = chunk.choices[0].delta.content or ""
+                yield delta
+        except Exception as e:
+            yield f"\n❌ Streaming failed: {e}"
+
+    return StreamingResponse(groq_stream(), media_type="text/plain")
+
+
+# 📝 TEXT SUMMARIZATION
 @router.post("/transcribe")
 async def summarize_text(req: dict):
     text = req.get("text", "")
@@ -139,6 +163,7 @@ async def summarize_text(req: dict):
     }
 
 
+# 🎧 AUDIO SUMMARIZATION
 @router.post("/audio")
 async def summarize_audio(file: UploadFile = File(...)):
     """Handle audio summarization via Whisper."""
@@ -158,3 +183,92 @@ async def summarize_audio(file: UploadFile = File(...)):
         "highlights": summary_data.get("highlights", []),
         "bullets": summary_data.get("bullets", [])
     }
+
+
+# 📄 FILE UPLOAD SUMMARIZATION
+@router.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    try:
+        filename = file.filename.lower()
+        content = ""
+
+        if filename.endswith(".txt"):
+            content = (await file.read()).decode("utf-8", errors="ignore")
+
+        elif filename.endswith(".pdf"):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
+                temp_pdf.write(await file.read())
+                temp_pdf_path = temp_pdf.name
+
+            text_data = ""
+            with fitz.open(temp_pdf_path) as doc:
+                for page in doc:
+                    text_data += page.get_text("text") + "\n"
+
+            if not text_data.strip():
+                images = []
+                with fitz.open(temp_pdf_path) as doc:
+                    for i, page in enumerate(doc):
+                        pix = page.get_pixmap()
+                        img_path = f"{temp_pdf_path}_{i}.png"
+                        pix.save(img_path)
+                        images.append(img_path)
+                for img in images:
+                    text_data += pytesseract.image_to_string(Image.open(img)) + "\n"
+                    os.remove(img)
+            os.remove(temp_pdf_path)
+            content = text_data
+
+        else:
+            raise HTTPException(400, "Unsupported file type. Upload .txt or .pdf only.")
+
+        if not content.strip():
+            raise HTTPException(400, "File is empty or unreadable.")
+
+        result = summarize_content(content)
+        return {
+            "summary": result.get("summary", ""),
+            "highlights": result.get("highlights", []),
+            "bullets": result.get("bullets", [])
+        }
+
+    except Exception as e:
+        raise HTTPException(500, f"File upload failed: {e}")
+
+
+# 💾 SAVE NOTES
+@router.post("/save")
+async def manual_save(note: dict):
+    note["id"] = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    note["timestamp"] = datetime.utcnow().isoformat()
+    note["keywords"] = note.get("highlights", [])
+    with open(SAVE_FILE, "r+", encoding="utf-8") as f:
+        data = json.load(f)
+        data.append(note)
+        f.seek(0)
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    return {"message": "Note saved successfully!", "id": note["id"]}
+
+
+# 📚 GET ALL SAVED NOTES
+@router.get("/saved")
+async def get_saved_autonotes():
+    if not os.path.exists(SAVE_FILE):
+        return {"entries": []}
+    with open(SAVE_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    return {"entries": data}
+
+
+# 🔍 FETCH SINGLE NOTE
+@router.get("/notes/get/{note_id}")
+async def get_autonote_detail(note_id: str):
+    if not os.path.exists(SAVE_FILE):
+        raise HTTPException(404, "No saved notes found.")
+    with open(SAVE_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    for note in data:
+        if note.get("id") == note_id:
+            return note
+    raise HTTPException(404, f"No note found with ID: {note_id}")
