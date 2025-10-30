@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from backend.models.schemas import FlashcardRequest, FlashcardResponse, Flashcard
 from backend.utils.save_helper import save_data, save_entry
 from pypdf import PdfReader
@@ -7,14 +7,14 @@ from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.luhn import LuhnSummarizer
 import nltk
-import os, re, json
+import os, re, json, glob
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 # -------------------------------------------
 # ✅ Router Setup
 # -------------------------------------------
-router = APIRouter(prefix="/flashcards", tags=["Flashcards"])
+router = APIRouter(prefix="/flashcards", tags=["Flashcards & MemoryVault"])
 
 # -------------------------------------------
 # ✅ Ensure NLTK dependencies exist (for cloud)
@@ -27,8 +27,9 @@ for resource in ["stopwords", "punkt", "punkt_tab"]:
         nltk.download(resource)
 
 UPLOAD_DIR = "uploaded_pdfs"
+SAVE_DIR = os.path.join("saved_data", "flashcards")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-
+os.makedirs(SAVE_DIR, exist_ok=True)
 
 # -------------------------------------------
 # 📤 Upload PDF
@@ -118,7 +119,6 @@ async def generate_flashcards(req: FlashcardRequest):
     }
     save_data(module_name="flashcards", filename=filename, entry=entry)
 
-    # Log to unified system
     save_entry(
         module="flashcards",
         title="Flashcards Generated",
@@ -137,22 +137,65 @@ async def save_flashcards(payload: dict):
     try:
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         filename = f"{timestamp}_saved_flashcards.json"
+        filepath = os.path.join(SAVE_DIR, filename)
 
-        entry = {
-            "title": payload.get("title", "Manual Flashcards"),
-            "content": payload.get("content", ""),
-            "metadata": payload.get("metadata", {}),
-        }
-
-        save_data(module_name="flashcards", filename=filename, entry=entry)
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
 
         save_entry(
             module="flashcards",
-            title="Flashcards Saved",
-            content=f"Manually saved {payload.get('metadata', {}).get('num_cards', 0)} flashcards.",
+            title=payload.get("title", "Manual Flashcards"),
+            content=f"Saved {payload.get('metadata', {}).get('num_cards', 0)} flashcards.",
             metadata=payload.get("metadata", {}),
         )
 
         return {"status": "success", "filename": filename}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# -------------------------------------------
+# 🧠 MemoryVault (Load, Search, Delete)
+# -------------------------------------------
+@router.get("/all")
+async def get_all_flashcards():
+    """Return all saved flashcards."""
+    try:
+        files = sorted(glob.glob(os.path.join(SAVE_DIR, "*.json")), reverse=True)
+        data = []
+        for fpath in files:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data.append(json.load(f))
+        return {"count": len(data), "flashcards": data}
+    except Exception as e:
+        raise HTTPException(500, f"Failed to load flashcards: {e}")
+
+
+@router.get("/search")
+async def search_flashcards(query: str = Query(..., min_length=2)):
+    """Search flashcards by keyword."""
+    try:
+        matches = []
+        for fpath in glob.glob(os.path.join(SAVE_DIR, "*.json")):
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                content = json.dumps(data).lower()
+                if query.lower() in content:
+                    matches.append(data)
+        return {"query": query, "matches": matches, "count": len(matches)}
+    except Exception as e:
+        raise HTTPException(500, f"Search failed: {e}")
+
+
+@router.delete("/delete/{filename}")
+async def delete_flashcard(filename: str):
+    """Delete a saved flashcard file."""
+    try:
+        fpath = os.path.join(SAVE_DIR, filename)
+        if os.path.exists(fpath):
+            os.remove(fpath)
+            return {"status": "deleted", "filename": filename}
+        else:
+            raise HTTPException(404, f"File {filename} not found.")
+    except Exception as e:
+        raise HTTPException(500, f"Failed to delete flashcard: {e}")
