@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function BrainDumpScreen() {
   const navigate = useNavigate();
-  const API_BASE = "http://127.0.0.1:8000"; // ✅ Backend URL
+  const API_BASE = "https://loyal-beauty-production.up.railway.app"; // ✅ Backend URL
 
   const [thoughts, setThoughts] = useState("");
   const [organized, setOrganized] = useState("");
