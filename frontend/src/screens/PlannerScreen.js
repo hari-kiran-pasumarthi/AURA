@@ -20,7 +20,7 @@ export default function PlannerScreen() {
   useEffect(() => {
     const loadSavedCalendar = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/planner/calendar/list");
+        const res = await fetch("https://loyal-beauty-production.up.railway.app/planner/calendar/list");
         if (!res.ok) throw new Error("Failed to load saved calendar");
         const data = await res.json();
         if (data.entries && data.entries.length > 0) {
@@ -90,7 +90,7 @@ export default function PlannerScreen() {
     };
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/planner/generate", {
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/planner/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -117,7 +117,7 @@ export default function PlannerScreen() {
     if (plan.length === 0) return alert("No plan to save!");
     setSaving(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/planner/save", {
+      const res = await fetch("https://loyal-beauty-production.up.railway.app/planner/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ summary, schedule: plan, tasks }),
