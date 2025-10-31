@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from groq import Groq
 import os, json, tempfile, whisper, fitz, pytesseract, re
 from PIL import Image
@@ -15,7 +15,7 @@ if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY environment variable is required")
 
 client = Groq(api_key=GROQ_API_KEY)
-MODEL_NAME = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")  # default model
+MODEL_NAME = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 
 # ---------------------------
 # File storage setup
@@ -52,12 +52,14 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets):
             "timestamp": datetime.utcnow().isoformat(),
         }
 
+        # Save metadata JSON
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data = json.load(f)
             data.append(entry)
             f.seek(0)
             json.dump(data, f, indent=2, ensure_ascii=False)
 
+        # Save note as .txt file
         txt_filename = f"{entry['id']}_{title.replace(' ', '_')}.txt"
         txt_path = os.path.join(SAVE_DIR, txt_filename)
         with open(txt_path, "w", encoding="utf-8") as f:
@@ -142,7 +144,6 @@ async def stream_summary(req: dict):
     """Stream summary text in real time."""
     if not req.get("text", "").strip():
         raise HTTPException(400, "Please provide text.")
-
     def groq_stream():
         try:
             completion = client.chat.completions.create(
@@ -155,21 +156,14 @@ async def stream_summary(req: dict):
                 yield delta
         except Exception as e:
             yield f"\n❌ Streaming failed: {e}"
-
     return StreamingResponse(groq_stream(), media_type="text/plain")
-
 
 @router.post("/transcribe")
 async def summarize_text(req: dict):
     """Summarize plain text."""
     text = req.get("text", "")
     result = summarize_content(text)
-    return {
-        "summary": result.get("summary", ""),
-        "highlights": result.get("highlights", []),
-        "bullets": result.get("bullets", []),
-    }
-
+    return result
 
 @router.post("/audio")
 async def summarize_audio(file: UploadFile = File(...)):
@@ -177,70 +171,36 @@ async def summarize_audio(file: UploadFile = File(...)):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
         temp_audio.write(await file.read())
         temp_audio_path = temp_audio.name
-
     model = whisper.load_model("base")
     result = model.transcribe(temp_audio_path)
     transcript = result.get("text", "")
     os.remove(temp_audio_path)
-
     summary_data = summarize_content(transcript)
-    return {
-        "transcript": transcript,
-        "summary": summary_data.get("summary", ""),
-        "highlights": summary_data.get("highlights", []),
-        "bullets": summary_data.get("bullets", []),
-    }
-
+    return {"transcript": transcript, **summary_data}
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     """Extract and summarize uploaded text or PDF file."""
     try:
         filename = file.filename.lower()
-        content = ""
         if filename.endswith(".txt"):
             content = (await file.read()).decode("utf-8", errors="ignore")
-
         elif filename.endswith(".pdf"):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
                 temp_pdf.write(await file.read())
                 temp_pdf_path = temp_pdf.name
-
-            text_data = ""
+            content = ""
             with fitz.open(temp_pdf_path) as doc:
                 for page in doc:
-                    text_data += page.get_text("text") + "\n"
-
-            if not text_data.strip():
-                images = []
-                with fitz.open(temp_pdf_path) as doc:
-                    for i, page in enumerate(doc):
-                        pix = page.get_pixmap()
-                        img_path = f"{temp_pdf_path}_{i}.png"
-                        pix.save(img_path)
-                        images.append(img_path)
-                for img in images:
-                    text_data += pytesseract.image_to_string(Image.open(img)) + "\n"
-                    os.remove(img)
-
+                    content += page.get_text("text") + "\n"
             os.remove(temp_pdf_path)
-            content = text_data
         else:
             raise HTTPException(400, "Unsupported file type. Upload .txt or .pdf only.")
-
         if not content.strip():
             raise HTTPException(400, "File is empty or unreadable.")
-
-        result = summarize_content(content)
-        return {
-            "summary": result.get("summary", ""),
-            "highlights": result.get("highlights", []),
-            "bullets": result.get("bullets", []),
-        }
-
+        return summarize_content(content)
     except Exception as e:
         raise HTTPException(500, f"File upload failed: {e}")
-
 
 @router.post("/save")
 async def manual_save(note: dict):
@@ -255,7 +215,6 @@ async def manual_save(note: dict):
         json.dump(data, f, indent=2, ensure_ascii=False)
     return {"message": "Note saved successfully!", "id": note["id"]}
 
-
 @router.get("/saved")
 async def get_saved_autonotes():
     """Return all saved autonotes."""
@@ -265,7 +224,6 @@ async def get_saved_autonotes():
         data = json.load(f)
     data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return {"entries": data}
-
 
 @router.get("/notes/get/{note_id}")
 async def get_autonote_detail(note_id: str):
@@ -279,9 +237,25 @@ async def get_autonote_detail(note_id: str):
             return note
     raise HTTPException(404, f"No note found with ID: {note_id}")
 
-
-# ✅ Alias for compatibility with frontend route `/notes/list/autonote`
+# ✅ Alias for frontend memory vault
 @router.get("/notes/list/autonote")
 async def get_autonote_list_alias():
     """Provides saved autonotes for compatibility with memory vault."""
     return await get_saved_autonotes()
+
+# ✅ List all .txt files saved
+@router.get("/files")
+async def list_saved_txt_files():
+    """List all saved .txt files for debugging or manual verification."""
+    files = [f for f in os.listdir(SAVE_DIR) if f.endswith(".txt")]
+    files.sort(reverse=True)
+    return {"files": files}
+
+# ✅ Download a specific saved .txt file
+@router.get("/download/{filename}")
+async def download_saved_file(filename: str):
+    """Download a specific saved AutoNote text file."""
+    file_path = os.path.join(SAVE_DIR, filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(404, "File not found.")
+    return FileResponse(file_path, media_type="text/plain", filename=filename)
