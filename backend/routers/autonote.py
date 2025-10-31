@@ -18,11 +18,12 @@ client = Groq(api_key=GROQ_API_KEY)
 MODEL_NAME = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 
 # ---------------------------
-# File storage setup
+# File storage setup (Shared with frontend)
 # ---------------------------
-BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SAVE_DIR = os.path.join(BACKEND_ROOT, "saved_files", "autonote_notes")
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SAVE_DIR = os.path.join(PROJECT_ROOT, "saved_files", "autonote_notes")  # 🧠 moved to root
 os.makedirs(SAVE_DIR, exist_ok=True)
+
 SAVE_FILE = os.path.join(SAVE_DIR, "saved_autonotes.json")
 if not os.path.exists(SAVE_FILE):
     with open(SAVE_FILE, "w", encoding="utf-8") as f:
@@ -52,7 +53,7 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets):
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-        # Save metadata JSON
+        # Save JSON metadata
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data = json.load(f)
             data.append(entry)
@@ -144,6 +145,7 @@ async def stream_summary(req: dict):
     """Stream summary text in real time."""
     if not req.get("text", "").strip():
         raise HTTPException(400, "Please provide text.")
+
     def groq_stream():
         try:
             completion = client.chat.completions.create(
@@ -156,7 +158,9 @@ async def stream_summary(req: dict):
                 yield delta
         except Exception as e:
             yield f"\n❌ Streaming failed: {e}"
+
     return StreamingResponse(groq_stream(), media_type="text/plain")
+
 
 @router.post("/transcribe")
 async def summarize_text(req: dict):
@@ -164,6 +168,7 @@ async def summarize_text(req: dict):
     text = req.get("text", "")
     result = summarize_content(text)
     return result
+
 
 @router.post("/audio")
 async def summarize_audio(file: UploadFile = File(...)):
@@ -177,6 +182,7 @@ async def summarize_audio(file: UploadFile = File(...)):
     os.remove(temp_audio_path)
     summary_data = summarize_content(transcript)
     return {"transcript": transcript, **summary_data}
+
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -202,6 +208,7 @@ async def upload_file(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(500, f"File upload failed: {e}")
 
+
 @router.post("/save")
 async def manual_save(note: dict):
     """Save manual AutoNote from frontend."""
@@ -215,6 +222,7 @@ async def manual_save(note: dict):
         json.dump(data, f, indent=2, ensure_ascii=False)
     return {"message": "Note saved successfully!", "id": note["id"]}
 
+
 @router.get("/saved")
 async def get_saved_autonotes():
     """Return all saved autonotes."""
@@ -224,6 +232,7 @@ async def get_saved_autonotes():
         data = json.load(f)
     data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return {"entries": data}
+
 
 @router.get("/notes/get/{note_id}")
 async def get_autonote_detail(note_id: str):
@@ -237,24 +246,27 @@ async def get_autonote_detail(note_id: str):
             return note
     raise HTTPException(404, f"No note found with ID: {note_id}")
 
-# ✅ Alias for frontend memory vault
+
+# ✅ Frontend Memory Vault Alias
 @router.get("/notes/list/autonote")
 async def get_autonote_list_alias():
     """Provides saved autonotes for compatibility with memory vault."""
     return await get_saved_autonotes()
 
-# ✅ List all .txt files saved
+
+# ✅ List all .txt files for debugging or frontend preview
 @router.get("/files")
 async def list_saved_txt_files():
-    """List all saved .txt files for debugging or manual verification."""
+    """List all saved .txt files."""
     files = [f for f in os.listdir(SAVE_DIR) if f.endswith(".txt")]
     files.sort(reverse=True)
     return {"files": files}
 
-# ✅ Download a specific saved .txt file
+
+# ✅ Download specific saved note
 @router.get("/download/{filename}")
 async def download_saved_file(filename: str):
-    """Download a specific saved AutoNote text file."""
+    """Download specific saved AutoNote text file."""
     file_path = os.path.join(SAVE_DIR, filename)
     if not os.path.exists(file_path):
         raise HTTPException(404, "File not found.")
