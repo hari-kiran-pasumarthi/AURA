@@ -26,39 +26,56 @@ export default function HomeScreen() {
         padding: 20,
       }}
     >
-      {/* 🔹 LOGO SECTION */}
+      {/* 🔹 AURA LOGO */}
       <img
         src="/FullLogo.jpg"
-        alt="AURA Smart Study Logo"
+        alt="The AURA Logo"
         style={{
-          width: "160px",
+          width: "180px",
           borderRadius: "20px",
           marginBottom: 20,
           boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
         }}
       />
 
+      {/* 🔹 TITLE + TAGLINE */}
       <h1
         style={{
-          fontSize: 34,
-          fontWeight: "700",
+          fontSize: 32,
+          fontWeight: "800",
           marginBottom: 10,
           color: "#111",
           textAlign: "center",
+          letterSpacing: "0.5px",
         }}
       >
-        🎓 Smart Study Assistant
+        🌌 The AURA
       </h1>
+
+      <h2
+        style={{
+          fontSize: 16,
+          fontWeight: "500",
+          color: "#2563eb",
+          textAlign: "center",
+          marginBottom: 15,
+          maxWidth: 600,
+        }}
+      >
+        Adaptive Unified Reading Assistant for Smart Academic Productivity
+      </h2>
 
       <p
         style={{
           color: "#555",
           textAlign: "center",
           marginBottom: 25,
-          maxWidth: 500,
+          maxWidth: 550,
+          lineHeight: 1.6,
         }}
       >
-        Your all-in-one intelligent study companion — plan smarter, focus deeper, and learn faster 🚀
+        Your all-in-one intelligent study companion — plan smarter, focus deeper,
+        and learn faster with adaptive AI assistance 🚀
       </p>
 
       {/* 🔹 SAVED FOLDER CARD */}
@@ -170,8 +187,8 @@ export default function HomeScreen() {
           textAlign: "center",
         }}
       >
-        © {new Date().getFullYear()} Smart Study Assistant <br />
-        <span style={{ color: "#2563eb" }}>AI-Powered Learning Platform</span>
+        © {new Date().getFullYear()} The AURA <br />
+        <span style={{ color: "#2563eb" }}>Adaptive Unified Reading Assistant for Smart Academic Productivity</span>
       </footer>
     </div>
   );
