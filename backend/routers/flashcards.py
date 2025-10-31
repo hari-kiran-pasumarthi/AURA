@@ -208,7 +208,7 @@ async def delete_flashcard(filename: str):
 async def get_saved_flashcards():
     """
     ✅ Returns all saved flashcards for Saved Folder UI.
-    Reads from saved_data/flashcards/*.json.
+    Handles corrupted or partial files gracefully.
     """
     try:
         if not os.path.exists(SAVE_DIR):
@@ -217,17 +217,21 @@ async def get_saved_flashcards():
         files = sorted(glob.glob(os.path.join(SAVE_DIR, "*.json")), reverse=True)
         entries = []
         for fpath in files:
-            with open(fpath, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                entries.append({
-                    "id": os.path.basename(fpath).split("_")[0],
-                    "title": data.get("title", "Untitled Flashcards"),
-                    "content": data.get("content", "[No content]"),
-                    "timestamp": datetime.utcfromtimestamp(
-                        os.path.getmtime(fpath)
-                    ).isoformat(),
-                    "metadata": data.get("metadata", {}),
-                })
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    entries.append({
+                        "id": os.path.basename(fpath).split("_")[0],
+                        "title": data.get("title", "Untitled Flashcards"),
+                        "content": data.get("content", "[No content]"),
+                        "timestamp": datetime.utcfromtimestamp(
+                            os.path.getmtime(fpath)
+                        ).isoformat(),
+                        "metadata": data.get("metadata", {}),
+                    })
+            except Exception as e:
+                print(f"⚠️ Skipping corrupted file {fpath}: {e}")
+                continue  # skip corrupted file safely
 
         return {"entries": entries}
     except Exception as e:
