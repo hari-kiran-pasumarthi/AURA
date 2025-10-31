@@ -19,65 +19,71 @@ export default function HomeScreen() {
     <div
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)",
+        background: "linear-gradient(160deg, #F8E8EE 0%, #E8F3FF 50%, #F3E8FF 100%)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         padding: 20,
-        color: "white",
+        color: "#444",
+        fontFamily: "'Poppins', sans-serif",
       }}
     >
-      {/* 🔹 AURA LOGO */}
+      {/* 🌸 AURA LOGO */}
       <img
         src="/FullLogo.jpg"
         alt="AURA Logo"
         style={{
-          width: "220px",
-          borderRadius: "20px",
+          width: "200px",
+          borderRadius: "24px",
           marginTop: 40,
-          marginBottom: 30,
-          boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
+          marginBottom: 25,
+          boxShadow: "0 6px 15px rgba(0,0,0,0.1)",
+          transition: "transform 0.4s ease",
         }}
+        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.04)")}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1.0)")}
       />
 
-      {/* 🔹 SAVED FOLDER CARD */}
+      {/* 📁 SAVED FOLDER */}
       <div
         onClick={() => navigate("/saved")}
         style={{
           width: "100%",
           maxWidth: 900,
-          backgroundColor: "rgba(255,255,255,0.15)",
-          color: "white",
-          borderRadius: 15,
+          backgroundColor: "rgba(255, 255, 255, 0.7)",
+          color: "#333",
+          borderRadius: 20,
           padding: "18px 20px",
           marginBottom: 30,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           cursor: "pointer",
-          backdropFilter: "blur(6px)",
-          boxShadow: "0 4px 15px rgba(0,0,0,0.25)",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          boxShadow: "0 6px 20px rgba(180,180,180,0.25)",
+          transition: "transform 0.25s ease, box-shadow 0.25s ease",
+          backdropFilter: "blur(10px)",
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "translateY(-3px)";
-          e.currentTarget.style.boxShadow = "0 8px 18px rgba(0,0,0,0.35)";
+          e.currentTarget.style.boxShadow = "0 8px 25px rgba(160,160,160,0.3)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.25)";
+          e.currentTarget.style.boxShadow = "0 6px 20px rgba(180,180,180,0.25)";
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 32 }}>📁</span>
+          <span style={{ fontSize: 30 }}>📁</span>
           <div>
-            <h3 style={{ margin: 0, fontSize: 20, fontWeight: "700" }}>Saved Folder</h3>
-            <p style={{ margin: 0, fontSize: 14, color: "#E0E7FF" }}>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: "700", color: "#333" }}>
+              Saved Folder
+            </h3>
+            <p style={{ margin: 0, fontSize: 14, color: "#666" }}>
               View your saved tasks, notes, and logs
             </p>
           </div>
         </div>
-        <span style={{ fontSize: 22 }}>➡️</span>
+        <span style={{ fontSize: 22, color: "#666" }}>➡️</span>
       </div>
 
       {/* 🔹 MODULE GRID */}
@@ -90,30 +96,30 @@ export default function HomeScreen() {
           maxWidth: 900,
         }}
       >
-        {modules.map((mod) => (
+        {modules.map((mod, index) => (
           <div
             key={mod.path}
             onClick={() => navigate(mod.path)}
             style={{
-              backgroundColor: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 15,
-              padding: "20px 15px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+              backgroundColor: "rgba(255,255,255,0.75)",
+              border: "1px solid rgba(200,200,200,0.2)",
+              borderRadius: 20,
+              padding: "25px 18px",
+              boxShadow: "0 6px 15px rgba(180,180,180,0.25)",
               cursor: "pointer",
-              transition: "transform 0.2s ease, box-shadow 0.2s ease",
-              backdropFilter: "blur(5px)",
+              transition: "transform 0.25s ease, box-shadow 0.25s ease",
+              backdropFilter: "blur(10px)",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-4px)";
-              e.currentTarget.style.boxShadow = "0 8px 18px rgba(0,0,0,0.35)";
+              e.currentTarget.style.transform = "translateY(-5px)";
+              e.currentTarget.style.boxShadow = "0 10px 25px rgba(160,160,160,0.3)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
+              e.currentTarget.style.boxShadow = "0 6px 15px rgba(180,180,180,0.25)";
             }}
           >
-            <div style={{ fontSize: 32, textAlign: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 36, textAlign: "center", marginBottom: 12 }}>
               {mod.icon}
             </div>
             <h3
@@ -121,7 +127,7 @@ export default function HomeScreen() {
                 textAlign: "center",
                 fontSize: 18,
                 fontWeight: "700",
-                color: "#FFF",
+                color: "#333",
                 marginBottom: 6,
               }}
             >
@@ -130,7 +136,7 @@ export default function HomeScreen() {
             <p
               style={{
                 textAlign: "center",
-                color: "#E5E7EB",
+                color: "#555",
                 fontSize: 14,
                 minHeight: 40,
               }}
@@ -141,18 +147,18 @@ export default function HomeScreen() {
         ))}
       </div>
 
-      {/* 🔹 FOOTER */}
+      {/* 🌷 FOOTER */}
       <footer
         style={{
           marginTop: "auto",
-          paddingTop: 30,
-          color: "#E0E7FF",
-          fontSize: 13,
+          paddingTop: 40,
+          color: "#777",
+          fontSize: 14,
           textAlign: "center",
         }}
       >
         © {new Date().getFullYear()} AURA <br />
-        <span style={{ color: "#BFDBFE" }}>AI-Powered Learning Platform</span>
+        <span style={{ color: "#9CA3AF" }}>Adaptive AI Study Companion 🌸</span>
       </footer>
     </div>
   );
