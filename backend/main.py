@@ -1,30 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
-import os, json, time
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+import os, json
 from datetime import datetime
-import requests
-
-# -------------------------------
-# Ollama remote connection config
-# -------------------------------
-OLLAMA_URL = os.getenv("OLLAMA_URL", "https://ollama-railway-hr3a.onrender.com")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "phi3:mini")
-
-def ensure_model_loaded(model_name=OLLAMA_MODEL):
-    """Ensure Ollama model exists on the remote Render instance."""
-    try:
-        pull_url = f"{OLLAMA_URL}/api/pull"
-        payload = {"model": model_name}
-        print(f"🧠 Ensuring model '{model_name}' is available on Ollama at {OLLAMA_URL}...")
-        r = requests.post(pull_url, json=payload, timeout=600)
-        if r.status_code == 200:
-            print(f"✅ Model '{model_name}' pull started/verified.")
-        else:
-            print(f"⚠️ Ollama returned {r.status_code}: {r.text}")
-    except Exception as e:
-        print(f"❌ Could not ensure model '{model_name}': {e}")
 
 # ------------------------------------
 # Import routers for all your features
@@ -48,22 +27,20 @@ from backend.routers import (
 # ------------------
 app = FastAPI(title="The AURA", version="1.0.0")
 
+# ---------------------------
+# CORS Configuration
+# ---------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://aura-three-phi.vercel.app",  # your Vercel frontend
-    ],
+    allow_origins=["https://aura-three-phi.vercel.app"],  # ✅ Vercel frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load model on startup
-@app.on_event("startup")
-async def startup_event():
-    ensure_model_loaded()
-
-# Include routers
+# ---------------------------
+# Include Routers
+# ---------------------------
 app.include_router(autonote.router)
 app.include_router(focus.router, prefix="/focus", tags=["FocusSense"])
 app.include_router(planner.router, tags=["Planner"])
@@ -76,18 +53,65 @@ app.include_router(braindump.router, prefix="/braindump", tags=["AutoSave BrainD
 app.include_router(confusion.router, prefix="/confusion", tags=["Concept Confusion Detector"])
 app.include_router(chatbot.router, prefix="/chatbot", tags=["ChatBot"])
 
+# ---------------------------
+# Root Route
+# ---------------------------
 @app.get("/")
 def root():
     return {
         "ok": True,
         "service": "Smart Study Assistant API",
         "version": "1.0.0",
-        "ollama_model": OLLAMA_MODEL,
-        "ollama_url": OLLAMA_URL,
+        "llm_provider": "Groq",
     }
 
 # ---------------------------
-# Dashboard and log rendering
+# Universal Saved Notes Route
+# ---------------------------
+@app.get("/notes/list/{module_name}")
+async def universal_saved_notes(module_name: str):
+    """
+    ✅ Universal fallback route for /notes/list/<module>
+    Ensures frontend 'Saved Files' page works across all modules.
+    Automatically creates missing folders/files if needed.
+    """
+    base_path = os.path.join(os.path.dirname(__file__), "backend", "saved_files")
+
+    # Mapping between modules and their save files
+    file_map = {
+        "autonote": "autonote_notes/saved_autonotes.json",
+        "planner": "planner_notes/saved_plans.json",
+        "focus": "focus_notes/saved_focus.json",
+        "flashcards": "flashcards_notes/saved_flashcards.json",
+        "confusion": "confusion_notes/saved_confusion.json",
+        "timepredict": "timepredict_notes/saved_timepredict.json",
+    }
+
+    # If module name not recognized, return empty response
+    if module_name not in file_map:
+        return JSONResponse({"entries": []}, status_code=200)
+
+    save_file_path = os.path.join(base_path, file_map[module_name])
+    save_dir = os.path.dirname(save_file_path)
+
+    # Auto-create folder and empty JSON file if missing
+    os.makedirs(save_dir, exist_ok=True)
+    if not os.path.exists(save_file_path):
+        with open(save_file_path, "w", encoding="utf-8") as f:
+            json.dump([], f, indent=2)
+
+    # Read and return saved entries
+    try:
+        with open(save_file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+        return {"entries": data}
+    except Exception as e:
+        return JSONResponse({"error": str(e), "entries": []}, status_code=500)
+
+
+# ---------------------------
+# Dashboard and Log Rendering
 # ---------------------------
 @app.get("/dashboard", response_class=HTMLResponse)
 async def unified_dashboard():
@@ -114,6 +138,7 @@ async def unified_dashboard():
         <h1>📘 Smart Study Assistant Dashboard</h1>
         <p>All saved session logs are listed below.</p>
     """
+
     logs = []
     if os.path.exists(LOG_FILE):
         try:
@@ -148,8 +173,9 @@ async def unified_dashboard():
     html += "</body></html>"
     return HTMLResponse(content=html)
 
+
 # -------------------------------------
-# Serve frontend React build (if exists)
+# Serve Frontend React Build (if exists)
 # -------------------------------------
 frontend_build_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "build"))
 
