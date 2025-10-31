@@ -26,6 +26,18 @@ export default function HomeScreen() {
         padding: 20,
       }}
     >
+      {/* 🔹 LOGO SECTION */}
+      <img
+        src="/FullLogo.jpg"
+        alt="AURA Smart Study Logo"
+        style={{
+          width: "160px",
+          borderRadius: "20px",
+          marginBottom: 20,
+          boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+        }}
+      />
+
       <h1
         style={{
           fontSize: 34,
@@ -88,7 +100,7 @@ export default function HomeScreen() {
         <span style={{ fontSize: 22 }}>➡️</span>
       </div>
 
-      {/* 🔹 GRID OF MODULES */}
+      {/* 🔹 MODULE GRID */}
       <div
         style={{
           display: "grid",
@@ -120,13 +132,7 @@ export default function HomeScreen() {
               e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
             }}
           >
-            <div
-              style={{
-                fontSize: 32,
-                textAlign: "center",
-                marginBottom: 10,
-              }}
-            >
+            <div style={{ fontSize: 32, textAlign: "center", marginBottom: 10 }}>
               {mod.icon}
             </div>
             <h3
