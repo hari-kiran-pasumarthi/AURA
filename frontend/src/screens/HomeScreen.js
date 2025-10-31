@@ -19,64 +19,26 @@ export default function HomeScreen() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#f9fafb",
+        background: "linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         padding: 20,
+        color: "white",
       }}
     >
       {/* 🔹 AURA LOGO */}
       <img
         src="/FullLogo.jpg"
-        alt="The AURA Logo"
+        alt="AURA Logo"
         style={{
-          width: "180px",
+          width: "220px",
           borderRadius: "20px",
-          marginBottom: 20,
-          boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+          marginTop: 40,
+          marginBottom: 30,
+          boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
         }}
       />
-
-      {/* 🔹 TITLE + TAGLINE */}
-      <h1
-        style={{
-          fontSize: 32,
-          fontWeight: "800",
-          marginBottom: 10,
-          color: "#111",
-          textAlign: "center",
-          letterSpacing: "0.5px",
-        }}
-      >
-        🌌 The AURA
-      </h1>
-
-      <h2
-        style={{
-          fontSize: 16,
-          fontWeight: "500",
-          color: "#2563eb",
-          textAlign: "center",
-          marginBottom: 15,
-          maxWidth: 600,
-        }}
-      >
-        Adaptive Unified Reading Assistant for Smart Academic Productivity
-      </h2>
-
-      <p
-        style={{
-          color: "#555",
-          textAlign: "center",
-          marginBottom: 25,
-          maxWidth: 550,
-          lineHeight: 1.6,
-        }}
-      >
-        Your all-in-one intelligent study companion — plan smarter, focus deeper,
-        and learn faster with adaptive AI assistance 🚀
-      </p>
 
       {/* 🔹 SAVED FOLDER CARD */}
       <div
@@ -84,7 +46,7 @@ export default function HomeScreen() {
         style={{
           width: "100%",
           maxWidth: 900,
-          backgroundColor: "#2563eb",
+          backgroundColor: "rgba(255,255,255,0.15)",
           color: "white",
           borderRadius: 15,
           padding: "18px 20px",
@@ -93,23 +55,24 @@ export default function HomeScreen() {
           alignItems: "center",
           justifyContent: "space-between",
           cursor: "pointer",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+          backdropFilter: "blur(6px)",
+          boxShadow: "0 4px 15px rgba(0,0,0,0.25)",
           transition: "transform 0.2s ease, box-shadow 0.2s ease",
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "translateY(-3px)";
-          e.currentTarget.style.boxShadow = "0 6px 15px rgba(0,0,0,0.2)";
+          e.currentTarget.style.boxShadow = "0 8px 18px rgba(0,0,0,0.35)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.15)";
+          e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.25)";
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 32 }}>📁</span>
           <div>
             <h3 style={{ margin: 0, fontSize: 20, fontWeight: "700" }}>Saved Folder</h3>
-            <p style={{ margin: 0, fontSize: 14, color: "#e0e7ff" }}>
+            <p style={{ margin: 0, fontSize: 14, color: "#E0E7FF" }}>
               View your saved tasks, notes, and logs
             </p>
           </div>
@@ -132,21 +95,22 @@ export default function HomeScreen() {
             key={mod.path}
             onClick={() => navigate(mod.path)}
             style={{
-              backgroundColor: "white",
-              border: "1px solid #e5e7eb",
+              backgroundColor: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.2)",
               borderRadius: 15,
               padding: "20px 15px",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
               cursor: "pointer",
               transition: "transform 0.2s ease, box-shadow 0.2s ease",
+              backdropFilter: "blur(5px)",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-4px)";
-              e.currentTarget.style.boxShadow = "0 6px 15px rgba(0,0,0,0.1)";
+              e.currentTarget.style.boxShadow = "0 8px 18px rgba(0,0,0,0.35)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
             }}
           >
             <div style={{ fontSize: 32, textAlign: "center", marginBottom: 10 }}>
@@ -157,7 +121,7 @@ export default function HomeScreen() {
                 textAlign: "center",
                 fontSize: 18,
                 fontWeight: "700",
-                color: "#111",
+                color: "#FFF",
                 marginBottom: 6,
               }}
             >
@@ -166,7 +130,7 @@ export default function HomeScreen() {
             <p
               style={{
                 textAlign: "center",
-                color: "#555",
+                color: "#E5E7EB",
                 fontSize: 14,
                 minHeight: 40,
               }}
@@ -182,13 +146,13 @@ export default function HomeScreen() {
         style={{
           marginTop: "auto",
           paddingTop: 30,
-          color: "#777",
-          fontSize: 14,
+          color: "#E0E7FF",
+          fontSize: 13,
           textAlign: "center",
         }}
       >
-        © {new Date().getFullYear()} The AURA <br />
-        <span style={{ color: "#2563eb" }}>Adaptive Unified Reading Assistant for Smart Academic Productivity</span>
+        © {new Date().getFullYear()} AURA <br />
+        <span style={{ color: "#BFDBFE" }}>AI-Powered Learning Platform</span>
       </footer>
     </div>
   );
