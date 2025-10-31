@@ -15,10 +15,10 @@ if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY environment variable is required")
 
 client = Groq(api_key=GROQ_API_KEY)
-MODEL_NAME = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")  # change if needed
+MODEL_NAME = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")  # default model
 
 # ---------------------------
-# File storage
+# File storage setup
 # ---------------------------
 BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SAVE_DIR = os.path.join(BACKEND_ROOT, "saved_files", "autonote_notes")
@@ -37,6 +37,7 @@ def flatten_list(items):
     return []
 
 def save_autonote_to_server(title, transcript, summary, highlights, bullets):
+    """Save summary & metadata to JSON + text file."""
     try:
         preview = summary or (transcript[:200] + "...") if transcript else "[No content]"
         entry = {
@@ -48,8 +49,9 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets):
             "highlights": highlights,
             "keywords": highlights,
             "bullets": bullets,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
+
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data = json.load(f)
             data.append(entry)
@@ -64,7 +66,9 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets):
             f.write("=== Highlights ===\n" + "\n".join(highlights or []) + "\n\n")
             f.write("=== Bullets ===\n" + "\n".join(bullets or []) + "\n\n")
             f.write("=== Transcript ===\n" + (transcript or ""))
+
         print(f"✅ AutoNote saved successfully at: {txt_path}")
+
     except Exception as e:
         print(f"⚠️ Failed to save AutoNote: {e}")
 
@@ -95,10 +99,10 @@ Text:
             messages=[{"role": "user", "content": prompt}],
             temperature=0.0,
         )
-        # typical Groq response shape used earlier in this convo:
+
         ai_output = response.choices[0].message.content.strip()
 
-        # extract valid JSON block if returned
+        # Try to extract valid JSON
         start, end = ai_output.find("{"), ai_output.rfind("}")
         if start != -1 and end != -1:
             try:
@@ -111,7 +115,7 @@ Text:
             except json.JSONDecodeError:
                 pass
 
-        # fallback parsing when model returned plain text
+        # Fallback parsing
         print("⚠️ Groq output not strict JSON — applying fallback parsing.")
         summary_match = re.search(r"(?i)(summary|overview)[:\-]?\s*(.+?)(?:\n[A-Z]|$)", ai_output, re.DOTALL)
         highlights_match = re.findall(r"[\-\*\•]\s*(.+)", ai_output)
@@ -135,36 +139,41 @@ Text:
 # ---------------------------
 @router.post("/stream")
 async def stream_summary(req: dict):
+    """Stream summary text in real time."""
     if not req.get("text", "").strip():
         raise HTTPException(400, "Please provide text.")
+
     def groq_stream():
         try:
             completion = client.chat.completions.create(
                 model=MODEL_NAME,
-                messages=[{"role":"user","content": req["text"]}],
+                messages=[{"role": "user", "content": req["text"]}],
                 stream=True,
             )
             for chunk in completion:
-                # chunk.choices[0].delta.content available streaming
                 delta = getattr(chunk.choices[0].delta, "content", None) or ""
                 yield delta
         except Exception as e:
             yield f"\n❌ Streaming failed: {e}"
+
     return StreamingResponse(groq_stream(), media_type="text/plain")
+
 
 @router.post("/transcribe")
 async def summarize_text(req: dict):
+    """Summarize plain text."""
     text = req.get("text", "")
     result = summarize_content(text)
     return {
         "summary": result.get("summary", ""),
         "highlights": result.get("highlights", []),
-        "bullets": result.get("bullets", [])
+        "bullets": result.get("bullets", []),
     }
+
 
 @router.post("/audio")
 async def summarize_audio(file: UploadFile = File(...)):
-    # whisper transcription local
+    """Transcribe & summarize audio."""
     with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
         temp_audio.write(await file.read())
         temp_audio_path = temp_audio.name
@@ -179,16 +188,19 @@ async def summarize_audio(file: UploadFile = File(...)):
         "transcript": transcript,
         "summary": summary_data.get("summary", ""),
         "highlights": summary_data.get("highlights", []),
-        "bullets": summary_data.get("bullets", [])
+        "bullets": summary_data.get("bullets", []),
     }
+
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
+    """Extract and summarize uploaded text or PDF file."""
     try:
         filename = file.filename.lower()
         content = ""
         if filename.endswith(".txt"):
             content = (await file.read()).decode("utf-8", errors="ignore")
+
         elif filename.endswith(".pdf"):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
                 temp_pdf.write(await file.read())
@@ -210,23 +222,29 @@ async def upload_file(file: UploadFile = File(...)):
                 for img in images:
                     text_data += pytesseract.image_to_string(Image.open(img)) + "\n"
                     os.remove(img)
+
             os.remove(temp_pdf_path)
             content = text_data
         else:
             raise HTTPException(400, "Unsupported file type. Upload .txt or .pdf only.")
+
         if not content.strip():
             raise HTTPException(400, "File is empty or unreadable.")
+
         result = summarize_content(content)
         return {
             "summary": result.get("summary", ""),
             "highlights": result.get("highlights", []),
-            "bullets": result.get("bullets", [])
+            "bullets": result.get("bullets", []),
         }
+
     except Exception as e:
         raise HTTPException(500, f"File upload failed: {e}")
 
+
 @router.post("/save")
 async def manual_save(note: dict):
+    """Save manual AutoNote from frontend."""
     note["id"] = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     note["timestamp"] = datetime.utcnow().isoformat()
     note["keywords"] = note.get("highlights", [])
@@ -237,8 +255,10 @@ async def manual_save(note: dict):
         json.dump(data, f, indent=2, ensure_ascii=False)
     return {"message": "Note saved successfully!", "id": note["id"]}
 
+
 @router.get("/saved")
 async def get_saved_autonotes():
+    """Return all saved autonotes."""
     if not os.path.exists(SAVE_FILE):
         return {"entries": []}
     with open(SAVE_FILE, "r", encoding="utf-8") as f:
@@ -246,8 +266,10 @@ async def get_saved_autonotes():
     data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return {"entries": data}
 
+
 @router.get("/notes/get/{note_id}")
 async def get_autonote_detail(note_id: str):
+    """Fetch a specific autonote by ID."""
     if not os.path.exists(SAVE_FILE):
         raise HTTPException(404, "No saved notes found.")
     with open(SAVE_FILE, "r", encoding="utf-8") as f:
@@ -256,3 +278,10 @@ async def get_autonote_detail(note_id: str):
         if note.get("id") == note_id:
             return note
     raise HTTPException(404, f"No note found with ID: {note_id}")
+
+
+# ✅ Alias for compatibility with frontend route `/notes/list/autonote`
+@router.get("/notes/list/autonote")
+async def get_autonote_list_alias():
+    """Provides saved autonotes for compatibility with memory vault."""
+    return await get_saved_autonotes()
