@@ -32,7 +32,7 @@ export default function HomeScreen() {
     >
       {/* 🌌 LOGO SECTION */}
       <img
-        src="/FullLo.jpg"
+        src="/FullLogo.jpg"
         alt="AURA Logo"
         style={{
           width: "200px",
