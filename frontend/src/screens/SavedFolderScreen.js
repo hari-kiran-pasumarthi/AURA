@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 export default function SavedFolderScreen() {
   const navigate = useNavigate();
 
-  // Removed "mood" from modules list
   const modules = [
     "autonote",
     "planner",
@@ -23,12 +22,20 @@ export default function SavedFolderScreen() {
   useEffect(() => {
     const fetchAll = async () => {
       const all = {};
+
       for (const mod of modules) {
         try {
-          const url =
-            mod === "doubts"
-              ? "https://loyal-beauty-production.up.railway.app/doubts/history"
-              : `https://loyal-beauty-production.up.railway.app/notes/list/${mod}`;
+          let url = "";
+
+          if (mod === "doubts") {
+            url = "https://loyal-beauty-production.up.railway.app/doubts/history";
+          } else if (mod === "autonote") {
+            // ✅ Correct backend endpoint for autonotes
+            url = "https://loyal-beauty-production.up.railway.app/autonote/saved";
+          } else {
+            // ✅ Adjust other modules for consistency
+            url = `https://loyal-beauty-production.up.railway.app/${mod}/saved`;
+          }
 
           const res = await fetch(url);
           const data = await res.json();
@@ -36,9 +43,8 @@ export default function SavedFolderScreen() {
           if (mod === "doubts") {
             all[mod] = Array.isArray(data) ? data.slice(0, 3) : [];
           } else {
-            all[mod] = Array.isArray(data.entries)
-              ? data.entries.slice(0, 3)
-              : [];
+            const entriesData = data?.entries || [];
+            all[mod] = Array.isArray(entriesData) ? entriesData.slice(0, 3) : [];
           }
         } catch (err) {
           console.warn(`⚠️ Failed to fetch ${mod}:`, err);
@@ -98,7 +104,9 @@ export default function SavedFolderScreen() {
               ? "📘 AI Study Planner"
               : mod === "doubts"
               ? "❓ Doubt History"
-              : `📘 ${mod}`;
+              : mod === "autonote"
+              ? "📝 AutoNotes"
+              : `📘 ${mod.charAt(0).toUpperCase() + mod.slice(1)}`;
 
           return (
             <div
@@ -167,7 +175,7 @@ export default function SavedFolderScreen() {
         })
       )}
 
-      {/* 🧠 Mood Logs Section (kept as requested) */}
+      {/* 🧠 Mood Logs Section */}
       <div
         style={{
           backgroundColor: "#fff",
@@ -260,7 +268,6 @@ export default function SavedFolderScreen() {
               </>
             )}
 
-            {/* 🗓️ Planner Schedule View */}
             {Array.isArray(selectedNote.schedule) &&
               selectedNote.schedule.length > 0 && (
                 <>
