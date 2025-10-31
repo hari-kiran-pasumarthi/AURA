@@ -19,29 +19,29 @@ export default function HomeScreen() {
     <div
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(160deg, #F8E8EE 0%, #E8F3FF 50%, #F3E8FF 100%)",
+        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        backgroundAttachment: "fixed",
+        color: "#EAEAF5",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         padding: 20,
-        color: "#444",
         fontFamily: "'Poppins', sans-serif",
+        overflowX: "hidden",
       }}
     >
-      {/* 🌸 AURA LOGO */}
+      {/* 🌌 LOGO SECTION */}
       <img
-        src="/FullLogo.jpg"
+        src="/FullLo.jpg"
         alt="AURA Logo"
         style={{
           width: "200px",
+          marginTop: 50,
+          marginBottom: 30,
           borderRadius: "24px",
-          marginTop: 40,
-          marginBottom: 25,
-          boxShadow: "0 6px 15px rgba(0,0,0,0.1)",
-          transition: "transform 0.4s ease",
+          boxShadow: "0 0 25px rgba(182, 202, 255, 0.3)",
+          animation: "fadeIn 2s ease-in-out",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.04)")}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1.0)")}
       />
 
       {/* 📁 SAVED FOLDER */}
@@ -50,43 +50,42 @@ export default function HomeScreen() {
         style={{
           width: "100%",
           maxWidth: 900,
-          backgroundColor: "rgba(255, 255, 255, 0.7)",
-          color: "#333",
+          background: "rgba(255, 255, 255, 0.08)",
           borderRadius: 20,
           padding: "18px 20px",
-          marginBottom: 30,
+          marginBottom: 40,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           cursor: "pointer",
-          boxShadow: "0 6px 20px rgba(180,180,180,0.25)",
-          transition: "transform 0.25s ease, box-shadow 0.25s ease",
           backdropFilter: "blur(10px)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+          transition: "transform 0.3s ease, box-shadow 0.3s ease",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-3px)";
-          e.currentTarget.style.boxShadow = "0 8px 25px rgba(160,160,160,0.3)";
+          e.currentTarget.style.transform = "translateY(-4px)";
+          e.currentTarget.style.boxShadow = "0 6px 25px rgba(200,200,255,0.25)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "0 6px 20px rgba(180,180,180,0.25)";
+          e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.3)";
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 30 }}>📁</span>
           <div>
-            <h3 style={{ margin: 0, fontSize: 18, fontWeight: "700", color: "#333" }}>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: "700", color: "#EAEAF5" }}>
               Saved Folder
             </h3>
-            <p style={{ margin: 0, fontSize: 14, color: "#666" }}>
+            <p style={{ margin: 0, fontSize: 14, color: "#BFC2D5" }}>
               View your saved tasks, notes, and logs
             </p>
           </div>
         </div>
-        <span style={{ fontSize: 22, color: "#666" }}>➡️</span>
+        <span style={{ fontSize: 22, color: "#BFC2D5" }}>➡️</span>
       </div>
 
-      {/* 🔹 MODULE GRID */}
+      {/* 🪐 MODULE GRID */}
       <div
         style={{
           display: "grid",
@@ -96,30 +95,30 @@ export default function HomeScreen() {
           maxWidth: 900,
         }}
       >
-        {modules.map((mod, index) => (
+        {modules.map((mod) => (
           <div
             key={mod.path}
             onClick={() => navigate(mod.path)}
             style={{
-              backgroundColor: "rgba(255,255,255,0.75)",
-              border: "1px solid rgba(200,200,200,0.2)",
+              background: "rgba(255, 255, 255, 0.08)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
               borderRadius: 20,
               padding: "25px 18px",
-              boxShadow: "0 6px 15px rgba(180,180,180,0.25)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
               cursor: "pointer",
-              transition: "transform 0.25s ease, box-shadow 0.25s ease",
               backdropFilter: "blur(10px)",
+              transition: "transform 0.25s ease, box-shadow 0.25s ease",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-5px)";
-              e.currentTarget.style.boxShadow = "0 10px 25px rgba(160,160,160,0.3)";
+              e.currentTarget.style.boxShadow = "0 8px 25px rgba(200,200,255,0.25)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 6px 15px rgba(180,180,180,0.25)";
+              e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.25)";
             }}
           >
-            <div style={{ fontSize: 36, textAlign: "center", marginBottom: 12 }}>
+            <div style={{ fontSize: 36, textAlign: "center", marginBottom: 10 }}>
               {mod.icon}
             </div>
             <h3
@@ -127,7 +126,7 @@ export default function HomeScreen() {
                 textAlign: "center",
                 fontSize: 18,
                 fontWeight: "700",
-                color: "#333",
+                color: "#EAEAF5",
                 marginBottom: 6,
               }}
             >
@@ -136,7 +135,7 @@ export default function HomeScreen() {
             <p
               style={{
                 textAlign: "center",
-                color: "#555",
+                color: "#C7C9E0",
                 fontSize: 14,
                 minHeight: 40,
               }}
@@ -147,19 +146,29 @@ export default function HomeScreen() {
         ))}
       </div>
 
-      {/* 🌷 FOOTER */}
+      {/* 🌙 FOOTER */}
       <footer
         style={{
           marginTop: "auto",
           paddingTop: 40,
-          color: "#777",
+          color: "#A8B0D0",
           fontSize: 14,
           textAlign: "center",
         }}
       >
         © {new Date().getFullYear()} AURA <br />
-        <span style={{ color: "#9CA3AF" }}>Adaptive AI Study Companion 🌸</span>
+        <span style={{ color: "#C7C9E0" }}>Adaptive AI Study Companion 🌙</span>
       </footer>
+
+      {/* 🌌 Fade-in Animation */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+          }
+        `}
+      </style>
     </div>
   );
 }
