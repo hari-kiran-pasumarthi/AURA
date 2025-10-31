@@ -48,9 +48,9 @@ app.include_router(doubts.router, prefix="/doubts", tags=["Silent Study Partner"
 app.include_router(flashcards.router)
 app.include_router(mood.router, prefix="/mood", tags=["StudyMood Logger"])
 app.include_router(distraction.router, prefix="/distraction", tags=["DistractionSniper"])
-app.include_router(timepredict.router, prefix="/time", tags=["StudyTime Predictor"])
+app.include_router(timepredict.router)
 app.include_router(braindump.router, prefix="/braindump", tags=["AutoSave BrainDump"])
-app.include_router(confusion.router, prefix="/confusion", tags=["Concept Confusion Detector"])
+app.include_router(confusion.router)
 app.include_router(chatbot.router, prefix="/chatbot", tags=["ChatBot"])
 
 # ---------------------------
