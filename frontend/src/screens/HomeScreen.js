@@ -11,9 +11,7 @@ export default function HomeScreen() {
     { path: "/doubts", label: "Doubt Solver", icon: "💭", desc: "Ask and clarify academic doubts" },
     { path: "/flashcards", label: "Flashcards", icon: "🎴", desc: "Auto-generate flashcards for revision" },
     { path: "/mood", label: "Mood Tracker", icon: "😊", desc: "Log your study mood and reflections" },
-    { path: "/distraction", label: "Distraction Blocker", icon: "🚫", desc: "Block distracting apps instantly" },
     { path: "/braindump", label: "Brain Dump", icon: "🧠", desc: "Organize messy thoughts with AI" },
-    { path: "/confusion", label: "Confusion Resolver", icon: "🤔", desc: "Simplify confusing concepts" },
     { path: "/chatbot", label: "AI Chatbot", icon: "🤖", desc: "Chat with your AI study assistant" },
   ];
 
