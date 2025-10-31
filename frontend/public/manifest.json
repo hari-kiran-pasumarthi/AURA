@@ -1,25 +1,27 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "AURA",
+  "name": "AURA - Smart Study Assistant",
   "icons": [
+    {
+      "src": "logo192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
-    },
-    {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "description": "Your all-in-one Smart Study Assistant that helps you plan, focus, and learn efficiently with AI."
 }
