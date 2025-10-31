@@ -42,7 +42,7 @@ app.add_middleware(
 # Include Routers
 # ---------------------------
 app.include_router(autonote.router)
-app.include_router(focus.router, prefix="/focus", tags=["FocusSense"])
+app.include_router(focus.router)
 app.include_router(planner.router, tags=["Planner"])
 app.include_router(doubts.router, prefix="/doubts", tags=["Silent Study Partner"])
 app.include_router(flashcards.router, prefix="/flashcards", tags=["MemoryVault"])
