@@ -25,21 +25,26 @@ if not os.path.exists(SAVE_FILE):
     with open(SAVE_FILE, "w", encoding="utf-8") as f:
         json.dump([], f, indent=2)
 
+
 # ---------------------------
 # Helper: Save focus result
 # ---------------------------
 def save_focus_result(result: dict):
-    """Save latest focus ML result to disk for persistence."""
+    """Save the latest focus ML result to persistent storage."""
     try:
         entry = {
             "id": datetime.utcnow().strftime("%Y%m%d%H%M%S"),
-            "title": f"Focus Analysis - {result.get('timestamp', datetime.utcnow().isoformat())}",
+            "title": f"Focus Session - {datetime.utcnow().strftime('%H:%M:%S')}",
             "focused": result.get("focused"),
             "reason": result.get("reason", "N/A"),
             "pomodoro_suggest": result.get("suggest_pomodoro"),
             "attention_score": result.get("attention_score", None),
             "timestamp": datetime.utcnow().isoformat(),
-            "content": f"Focus: {result.get('focused')} | Pomodoro: {result.get('suggest_pomodoro')} | Reason: {result.get('reason', '')}"
+            "content": (
+                "🧠 Focused on task ✅"
+                if result.get("focused")
+                else "⚠️ Distracted or inactive ❌"
+            ),
         }
 
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
@@ -48,10 +53,12 @@ def save_focus_result(result: dict):
             f.seek(0)
             json.dump(data, f, indent=2, ensure_ascii=False)
 
-        print(f"✅ Focus result saved: {entry['title']}")
+        print(f"✅ Focus result saved at: {SAVE_FILE}")
         return entry
+
     except Exception as e:
         print(f"⚠️ Failed to save focus result: {e}")
+
 
 # ---------------------------
 # API: Receive telemetry (agent)
@@ -59,8 +66,8 @@ def save_focus_result(result: dict):
 @router.post("/telemetry", response_model=FocusSuggestResponse)
 async def receive_telemetry(events: List[dict]):
     """
-    ✅ Receives telemetry from Focus Monitor agent.
-    Converts JSON → FocusEvent models → analyzes via ML → updates live status.
+    ✅ Receives telemetry from the Focus Monitor agent.
+    Converts JSON → FocusEvent → ML analysis → updates live tracking.
     """
     global latest_result, last_heartbeat
 
@@ -75,59 +82,63 @@ async def receive_telemetry(events: List[dict]):
 
     print(f"📡 Telemetry received ({len(events)} events) at {time.strftime('%H:%M:%S')}")
 
+    # Run analysis
     result = focus_detect.suggest(focus_events)
     latest_result = result.dict()
     last_heartbeat = time.time()
 
+    # Persist to JSON
     save_focus_result(latest_result)
 
-    print(
-        f"✅ Focus Updated → Focused={result.focused}, Pomodoro={result.suggest_pomodoro}"
-    )
-
+    print(f"✅ Focus Updated → Focused={result.focused}, Pomodoro={result.suggest_pomodoro}")
     return result
 
+
 # ---------------------------
-# API: Manual frontend suggestion
+# API: Manual frontend simulation
 # ---------------------------
 @router.post("/suggest", response_model=FocusSuggestResponse)
 async def suggest_pomodoro(events: List[FocusEvent]):
-    """✅ Manual endpoint used by frontend for simulated focus data."""
+    """✅ Used by frontend for manual or simulated focus data."""
     if not events:
         raise HTTPException(status_code=400, detail="No focus events provided.")
     result = focus_detect.suggest(events)
     save_focus_result(result.dict())
     return result
 
+
 # ---------------------------
-# API: Latest + Status
+# API: Latest + Agent Status
 # ---------------------------
 @router.get("/latest")
 async def get_latest():
-    """✅ Returns the most recent focus analysis."""
+    """✅ Returns the most recent focus analysis result."""
     if latest_result:
         return latest_result
+
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
         if data:
             return data[-1]
+
     return {"focused": None, "reason": "No focus data received yet."}
 
 
 @router.get("/status")
 async def get_status():
-    """✅ Returns whether the focus agent is active."""
+    """✅ Returns whether the focus agent is currently active."""
     global last_heartbeat
     active = (time.time() - last_heartbeat) < 20
     return {"active": active}
 
+
 # ---------------------------
-# API: Saved sessions
+# API: Saved Sessions
 # ---------------------------
 @router.get("/saved")
 async def get_saved_focus():
-    """✅ Returns all saved focus results."""
+    """✅ Returns all saved focus results for Saved Folder."""
     if not os.path.exists(SAVE_FILE):
         return {"entries": []}
     with open(SAVE_FILE, "r", encoding="utf-8") as f:
@@ -135,8 +146,9 @@ async def get_saved_focus():
     data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return {"entries": data}
 
-# ✅ Compatibility alias for Saved Folder frontend
+
+# ✅ Frontend compatibility alias for Saved Folder
 @router.get("/notes/list/focus")
 async def get_focus_alias():
-    """✅ Alias route for Memory Vault."""
+    """✅ Alias route for Memory Vault integration."""
     return await get_saved_focus()
