@@ -14,7 +14,7 @@ from typing import List, Optional
 # -------------------------------------------
 # ✅ Router Setup
 # -------------------------------------------
-router = APIRouter(prefix="/flashcards", tags=["Flashcards & MemoryVault"])
+router = APIRouter(prefix="/flashcards", tags=["Flashcards"])
 
 # -------------------------------------------
 # ✅ Ensure NLTK dependencies exist (for cloud)
