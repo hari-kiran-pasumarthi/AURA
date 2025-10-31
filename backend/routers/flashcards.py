@@ -199,3 +199,43 @@ async def delete_flashcard(filename: str):
             raise HTTPException(404, f"File {filename} not found.")
     except Exception as e:
         raise HTTPException(500, f"Failed to delete flashcard: {e}")
+
+
+# -------------------------------------------
+# 📁 Saved Flashcards (Frontend Compatibility)
+# -------------------------------------------
+@router.get("/saved")
+async def get_saved_flashcards():
+    """
+    ✅ Returns all saved flashcards for Saved Folder UI.
+    Reads from saved_data/flashcards/*.json.
+    """
+    try:
+        if not os.path.exists(SAVE_DIR):
+            os.makedirs(SAVE_DIR, exist_ok=True)
+
+        files = sorted(glob.glob(os.path.join(SAVE_DIR, "*.json")), reverse=True)
+        entries = []
+        for fpath in files:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                entries.append({
+                    "id": os.path.basename(fpath).split("_")[0],
+                    "title": data.get("title", "Untitled Flashcards"),
+                    "content": data.get("content", "[No content]"),
+                    "timestamp": datetime.utcfromtimestamp(
+                        os.path.getmtime(fpath)
+                    ).isoformat(),
+                    "metadata": data.get("metadata", {}),
+                })
+
+        return {"entries": entries}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load flashcards: {e}")
+
+
+# ✅ Alias for frontend Saved Files compatibility
+@router.get("/notes/list/flashcards")
+async def get_flashcards_alias():
+    """Alias used by SavedFolderScreen to fetch saved flashcards."""
+    return await get_saved_flashcards()
