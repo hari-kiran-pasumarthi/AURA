@@ -1,6 +1,6 @@
-// src/screens/DistractionSniperScreen.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api"; // ✅ Import centralized axios instance
 
 export default function DistractionSniperScreen() {
   const navigate = useNavigate();
@@ -8,60 +8,51 @@ export default function DistractionSniperScreen() {
   const [blocked, setBlocked] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const runAction = async (path, successMsg, setBlockedFromResponse = true) => {
+  const handleStartBlock = async () => {
     setLoading(true);
-    setMessage("⏳ Working...");
+    setMessage("⏳ Activating Focus Mode...");
     try {
-      const res = await fetch(path, { method: "POST" });
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { raw: text };
-      }
+      const res = await API.post("/distraction/block-simple");
+      const data = res.data;
 
-      if (!res.ok) {
-        setMessage(`⚠️ Failed: ${data?.error || data?.raw || res.statusText}`);
-        setLoading(false);
-        return;
-      }
+      const arr =
+        data.blocked ||
+        data.killed ||
+        data.kill?.killed ||
+        data.denied ||
+        data.renamed ||
+        data.candidates ||
+        [];
 
-      if (setBlockedFromResponse) {
-        const arr =
-          Array.isArray(data.blocked) && data.blocked.length > 0
-            ? data.blocked
-            : Array.isArray(data.kill?.killed)
-            ? data.kill.killed
-            : Array.isArray(data.killed)
-            ? data.killed
-            : data.denied || data.candidates || data.renamed || [];
-        setBlocked(arr);
-      }
-
-      setMessage(successMsg);
+      setBlocked(arr);
+      setMessage("✅ Focus Mode activated successfully!");
     } catch (err) {
-      console.error("Request error:", err);
-      setMessage("⚠️ Network or server error");
+      console.error(err);
+      setMessage(
+        "⚠️ Could not activate Focus Mode. " +
+          (err.response?.data?.detail || err.message)
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStartBlock = async () => {
-    await runAction(
-      "https://loyal-beauty-production.up.railway.app/distraction/block-simple",
-      "✅ Focus Mode activated"
-    );
-  };
-
   const handleStopBlock = async () => {
-    await runAction(
-      "https://loyal-beauty-production.up.railway.app/distraction/rollback",
-      "✅ Focus Mode ended",
-      false
-    );
-    setBlocked([]);
+    setLoading(true);
+    setMessage("⏳ Ending Focus Mode...");
+    try {
+      await API.post("/distraction/rollback");
+      setMessage("✅ Focus Mode ended!");
+      setBlocked([]);
+    } catch (err) {
+      console.error(err);
+      setMessage(
+        "⚠️ Could not end Focus Mode. " +
+          (err.response?.data?.detail || err.message)
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -79,7 +70,7 @@ export default function DistractionSniperScreen() {
         style={{
           display: "flex",
           alignItems: "center",
-          background: "rgba(255, 255, 255, 0.08)",
+          background: "rgba(255,255,255,0.08)",
           backdropFilter: "blur(10px)",
           borderBottom: "1px solid rgba(255,255,255,0.1)",
           borderRadius: 15,
@@ -129,7 +120,7 @@ export default function DistractionSniperScreen() {
         restrict known time-wasters. Stay in the zone. 🧘‍♂️
       </p>
 
-      {/* 🎯 Action Buttons */}
+      {/* 🎯 Buttons */}
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
         <button
           onClick={handleStartBlock}
@@ -146,13 +137,7 @@ export default function DistractionSniperScreen() {
             fontWeight: 600,
             cursor: loading ? "not-allowed" : "pointer",
             boxShadow: "0 4px 20px rgba(220,38,38,0.3)",
-            transition: "transform 0.3s ease, box-shadow 0.3s ease",
           }}
-          onMouseEnter={(e) => {
-            if (!loading)
-              e.currentTarget.style.transform = "translateY(-3px)";
-          }}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
         >
           🚫 Start Focus Mode
         </button>
@@ -172,19 +157,13 @@ export default function DistractionSniperScreen() {
             fontWeight: 600,
             cursor: loading ? "not-allowed" : "pointer",
             boxShadow: "0 4px 20px rgba(16,185,129,0.3)",
-            transition: "transform 0.3s ease, box-shadow 0.3s ease",
           }}
-          onMouseEnter={(e) => {
-            if (!loading)
-              e.currentTarget.style.transform = "translateY(-3px)";
-          }}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
         >
           🔓 End Focus Mode
         </button>
       </div>
 
-      {/* 💬 Status Message */}
+      {/* 💬 Status */}
       {message && (
         <p
           style={{
@@ -197,7 +176,6 @@ export default function DistractionSniperScreen() {
             fontWeight: 500,
             color: "#EAEAF5",
             boxShadow: "0 2px 20px rgba(0,0,0,0.4)",
-            animation: "fadeIn 0.4s ease",
           }}
         >
           {message}
@@ -210,50 +188,23 @@ export default function DistractionSniperScreen() {
           style={{
             marginTop: 30,
             background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: 16,
             padding: 20,
             maxWidth: 600,
             boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
             backdropFilter: "blur(10px)",
-            animation: "fadeIn 0.6s ease",
           }}
         >
           <h4 style={{ marginBottom: 12, color: "#EAEAF5" }}>
             📵 Detected / Affected Items
           </h4>
           <ul style={{ color: "#C7C9E0", lineHeight: 1.6 }}>
-            {blocked.map((it, i) => {
-              if (!it) return <li key={i}>Unknown</li>;
-              if (typeof it === "string") return <li key={i}>{it}</li>;
-              if (typeof it === "object") {
-                const name =
-                  it.name ||
-                  it.original ||
-                  it.packageFamily ||
-                  JSON.stringify(it);
-                return (
-                  <li key={i}>
-                    <strong>{name}</strong>
-                    {it.pid ? <span style={{ marginLeft: 8 }}>pid: {it.pid}</span> : null}
-                  </li>
-                );
-              }
-              return <li key={i}>{String(it)}</li>;
-            })}
+            {blocked.map((it, i) => (
+              <li key={i}>{typeof it === "object" ? JSON.stringify(it) : it}</li>
+            ))}
           </ul>
         </div>
       )}
-
-      {/* ✨ Animation Styles */}
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
     </div>
   );
 }
