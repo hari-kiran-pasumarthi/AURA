@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { plannerGenerate, savePlanner } from "../api"; // ✅ use centralized axios API
 
 export default function PlannerScreen() {
   const navigate = useNavigate();
@@ -14,42 +15,6 @@ export default function PlannerScreen() {
 
   useEffect(() => {
     if ("Notification" in window) Notification.requestPermission();
-  }, []);
-
-  // 🔹 Load saved calendar on mount
-  useEffect(() => {
-    const loadSavedCalendar = async () => {
-      try {
-        const res = await fetch(
-          "https://loyal-beauty-production.up.railway.app/planner/calendar/list"
-        );
-        const data = await res.json();
-        if (data.entries?.length) {
-          const grouped = {};
-          data.entries.forEach((e) => {
-            if (!grouped[e.date]) grouped[e.date] = [];
-            grouped[e.date].push({
-              task: e.task,
-              subject: e.subject,
-              hours: e.hours,
-              start_time: e.start_time || "N/A",
-              end_time: e.end_time || "N/A",
-              difficulty: e.difficulty || 3,
-              due: e.due || "",
-            });
-          });
-          const formatted = Object.entries(grouped).map(([date, blocks]) => ({
-            date,
-            blocks,
-          }));
-          setPlan(formatted);
-          setSummary(`📅 Loaded ${formatted.length} saved study days.`);
-        }
-      } catch (err) {
-        console.warn("⚠️ Could not load saved calendar:", err);
-      }
-    };
-    loadSavedCalendar();
   }, []);
 
   const addTask = () => {
@@ -78,63 +43,67 @@ export default function PlannerScreen() {
     setTasks(updated);
   };
 
+  // ✅ Generate AI Plan (via axios)
   const generatePlan = async () => {
     if (tasks.length === 0) return alert("Please add at least one task!");
     setLoading(true);
     setPlan([]);
 
-    const body = {
-      tasks,
-      start_date: new Date().toISOString().split("T")[0],
-      daily_hours: 4,
-    };
-
     try {
-      const res = await fetch(
-        "https://loyal-beauty-production.up.railway.app/planner/generate",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
+      const res = await plannerGenerate(
+        tasks,
+        new Date().toISOString().split("T")[0],
+        null,
+        4
       );
-      const data = await res.json();
+
+      const data = res.data;
       if (data.schedule?.length) {
         setPlan(data.schedule);
         setSummary(
           `✅ Plan generated for ${data.schedule.length} days covering ${tasks.length} tasks.`
         );
         alert("✨ Smart Study Plan Generated!");
+      } else {
+        alert("⚠️ Failed to generate plan. Please try again.");
+        console.log(data);
       }
     } catch (err) {
-      alert("⚠️ Could not connect to backend.");
-      console.error(err);
+      if (err.response?.status === 401) {
+        alert("⚠️ Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      } else {
+        alert("⚠️ Could not connect to backend.");
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const savePlan = async () => {
+  // ✅ Save Plan (via axios)
+  const handleSavePlan = async () => {
     if (plan.length === 0) return alert("No plan to save!");
     setSaving(true);
     try {
-      await fetch(
-        "https://loyal-beauty-production.up.railway.app/planner/save",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ summary, schedule: plan, tasks }),
-        }
-      );
+      await savePlanner(summary, plan, tasks, new Date().toISOString().split("T")[0]);
       alert("💾 Plan saved successfully!");
-    } catch (e) {
-      alert("⚠️ Failed to save plan.");
+    } catch (err) {
+      if (err.response?.status === 401) {
+        alert("⚠️ Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      } else {
+        alert("⚠️ Failed to save plan.");
+        console.error(err);
+      }
     } finally {
       setSaving(false);
     }
   };
 
-  // 🔔 Notifications — 1 minute before
+  // 🔔 Notifications
   useEffect(() => {
     if (plan.length === 0) return;
     plan.forEach((day) => {
@@ -224,16 +193,7 @@ export default function PlannerScreen() {
       </div>
 
       {/* 🧠 Task Inputs */}
-      <div
-        style={{
-          background: "rgba(255,255,255,0.08)",
-          borderRadius: 15,
-          padding: 20,
-          marginBottom: 20,
-          backdropFilter: "blur(8px)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-        }}
-      >
+      <div style={cardBox}>
         <input
           value={task}
           onChange={(e) => setTask(e.target.value)}
@@ -265,15 +225,7 @@ export default function PlannerScreen() {
 
       {/* 📝 Task List */}
       {tasks.length > 0 && (
-        <div
-          style={{
-            background: "rgba(255,255,255,0.08)",
-            borderRadius: 15,
-            padding: 20,
-            backdropFilter: "blur(8px)",
-            marginBottom: 20,
-          }}
-        >
+        <div style={cardBox}>
           <h3>🧾 Your Tasks</h3>
           {tasks.map((t, i) => (
             <div key={i} style={taskCard}>
@@ -381,7 +333,7 @@ export default function PlannerScreen() {
             ))}
           </div>
           <button
-            onClick={savePlan}
+            onClick={handleSavePlan}
             disabled={saving}
             style={{ ...mainBtn, marginTop: 25 }}
           >
@@ -394,6 +346,14 @@ export default function PlannerScreen() {
 }
 
 /* 💅 Styles */
+const cardBox = {
+  background: "rgba(255,255,255,0.08)",
+  borderRadius: 15,
+  padding: 20,
+  marginBottom: 20,
+  backdropFilter: "blur(8px)",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+};
 const inputStyle = {
   width: "100%",
   padding: 10,
