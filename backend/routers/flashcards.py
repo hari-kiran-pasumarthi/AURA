@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query, Depends
 from backend.models.schemas import FlashcardRequest, FlashcardResponse, Flashcard
 from backend.utils.save_helper import save_data, save_entry
-from backend.auth import get_current_user
+from backend.routers.auth import get_current_user
 from backend.models.user import User
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
