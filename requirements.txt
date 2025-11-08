@@ -3,70 +3,70 @@
 # ============================================================
 
 # Core FastAPI Stack
-fastapi==0.120.0
-uvicorn==0.32.0
-starlette==0.41.0
-python-multipart==0.0.9
-pydantic==2.12.3
-requests==2.32.3
-python-dotenv==1.0.1
-aiohttp==3.10.5
+fastapi
+uvicorn
+starlette
+python-multipart
+pydantic
+requests
+python-dotenv
+aiohttp
 
 # Database + ORM + Auth
-sqlalchemy==2.0.36
-alembic==1.14.0
-passlib[bcrypt]==1.7.4
-python-jose==3.3.0
-bcrypt==4.2.0
+sqlalchemy
+alembic
+passlib[bcrypt]
+python-jose
+bcrypt
 
 # Email & Notifications
-fastapi-mail==1.4.1
-apscheduler==3.10.4
+fastapi-mail
+apscheduler
 
 # Machine Learning / AI
-tensorflow==2.20.0
-torch==2.5.1
-transformers==4.55.2
-scikit_learn==1.7.2
-pandas==2.2.3
-numpy==2.3.4
-joblib==1.4.2
-textstat==0.7.3
-nltk==3.9.1
+tensorflow
+torch
+transformers
+scikit_learn
+pandas
+numpy
+joblib
+textstat
+nltk
 
 # Vision / Speech / OCR
-opencv-python==4.10.0.84
-pytesseract==0.3.13
-deepface==0.0.95
-Pillow==12.0.0
-fer==22.5.1
-whisper==1.1.10
-openai-whisper==20250625
-pydub==0.25.1
-PyMuPDF==1.25.2
+opencv-python
+pytesseract
+deepface
+Pillow
+fer
+whisper
+openai-whisper
+pydub
+PyMuPDF
 
 # AI Connectors
-openai==2.6.1
-groq==0.9.0
-ollama==0.6.0
+openai
+groq
+ollama
 
 # NLP / Summarization
-sumy==0.11.0
-rake_nltk==1.0.6
+sumy
+rake_nltk
 
 # Utilities
-psutil==6.1.1
-PyJWT==2.10.1
-PyPDF2==3.0.1
-Requests==2.32.5
-tf_keras==2.17.0
-pynput==1.7.7
-python-multipart==0.0.9
+psutil
+PyJWT
+PyPDF2
+Requests
+tf_keras
+pynput
+python-multipart
 
 # Video / Audio Processing
-ffmpeg-python==0.2.0
+ffmpeg-python
 
 # ------------------------------------------------------------
 # Development Extras
 # ------------------------------------------------------------
-colorama==0.4.6
+colorama
