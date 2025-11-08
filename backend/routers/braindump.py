@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from backend.backend.auth import get_current_user
+from backend.routers.auth import get_current_user
 from backend.models.user import User
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
