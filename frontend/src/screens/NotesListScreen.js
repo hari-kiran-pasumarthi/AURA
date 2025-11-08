@@ -30,7 +30,6 @@ export default function NotesListScreen() {
   // 🧩 Fetch individual note details
   const openNote = async (id) => {
     try {
-      // ✅ Handle AutoNote separately — supports /autonote/notes/get/{id}
       const endpoint =
         module === "autonote"
           ? `${API_BASE}/autonote/notes/get/${id}`
@@ -46,130 +45,187 @@ export default function NotesListScreen() {
     }
   };
 
-  // 🧹 Helper: capitalize module name
   const formatTitle = (text) =>
     text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
 
   return (
     <div
       style={{
-        backgroundColor: "#f9fafb",
         minHeight: "100vh",
+        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        color: "#EAEAF5",
+        fontFamily: "'Poppins', sans-serif",
         padding: 20,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
       }}
     >
-      {/* 🔙 Back Button */}
-      <button
-        onClick={() => navigate(-1)}
+      {/* 🔹 Header */}
+      <div
         style={{
-          color: "#2563eb",
-          background: "none",
-          border: "none",
-          fontSize: 16,
-          cursor: "pointer",
-          marginBottom: 15,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+          maxWidth: 900,
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 15,
+          padding: "12px 20px",
+          boxShadow: "0 2px 20px rgba(0,0,0,0.4)",
+          backdropFilter: "blur(10px)",
+          marginBottom: 25,
         }}
       >
-        ← Back
-      </button>
-
-      {/* 🧾 Title */}
-      <h2 style={{ fontSize: 28, fontWeight: "700", marginBottom: 20 }}>
-        📘 {formatTitle(module)} Notes
-      </h2>
-
-      {/* 📄 Note List */}
-      {loading ? (
-        <p>Loading saved notes...</p>
-      ) : entries.length === 0 ? (
-        <p style={{ color: "#999" }}>No saved notes found.</p>
-      ) : (
-        entries.map((note) => (
-          <div
-            key={note.id}
-            onClick={() => openNote(note.id)}
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            color: "#C7C9E0",
+            background: "none",
+            border: "none",
+            fontSize: 16,
+            cursor: "pointer",
+          }}
+        >
+          ← Back
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <img
+            src="/FullLogo.jpg"
+            alt="AURA Logo"
             style={{
-              backgroundColor: "#fff",
-              border: "1px solid #ddd",
+              width: 40,
+              height: 40,
               borderRadius: 10,
-              padding: 15,
-              marginBottom: 10,
-              cursor: "pointer",
-              transition: "background 0.2s ease",
+              boxShadow: "0 0 15px rgba(182,202,255,0.3)",
             }}
-            onMouseEnter={(ev) =>
-              (ev.currentTarget.style.backgroundColor = "#f3f4f6")
-            }
-            onMouseLeave={(ev) =>
-              (ev.currentTarget.style.backgroundColor = "#fff")
-            }
-          >
-            <p style={{ margin: 0, fontWeight: 600 }}>
-              {note.title || "Untitled"}
-            </p>
-            <p
+          />
+          <h3 style={{ margin: 0, fontWeight: 700 }}>
+            {formatTitle(module)} Notes
+          </h3>
+        </div>
+      </div>
+
+      {/* 📄 Notes List */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 900,
+          display: "flex",
+          flexDirection: "column",
+          gap: 15,
+        }}
+      >
+        {loading ? (
+          <p style={{ color: "#C7C9E0", textAlign: "center" }}>Loading saved notes...</p>
+        ) : entries.length === 0 ? (
+          <p style={{ color: "#C7C9E0", textAlign: "center" }}>
+            No saved notes found.
+          </p>
+        ) : (
+          entries.map((note) => (
+            <div
+              key={note.id}
+              onClick={() => openNote(note.id)}
               style={{
-                color: "#555",
-                margin: 0,
-                fontSize: 14,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 15,
+                padding: 18,
+                cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+                transition: "transform 0.25s ease, box-shadow 0.25s ease",
+                backdropFilter: "blur(8px)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow =
+                  "0 6px 25px rgba(200,200,255,0.25)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 20px rgba(0,0,0,0.25)";
               }}
             >
-              {note.content || note.summary || "[No content available]"}
-            </p>
-            <p style={{ fontSize: 12, color: "#888" }}>
-              🕒 {note.timestamp || "N/A"}
-            </p>
-          </div>
-        ))
-      )}
+              <h4
+                style={{
+                  margin: 0,
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#EAEAF5",
+                }}
+              >
+                {note.title || "Untitled"}
+              </h4>
+              <p
+                style={{
+                  color: "#C7C9E0",
+                  margin: "5px 0",
+                  fontSize: 14,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {note.content || note.summary || "[No content available]"}
+              </p>
+              <p style={{ fontSize: 12, color: "#A8B0D0" }}>
+                🕒 {note.timestamp || "N/A"}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
 
-      {/* 🪟 Modal Popup - Full Note Viewer */}
+      {/* 🪟 Note Viewer Modal */}
       {selectedNote && (
         <div
           onClick={() => setSelectedNote(null)}
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
+            background: "rgba(0,0,0,0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 999,
+            animation: "fadeIn 0.3s ease",
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#fff",
-              borderRadius: 10,
-              padding: 20,
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 15,
+              padding: 25,
               width: "90%",
               maxWidth: 700,
               maxHeight: "80vh",
               overflowY: "auto",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
+              backdropFilter: "blur(15px)",
+              color: "#EAEAF5",
+              animation: "slideIn 0.3s ease",
             }}
           >
-            {/* 🧾 Note Title */}
-            <h2>{selectedNote.title || "Untitled Note"}</h2>
-            <p style={{ color: "#666", fontSize: 13 }}>
+            <h2 style={{ color: "#EAEAF5" }}>
+              {selectedNote.title || "Untitled Note"}
+            </h2>
+            <p style={{ color: "#C7C9E0", fontSize: 13 }}>
               🕒 {selectedNote.timestamp || "N/A"}
             </p>
 
-            {/* 📋 Summary */}
             {selectedNote.summary && (
               <>
                 <h3>📋 Summary</h3>
-                <p style={{ whiteSpace: "pre-wrap" }}>
+                <p style={{ whiteSpace: "pre-wrap", color: "#EAEAF5" }}>
                   {selectedNote.summary}
                 </p>
               </>
             )}
 
-            {/* ⭐ Highlights */}
             {selectedNote.highlights?.length > 0 && (
               <>
                 <h3>⭐ Highlights</h3>
@@ -181,7 +237,6 @@ export default function NotesListScreen() {
               </>
             )}
 
-            {/* 🏷️ Keywords (for synopsis alignment) */}
             {selectedNote.keywords?.length > 0 && (
               <>
                 <h3>🏷️ Keywords</h3>
@@ -193,7 +248,6 @@ export default function NotesListScreen() {
               </>
             )}
 
-            {/* 🔹 Bullets */}
             {selectedNote.bullets?.length > 0 && (
               <>
                 <h3>🔹 Key Points</h3>
@@ -205,16 +259,15 @@ export default function NotesListScreen() {
               </>
             )}
 
-            {/* 🗒️ Transcript */}
             {selectedNote.transcript && (
               <>
                 <h3>🗒️ Transcript</h3>
                 <p
                   style={{
-                    background: "#f9fafb",
-                    border: "1px solid #eee",
+                    background: "rgba(255,255,255,0.08)",
                     borderRadius: 8,
                     padding: 10,
+                    color: "#EAEAF5",
                     whiteSpace: "pre-wrap",
                   }}
                 >
@@ -223,22 +276,37 @@ export default function NotesListScreen() {
               </>
             )}
 
-            {/* 🔘 Close Button */}
             <button
               onClick={() => setSelectedNote(null)}
               style={{
                 marginTop: 15,
-                backgroundColor: "#2563eb",
-                color: "#fff",
+                background: "linear-gradient(135deg, #2563EB, #4F46E5)",
+                color: "white",
                 border: "none",
-                padding: "10px 18px",
-                borderRadius: 8,
+                padding: "10px 20px",
+                borderRadius: 10,
                 cursor: "pointer",
+                fontWeight: 600,
+                boxShadow: "0 4px 15px rgba(59,130,246,0.3)",
               }}
             >
               Close
             </button>
           </div>
+
+          {/* ✨ Animations */}
+          <style>
+            {`
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes slideIn {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+              }
+            `}
+          </style>
         </div>
       )}
     </div>
