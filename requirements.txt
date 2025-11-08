@@ -70,3 +70,5 @@ ffmpeg-python
 # Development Extras
 # ------------------------------------------------------------
 colorama
+bcrypt
+passlib[bcrypt]
