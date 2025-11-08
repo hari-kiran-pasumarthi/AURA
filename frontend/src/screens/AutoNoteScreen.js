@@ -6,31 +6,21 @@ export default function AutoNoteScreen() {
   const [note, setNote] = useState("");
   const [summary, setSummary] = useState("");
   const [loadingText, setLoadingText] = useState(false);
-  const [recording, setRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
-  const [loadingAudio, setLoadingAudio] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [listening, setListening] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
-  const recognitionRef = useRef(null);
 
-  // 🎙️ Start Recording (Speech + Audio)
+  // 🎙️ Start Recording
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: "audio/webm",
-        audioBitsPerSecond: 128000,
-      });
+      const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
-      setTranscript("");
-      setSummary("");
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
@@ -39,55 +29,23 @@ export default function AutoNoteScreen() {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioBlob(blob);
       };
-      mediaRecorder.start(1000);
-      setRecording(true);
-      setListening(true);
-
-      // 🗣️ Live Speech Recognition
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return alert("Speech recognition not supported!");
-
-      const recognition = new SpeechRecognition();
-      recognitionRef.current = recognition;
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-IN";
-
-      let finalTranscript = "";
-      recognition.onresult = (event) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          const text = event.results[i][0].transcript;
-          if (event.results[i].isFinal) finalTranscript += " " + text;
-          else interim += text;
-        }
-        setTranscript(finalTranscript + " " + interim);
-      };
-
-      recognition.onend = () => {
-        if (recording) recognition.start();
-        else setListening(false);
-      };
-      recognition.start();
-    } catch {
-      alert("🎤 Please allow microphone access.");
+      mediaRecorder.start();
+      alert("🎙️ Recording started!");
+    } catch (err) {
+      alert("Microphone permission denied.");
     }
   };
 
+  // 🛑 Stop Recording
   const stopRecording = () => {
-    if (mediaRecorderRef.current && recording) mediaRecorderRef.current.stop();
-    if (recognitionRef.current) recognitionRef.current.stop();
-    setRecording(false);
-    setListening(false);
+    if (mediaRecorderRef.current) mediaRecorderRef.current.stop();
+    alert("Recording stopped!");
   };
 
   // ✨ Summarize Text
-  const handleTextSummarize = async () => {
+  const summarizeText = async () => {
     if (!note.trim()) return alert("Enter text first!");
     setLoadingText(true);
-    setSummary("");
-    setSaved(false);
     try {
       const res = await fetch(`${API_BASE}/autonote/transcribe`, {
         method: "POST",
@@ -100,7 +58,7 @@ export default function AutoNoteScreen() {
           ", "
         )}\n\n🔹 Bullets:\n${data.bullets.join("\n")}`
       );
-    } catch (e) {
+    } catch {
       alert("Text summarization failed.");
     } finally {
       setLoadingText(false);
@@ -108,19 +66,17 @@ export default function AutoNoteScreen() {
   };
 
   // 🎧 Summarize Audio
-  const handleAudioSummarize = async () => {
+  const summarizeAudio = async () => {
     if (!audioBlob) return alert("Record audio first!");
-    setLoadingAudio(true);
-    setSaved(false);
     const formData = new FormData();
     formData.append("file", audioBlob, "lecture.webm");
+
     try {
       const res = await fetch(`${API_BASE}/autonote/audio`, {
         method: "POST",
         body: formData,
       });
       const data = await res.json();
-      setTranscript(data.transcript || transcript);
       setSummary(
         `📋 Summary:\n${data.summary}\n\n⭐ Highlights:\n${data.highlights.join(
           ", "
@@ -128,18 +84,16 @@ export default function AutoNoteScreen() {
       );
     } catch {
       alert("Audio summarization failed.");
-    } finally {
-      setLoadingAudio(false);
     }
   };
 
-  // 📄 Summarize Uploaded Document
-  const handleFileSummarize = async () => {
-    if (!file) return alert("Please select a file first!");
+  // 📄 Summarize File
+  const summarizeFile = async () => {
+    if (!file) return alert("Select a file first!");
     setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
       const res = await fetch(`${API_BASE}/autonote/upload`, {
         method: "POST",
         body: formData,
@@ -157,83 +111,67 @@ export default function AutoNoteScreen() {
     }
   };
 
-  // 💾 Save Note
-  const handleSaveNote = async () => {
+  // 💾 Save
+  const saveNote = async () => {
     if (!summary.trim()) return alert("Nothing to save!");
     const title = prompt("Enter note title:", "New AutoNote");
     if (!title) return;
-    const highlights = summary
-      .split("⭐ Highlights:")[1]
-      ?.split("🔹 Bullets:")[0]
-      ?.split(",")
-      ?.map((h) => h.trim()) || [];
-    const bullets = summary
-      .split("🔹 Bullets:")[1]
-      ?.split("\n")
-      ?.filter((b) => b.trim()) || [];
-    const payload = { title, transcript, summary, highlights, bullets };
-    try {
-      await fetch(`${API_BASE}/autonote/save`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      setSaved(true);
-      alert("✅ Note saved successfully!");
-    } catch {
-      alert("Save failed.");
-    }
-  };
-
-  // 📚 View Saved Notes
-  const handleViewSavedNotes = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/autonote/saved`);
-      const data = await res.json();
-      const notes = Array.isArray(data.entries) ? data.entries : [];
-      alert(`📘 You have ${notes.length} saved notes!`);
-      console.log("✅ Saved Notes:", notes);
-    } catch (err) {
-      alert("⚠️ Failed to fetch saved notes.");
-      console.error(err);
-    }
+    const payload = { title, summary };
+    await fetch(`${API_BASE}/autonote/save`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    alert("✅ Note saved successfully!");
+    setSaved(true);
   };
 
   return (
-    <div style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
-      <h2>🧠 AutoNote — Text, Audio & File Summarizer</h2>
-
-      <button
-        onClick={() => {
-          setNote("");
-          setSummary("");
-          setTranscript("");
-          setAudioBlob(null);
-          setSaved(false);
-          setFile(null);
-        }}
-        style={{
-          background: "#ef4444",
-          color: "#fff",
-          border: "none",
-          padding: "8px 16px",
-          borderRadius: 8,
-          marginBottom: 15,
-        }}
-      >
-        🧹 Clear All
-      </button>
-
-      {/* TEXT INPUT */}
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        color: "#EAEAF5",
+        padding: 20,
+        fontFamily: "'Poppins', sans-serif",
+        overflowX: "hidden",
+      }}
+    >
+      {/* 🌌 Logo Section */}
       <div
         style={{
-          background: "#f9fafb",
-          padding: 20,
-          borderRadius: 10,
-          marginBottom: 20,
+          textAlign: "center",
+          marginBottom: 40,
+          animation: "fadeIn 2s ease-in-out",
         }}
       >
-        <h3>📝 Enter Your Notes</h3>
+        <img
+          src="/FullLogo.jpg"
+          alt="AURA Logo"
+          style={{
+            width: 160,
+            borderRadius: 20,
+            boxShadow: "0 0 25px rgba(182, 202, 255, 0.3)",
+          }}
+        />
+        <h2 style={{ marginTop: 20 }}>🧠 AURA AutoNotes</h2>
+        <p style={{ color: "#C7C9E0" }}>
+          Convert your study materials into smart summaries ✨
+        </p>
+      </div>
+
+      {/* 📝 Text Summarization */}
+      <div
+        style={{
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 20,
+          padding: 20,
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
+          marginBottom: 30,
+        }}
+      >
+        <h3>📝 Summarize Text</h3>
         <textarea
           placeholder="Type or paste your notes..."
           value={note}
@@ -241,155 +179,167 @@ export default function AutoNoteScreen() {
           rows={6}
           style={{
             width: "100%",
-            borderRadius: 8,
-            border: "1px solid #ddd",
+            borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.2)",
+            background: "rgba(255,255,255,0.05)",
+            color: "#EAEAF5",
             padding: 10,
-            fontSize: 16,
+            fontSize: 15,
+            marginTop: 10,
           }}
         />
         <button
-          onClick={handleTextSummarize}
+          onClick={summarizeText}
           disabled={loadingText}
           style={{
-            marginTop: 10,
-            background: loadingText ? "#93c5fd" : "#2563eb",
-            color: "white",
+            marginTop: 15,
+            padding: "10px 16px",
             border: "none",
-            padding: "10px 18px",
-            borderRadius: 8,
+            borderRadius: 10,
+            background: "#6C63FF",
+            color: "#fff",
+            cursor: "pointer",
+            fontWeight: 600,
           }}
         >
           {loadingText ? "⏳ Summarizing..." : "✨ Summarize Text"}
         </button>
       </div>
 
-      {/* AUDIO RECORD */}
+      {/* 🎧 Audio Section */}
       <div
         style={{
-          background: "#eef2ff",
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 20,
           padding: 20,
-          borderRadius: 10,
-          marginBottom: 20,
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
+          marginBottom: 30,
         }}
       >
-        <h3>🎙️ Record Lecture</h3>
-        <button
-          onClick={recording ? stopRecording : startRecording}
-          style={{
-            background: recording ? "#dc2626" : "#2563eb",
-            color: "white",
-            border: "none",
-            padding: "10px 18px",
-            borderRadius: 8,
-            marginRight: 10,
-          }}
-        >
-          {recording ? "🛑 Stop Recording" : "🎧 Start Recording"}
-        </button>
-        <button
-          onClick={handleAudioSummarize}
-          disabled={!audioBlob || loadingAudio}
-          style={{
-            background: "#16a34a",
-            color: "white",
-            border: "none",
-            padding: "10px 18px",
-            borderRadius: 8,
-          }}
-        >
-          {loadingAudio ? "⏳ Processing..." : "✨ Summarize Audio"}
-        </button>
-        {listening && <p style={{ color: "red" }}>🎤 Listening...</p>}
-        {transcript && (
-          <div style={{ marginTop: 15 }}>
-            <h4>🗒️ Transcript:</h4>
-            <p
-              style={{
-                background: "#fff",
-                border: "1px solid #ddd",
-                padding: 10,
-                borderRadius: 8,
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {transcript}
-            </p>
-          </div>
-        )}
+        <h3>🎙️ Audio Summarizer</h3>
+        <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+          <button
+            onClick={startRecording}
+            style={{
+              background: "#2563EB",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "10px 16px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            🎧 Start Recording
+          </button>
+          <button
+            onClick={stopRecording}
+            style={{
+              background: "#DC2626",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "10px 16px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            🛑 Stop
+          </button>
+          <button
+            onClick={summarizeAudio}
+            disabled={!audioBlob}
+            style={{
+              background: "#22C55E",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "10px 16px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            ✨ Summarize Audio
+          </button>
+        </div>
       </div>
 
-      {/* DOCUMENT UPLOAD */}
+      {/* 📄 File Summarizer */}
       <div
         style={{
-          background: "#f0fdf4",
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 20,
           padding: 20,
-          borderRadius: 10,
-          marginBottom: 20,
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
         }}
       >
-        <h3>📄 Upload a Document (TXT or PDF)</h3>
+        <h3>📄 Summarize File</h3>
         <input
           type="file"
-          accept=".txt,.pdf"
+          accept=".pdf,.txt"
           onChange={(e) => setFile(e.target.files[0])}
-          style={{ marginBottom: 10 }}
+          style={{ marginTop: 10, color: "#EAEAF5" }}
         />
         <button
-          onClick={handleFileSummarize}
+          onClick={summarizeFile}
           disabled={!file || uploading}
           style={{
-            background: uploading ? "#93c5fd" : "#16a34a",
-            color: "white",
+            marginTop: 15,
+            padding: "10px 16px",
+            borderRadius: 10,
             border: "none",
-            padding: "10px 18px",
-            borderRadius: 8,
+            background: "#16A34A",
+            color: "#fff",
+            cursor: "pointer",
+            fontWeight: 600,
           }}
         >
-          {uploading ? "⏳ Summarizing File..." : "✨ Summarize File"}
+          {uploading ? "⏳ Processing..." : "✨ Summarize File"}
         </button>
       </div>
 
-      {/* SUMMARY */}
+      {/* 📘 Summary Output */}
       {summary && (
         <div
           style={{
-            background: "#fff",
+            marginTop: 40,
+            background: "rgba(255,255,255,0.1)",
+            borderRadius: 20,
             padding: 20,
-            borderRadius: 10,
-            border: "1px solid #ddd",
+            boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
           }}
         >
-          <h3>📘 Final Summary</h3>
-          <pre style={{ whiteSpace: "pre-wrap", color: "#333" }}>{summary}</pre>
+          <h3>📘 Summary</h3>
+          <pre style={{ whiteSpace: "pre-wrap", color: "#EAEAF5" }}>{summary}</pre>
           <button
-            onClick={handleSaveNote}
-            disabled={saved}
+            onClick={saveNote}
             style={{
-              marginTop: 10,
-              background: saved ? "#22c55e" : "#2563eb",
-              color: "white",
+              marginTop: 15,
+              padding: "10px 16px",
+              borderRadius: 10,
               border: "none",
-              padding: "10px 18px",
-              borderRadius: 8,
+              background: saved ? "#22C55E" : "#6C63FF",
+              color: "#fff",
+              cursor: "pointer",
+              fontWeight: 600,
             }}
           >
             {saved ? "✅ Saved!" : "💾 Save Note"}
           </button>
-          <button
-            onClick={handleViewSavedNotes}
-            style={{
-              marginLeft: 10,
-              background: "#f59e0b",
-              color: "white",
-              border: "none",
-              padding: "10px 18px",
-              borderRadius: 8,
-            }}
-          >
-            📚 View Saved Notes
-          </button>
         </div>
       )}
+
+      {/* 🌌 Fade-in Animation */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+          }
+        `}
+      </style>
     </div>
   );
 }
