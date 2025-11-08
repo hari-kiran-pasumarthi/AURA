@@ -1,7 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from backend.models.schemas import FlashcardRequest, FlashcardResponse, Flashcard
 from backend.routers.auth import get_current_user
-from backend.models.user import User
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
 from pypdf import PdfReader
@@ -15,6 +14,9 @@ import os, re, json, asyncio, traceback
 from datetime import datetime
 from typing import List
 
+# -------------------------------------------
+# 🚀 Router Setup
+# -------------------------------------------
 router = APIRouter(prefix="/flashcards", tags=["Flashcards"])
 
 # -------------------------------------------
@@ -31,7 +33,7 @@ for resource in ["stopwords", "punkt", "punkt_tab"]:
 # -------------------------------------------
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
-GROQ_MODEL = "llama-3.1-70b-versatile"  # ✅ stable public model
+GROQ_MODEL = "llama-3.1-70b-versatile"  # ✅ stable model name
 
 # -------------------------------------------
 # 📁 Storage Setup
@@ -69,14 +71,15 @@ async def send_flashcard_email(user_email: str, title: str, count: int):
 # 📤 Upload PDF
 # -------------------------------------------
 @router.post("/upload-pdf/")
-async def upload_pdf(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+async def upload_pdf(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    """Upload a PDF and associate it with the current user."""
     path = os.path.join(UPLOAD_DIR, file.filename)
     with open(path, "wb") as f:
         f.write(await file.read())
-    return {"pdf_path": path, "filename": file.filename, "user": current_user.email}
+    return {"pdf_path": path, "filename": file.filename, "user": current_user["email"]}
 
 # -------------------------------------------
-# 🧠 Helpers
+# 🧠 Helper Functions
 # -------------------------------------------
 def _extract_text_from_pdf(path: str) -> str:
     reader = PdfReader(path)
@@ -106,7 +109,8 @@ def _make_cloze(sentence: str, term: str):
 # ⚙️ Generate Flashcards (NLP + Groq)
 # -------------------------------------------
 @router.post("/generate", response_model=FlashcardResponse)
-async def generate_flashcards(req: FlashcardRequest, current_user: User = Depends(get_current_user)):
+async def generate_flashcards(req: FlashcardRequest, current_user: dict = Depends(get_current_user)):
+    """Generate adaptive flashcards using NLP and Groq AI fallback."""
     try:
         # Step 1. Get text
         if req.pdf_path:
@@ -121,7 +125,7 @@ async def generate_flashcards(req: FlashcardRequest, current_user: User = Depend
 
         word_count = len(text.split())
         num_cards = 5 if word_count < 300 else 10 if word_count < 1000 else 15
-        print(f"🧠 Flashcard generation started for {current_user.email} ({word_count} words)")
+        print(f"🧠 Flashcard generation started for {current_user['email']} ({word_count} words)")
 
         # Step 2. NLP Generation
         summarized = _summarize_text(text, 8)
@@ -188,7 +192,7 @@ async def generate_flashcards(req: FlashcardRequest, current_user: User = Depend
 
         # Step 5. Save
         entry = {
-            "email": current_user.email,
+            "email": current_user["email"],
             "title": f"Flashcards from {source}",
             "content": f"{len(cards)} flashcards generated.",
             "metadata": {"source": source, "num_cards": len(cards), "cards": [c.dict() for c in cards]},
@@ -201,8 +205,8 @@ async def generate_flashcards(req: FlashcardRequest, current_user: User = Depend
             f.seek(0)
             json.dump(data, f, indent=2)
 
-        asyncio.create_task(send_flashcard_email(current_user.email, source, len(cards)))
-        print(f"💾 Saved {len(cards)} flashcards for {current_user.email}")
+        asyncio.create_task(send_flashcard_email(current_user["email"], source, len(cards)))
+        print(f"💾 Saved {len(cards)} flashcards for {current_user['email']}")
 
         return FlashcardResponse(cards=cards)
 
@@ -214,13 +218,13 @@ async def generate_flashcards(req: FlashcardRequest, current_user: User = Depend
 # 📚 Fetch User’s Flashcards
 # -------------------------------------------
 @router.get("/saved")
-async def get_saved_flashcards(current_user: User = Depends(get_current_user)):
+async def get_saved_flashcards(current_user: dict = Depends(get_current_user)):
     with open(SAVE_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
-    user_cards = [d for d in data if d.get("email") == current_user.email]
+    user_cards = [d for d in data if d.get("email") == current_user["email"]]
     user_cards.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return {"entries": user_cards}
 
 @router.get("/notes/list/flashcards")
-async def get_flashcards_alias(current_user: User = Depends(get_current_user)):
+async def get_flashcards_alias(current_user: dict = Depends(get_current_user)):
     return await get_saved_flashcards(current_user)
