@@ -30,42 +30,116 @@ API.interceptors.response.use(
   }
 );
 
-// ✅ AutoNote – Speech-to-text or note transcription
+// -------------------------------------------------------------
+// 📚 AUTHENTICATION
+// -------------------------------------------------------------
+
+export const register = (name, email, password) =>
+  API.post("/auth/signup", { name, email, password });
+
+export const login = async (email, password) => {
+  const res = await API.post("/auth/login", { email, password });
+  if (res.data?.access_token) {
+    localStorage.setItem("token", res.data.access_token);
+  }
+  return res.data;
+};
+
+export const logout = () => {
+  localStorage.removeItem("token");
+  window.location.href = "/login";
+};
+
+// -------------------------------------------------------------
+// 📝 AUTONOTE – Transcription & Summarization
+// -------------------------------------------------------------
 export const autoNote = (text) => API.post("/autonote/transcribe", { text });
 
-// ✅ Focus – Suggests focus techniques based on duration
+export const uploadAutoNote = (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return API.post("/autonote/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const summarizeAudio = (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return API.post("/autonote/audio", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const getSavedAutoNotes = () => API.get("/autonote/saved");
+
+// -------------------------------------------------------------
+// 🧭 FOCUS – Focus Techniques & Tracking
+// -------------------------------------------------------------
 export const focus = (duration) => API.post("/focus/suggest", { duration });
+export const getSavedFocus = () => API.get("/focus/saved");
 
-// ✅ Planner – Auto generates a study or task plan
-export const planner = (task, due_date) =>
-  API.post("/planner/generate", { task, due_date });
+// -------------------------------------------------------------
+// 📅 PLANNER – Smart Study Planner
+// -------------------------------------------------------------
+export const plannerGenerate = (tasks, start_date, end_date, daily_hours = 4) =>
+  API.post("/planner/generate", {
+    start_date,
+    end_date,
+    daily_hours,
+    tasks,
+  });
 
-// ✅ Doubts – Submits a doubt or question
+export const savePlanner = (summary, schedule, tasks, date) =>
+  API.post("/planner/save", { summary, schedule, tasks, date });
+
+export const getSavedPlanner = () => API.get("/planner/saved");
+
+// -------------------------------------------------------------
+// ❓ DOUBTS – Question Handling
+// -------------------------------------------------------------
 export const doubts = (question) => API.post("/doubts/report", { question });
+export const getDoubtHistory = () => API.get("/doubts/history");
 
-// ✅ Flashcards – Creates study flashcards for a topic
+// -------------------------------------------------------------
+// 🎴 FLASHCARDS – AI Flashcard Generator
+// -------------------------------------------------------------
 export const flashcards = (topic) => API.post("/flashcards/generate", { topic });
+export const getSavedFlashcards = () => API.get("/flashcards/saved");
 
-// ✅ Mood – Logs mood and note
+// -------------------------------------------------------------
+// 😊 MOOD TRACKER
+// -------------------------------------------------------------
 export const mood = (mood, intensity = 5, notes = "") =>
   API.post("/mood/log", { mood, intensity, notes });
 
-// ✅ Distraction – Tracks distractions and suggests improvements
-export const distraction = (duration) =>
-  API.post("/distraction/track", { duration });
+export const getMoodLogs = () => API.get("/mood/logs");
 
-// ✅ Time Prediction – Predicts time needed for topic completion
+// -------------------------------------------------------------
+// 🕒 TIME PREDICTION
+// -------------------------------------------------------------
 export const timePredict = (topic, difficulty, pages) =>
   API.post("/timepredict/predict", { topic, difficulty, pages });
 
-// ✅ Brain Dump – Organizes thoughts & saves them to file
-export const brainDump = (text) => API.post("/braindump/save", { text });
+export const getSavedTimePredictions = () => API.get("/timepredict/saved");
 
-// ✅ Confusion – Analyzes confusion and provides clarity tips
+// -------------------------------------------------------------
+// 💭 BRAIN DUMP
+// -------------------------------------------------------------
+export const brainDump = (text) => API.post("/braindump/save", { text });
+export const getSavedBrainDumps = () => API.get("/braindump/saved");
+
+// -------------------------------------------------------------
+// 😵 CONFUSION ANALYZER
+// -------------------------------------------------------------
 export const confusion = (question) =>
   API.post("/confusion/analyze", { text: question });
 
-// ✅ Chatbot – General study assistant Q&A
+export const getSavedConfusion = () => API.get("/confusion/saved");
+
+// -------------------------------------------------------------
+// 🤖 CHATBOT – General Study Assistant
+// -------------------------------------------------------------
 export const chatbot = (query) => API.post("/chatbot/", { query });
 
 export default API;
