@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 import json, os
 
+# ---------------------------
 # Configuration
+# ---------------------------
 SECRET_KEY = os.getenv("JWT_SECRET", "aura_super_secret_key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
@@ -15,16 +16,24 @@ USER_FILE = "users.json"
 router = APIRouter(prefix="/auth", tags=["Auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Initialize file storage
+# Initialize user file
 if not os.path.exists(USER_FILE):
     with open(USER_FILE, "w") as f:
         json.dump([], f)
 
 
+# ---------------------------
+# Schemas
+# ---------------------------
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
 
 
 class Token(BaseModel):
@@ -32,6 +41,9 @@ class Token(BaseModel):
     token_type: str
 
 
+# ---------------------------
+# Helper functions
+# ---------------------------
 def get_password_hash(password):
     return pwd_context.hash(password)
 
@@ -56,7 +68,9 @@ def find_user(email: str):
     return None
 
 
-# 🧩 Signup endpoint
+# ---------------------------
+# Signup endpoint
+# ---------------------------
 @router.post("/signup")
 async def signup(user: UserCreate):
     existing = find_user(user.email)
@@ -80,23 +94,33 @@ async def signup(user: UserCreate):
     return {"access_token": token, "token_type": "bearer", "user": user.email}
 
 
-# 🔐 Login endpoint
+# ---------------------------
+# Login endpoint (JSON version)
+# ---------------------------
 @router.post("/login")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = find_user(form_data.username)
-    if not user or not verify_password(form_data.password, user["password"]):
+async def login(request: LoginRequest):
+    user = find_user(request.email)
+    if not user or not verify_password(request.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token({"sub": user["email"]})
     return {"access_token": token, "token_type": "bearer", "user": user["email"]}
 
 
-# ✅ Current user dependency
-def get_current_user(token: str = Depends(OAuth2PasswordRequestForm)):
+# ---------------------------
+# Get current user (JWT)
+# ---------------------------
+from fastapi import Header
+
+async def get_current_user(Authorization: str = Header(None)):
+    if not Authorization:
+        raise HTTPException(status_code=401, detail="Missing token")
+
+    token = Authorization.replace("Bearer ", "")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
-        if email is None:
+        if not email:
             raise HTTPException(status_code=401, detail="Invalid token")
         user = find_user(email)
         if not user:
