@@ -77,7 +77,6 @@ export default function MoodScreen() {
       setNote("");
       setDetectedMood(null);
       alert("✅ Mood logged successfully!");
-      console.log("💾 Saved to:", data.file_path);
       fetchSavedLogs();
     } catch (err) {
       console.error("❌ Logging failed:", err);
@@ -92,7 +91,6 @@ export default function MoodScreen() {
       const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/logs");
       if (!res.ok) throw new Error("Failed to fetch logs");
       const data = await res.json();
-      console.log("✅ Logs fetched from backend:", data.logs);
       setSavedLogs(data.logs);
     } catch (err) {
       console.error("❌ Failed to load saved logs:", err);
@@ -104,59 +102,164 @@ export default function MoodScreen() {
   }, []);
 
   return (
-    <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh", padding: 20 }}>
-      <button onClick={() => navigate(-1)} style={{ color: "#2563eb", background: "none", border: "none", fontSize: 16, cursor: "pointer", marginBottom: 10 }}>
-        ← Back
-      </button>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        color: "#EAEAF5",
+        fontFamily: "'Poppins', sans-serif",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: 20,
+      }}
+    >
+      {/* 🔹 Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          width: "100%",
+          maxWidth: 800,
+          justifyContent: "space-between",
+          background: "rgba(255,255,255,0.08)",
+          backdropFilter: "blur(10px)",
+          borderRadius: 15,
+          padding: "12px 20px",
+          marginBottom: 20,
+          boxShadow: "0 2px 20px rgba(0,0,0,0.4)",
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            color: "#C7C9E0",
+            background: "none",
+            border: "none",
+            fontSize: 16,
+            cursor: "pointer",
+          }}
+        >
+          ← Back
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <img
+            src="/FullLogo.jpg"
+            alt="AURA Logo"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              boxShadow: "0 0 15px rgba(182,202,255,0.3)",
+            }}
+          />
+          <h3 style={{ margin: 0, fontWeight: 700 }}>Mood Tracker</h3>
+        </div>
+      </div>
 
-      <h2 style={{ fontSize: 28, fontWeight: "700", marginBottom: 15 }}>😊 Mood Tracker</h2>
-      <p style={{ fontSize: 16, color: "#555", marginBottom: 10 }}>Detect your mood or select manually:</p>
+      {/* 🎥 Webcam Section */}
+      <div
+        style={{
+          background: "rgba(255,255,255,0.08)",
+          padding: 20,
+          borderRadius: 20,
+          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
+          marginBottom: 20,
+          backdropFilter: "blur(10px)",
+          textAlign: "center",
+        }}
+      >
+        <p>🧠 Detect your mood automatically using the webcam:</p>
+        <Webcam
+          audio={false}
+          ref={webcamRef}
+          screenshotFormat="image/jpeg"
+          width={320}
+          height={240}
+          style={{
+            borderRadius: 10,
+            border: "2px solid rgba(255,255,255,0.15)",
+            marginBottom: 10,
+          }}
+        />
+        <br />
+        <button
+          onClick={detectMoodFromCamera}
+          disabled={loading}
+          style={{
+            background: loading
+              ? "rgba(147,197,253,0.3)"
+              : "linear-gradient(135deg, #2563EB, #4F46E5)",
+            color: "white",
+            border: "none",
+            borderRadius: 10,
+            padding: "10px 20px",
+            fontSize: 16,
+            cursor: "pointer",
+            boxShadow: "0 4px 15px rgba(59,130,246,0.3)",
+          }}
+        >
+          {loading ? "⏳ Detecting..." : "📸 Detect Mood"}
+        </button>
+        {detectedMood && (
+          <p style={{ marginTop: 10, fontSize: 16 }}>
+            🧠 Detected Mood: <strong>{detectedMood}</strong>
+          </p>
+        )}
+      </div>
 
-      <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={320} height={240} />
-      <button onClick={detectMoodFromCamera} disabled={loading} style={{ marginTop: 10, marginBottom: 20 }}>
-        {loading ? "⏳ Detecting..." : "📸 Detect Mood from Camera"}
-      </button>
-      {detectedMood && <p>🧠 Detected Mood: <strong>{detectedMood}</strong></p>}
-
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", marginBottom: 20 }}>
+      {/* 😄 Mood Selection */}
+      <h3 style={{ marginBottom: 10 }}>Select Mood Manually</h3>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 10,
+          justifyContent: "center",
+          marginBottom: 20,
+        }}
+      >
         {moods.map((m) => (
           <button
             key={m.label}
             onClick={() => setSelectedMood(m)}
             style={{
-              backgroundColor: selectedMood?.label === m.label ? "#2563eb" : "#fff",
-              border: `2px solid ${selectedMood?.label === m.label ? "#2563eb" : "#ddd"}`,
+              background:
+                selectedMood?.label === m.label
+                  ? "linear-gradient(135deg, #2563EB, #4F46E5)"
+                  : "rgba(255,255,255,0.1)",
+              color: selectedMood?.label === m.label ? "#fff" : "#EAEAF5",
+              border: "1px solid rgba(255,255,255,0.15)",
               borderRadius: 12,
               padding: "15px 20px",
               cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
+              transition: "transform 0.2s",
             }}
           >
             <span style={{ fontSize: 28 }}>{m.emoji}</span>
-            <span style={{ color: selectedMood?.label === m.label ? "#fff" : "#111", fontWeight: 600 }}>
-              {m.label}
-            </span>
+            <span style={{ fontWeight: 600 }}>{m.label}</span>
           </button>
         ))}
       </div>
 
+      {/* ✍️ Note */}
       <textarea
         placeholder="Add a short note about your day (optional)"
         value={note}
         onChange={(e) => setNote(e.target.value)}
         style={{
           width: "100%",
-          backgroundColor: "#fff",
-          border: "1px solid #ddd",
+          maxWidth: 500,
+          background: "rgba(255,255,255,0.08)",
+          border: "1px solid rgba(255,255,255,0.15)",
           borderRadius: 10,
           padding: 12,
+          color: "#EAEAF5",
           fontSize: 16,
           minHeight: 80,
           marginBottom: 15,
-          resize: "none"
+          resize: "none",
+          backdropFilter: "blur(8px)",
         }}
       ></textarea>
 
@@ -164,7 +267,9 @@ export default function MoodScreen() {
         onClick={saveMood}
         disabled={loading}
         style={{
-          backgroundColor: loading ? "#93c5fd" : "#2563eb",
+          background: loading
+            ? "rgba(147,197,253,0.3)"
+            : "linear-gradient(135deg, #2563EB, #4F46E5)",
           color: "white",
           fontSize: 18,
           fontWeight: 600,
@@ -172,54 +277,78 @@ export default function MoodScreen() {
           borderRadius: 10,
           padding: "12px 20px",
           cursor: loading ? "not-allowed" : "pointer",
-          marginBottom: 20,
+          boxShadow: "0 4px 20px rgba(59,130,246,0.3)",
+          marginBottom: 30,
         }}
       >
         {loading ? "⏳ Saving..." : "💾 Save Mood"}
       </button>
 
-      <h3 style={{ fontSize: 20, fontWeight: "700", marginBottom: 10 }}>🗓️ Mood History</h3>
-      {entries.length === 0 ? (
-        <p style={{ color: "#666", textAlign: "center" }}>No mood entries yet. Record how you feel today!</p>
-      ) : (
-        <div>
-          {entries.map((item, index) => (
+      {/* 🗓 Mood History */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 600,
+          background: "rgba(255,255,255,0.08)",
+          padding: 20,
+          borderRadius: 15,
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+        }}
+      >
+        <h3>🗓️ Mood History</h3>
+        {entries.length === 0 ? (
+          <p style={{ color: "#C7C9E0" }}>No mood entries yet. Record how you feel today!</p>
+        ) : (
+          entries.map((item, index) => (
             <div
               key={index}
               style={{
-                backgroundColor: "#fff",
+                background: "rgba(255,255,255,0.1)",
                 borderRadius: 10,
-                padding: 15,
-                border: "1px solid #ddd",
-                marginBottom: 10,
+                padding: 12,
+                marginBottom: 8,
               }}
             >
-              <p style={{ fontSize: 18, margin: 0 }}>
+              <p style={{ fontSize: 18 }}>
                 {item.emoji} {item.mood}
               </p>
-              <p style={{ color: "#666", margin: "4px 0" }}>
+              <p style={{ color: "#C7C9E0", margin: "4px 0" }}>
                 📅 {new Date(item.timestamp).toLocaleDateString()}
               </p>
-              {item.note && <p style={{ color: "#444", marginTop: 5 }}>📝 {item.note}</p>}
+              {item.note && (
+                <p style={{ color: "#EAEAF5", marginTop: 5 }}>📝 {item.note}</p>
+              )}
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
 
-      <h3 style={{ fontSize: 20, fontWeight: "700", marginTop: 30, marginBottom: 10 }}>📁 Saved Mood Logs</h3>
-      {savedLogs.length === 0 ? (
-        <p style={{ color: "#666", textAlign: "center" }}>No saved logs found.</p>
-      ) : (
-        <div style={{ backgroundColor: "#fff", borderRadius: 10, padding: 15, border: "1px solid #ddd" }}>
+      {/* 📁 Saved Logs */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 600,
+          marginTop: 30,
+          background: "rgba(255,255,255,0.08)",
+          padding: 20,
+          borderRadius: 15,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+        }}
+      >
+        <h3>📁 Saved Mood Logs</h3>
+        {savedLogs.length === 0 ? (
+          <p style={{ color: "#C7C9E0" }}>No saved logs found.</p>
+        ) : (
           <ul style={{ listStyle: "none", padding: 0 }}>
             {savedLogs.map((log, index) => (
-              <li key={index} style={{ marginBottom: 8, fontSize: 16, color: "#333" }}>
-                {log}
+              <li key={index} style={{ marginBottom: 6 }}>
+                <span style={{ color: "#EAEAF5" }}>{log}</span>
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
