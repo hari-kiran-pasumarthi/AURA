@@ -20,7 +20,6 @@ export default function HomeScreen() {
       style={{
         minHeight: "100vh",
         background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
-        backgroundAttachment: "fixed",
         color: "#EAEAF5",
         display: "flex",
         flexDirection: "column",
@@ -37,12 +36,27 @@ export default function HomeScreen() {
         style={{
           width: "200px",
           marginTop: 50,
-          marginBottom: 30,
+          marginBottom: 15,
           borderRadius: "24px",
-          boxShadow: "0 0 25px rgba(182, 202, 255, 0.3)",
-          animation: "fadeIn 2s ease-in-out",
+          boxShadow: "0 0 25px rgba(182, 202, 255, 0.4)",
+          animation: "pulse 4s infinite ease-in-out, fadeIn 2s ease-in-out",
         }}
       />
+
+      {/* 🌠 Welcome Title */}
+      <h1
+        style={{
+          fontSize: 28,
+          fontWeight: 700,
+          color: "#EAEAF5",
+          textAlign: "center",
+          marginBottom: 30,
+          letterSpacing: 0.5,
+          textShadow: "0 0 8px rgba(200,200,255,0.2)",
+        }}
+      >
+        Welcome to <span style={{ color: "#A5B4FC" }}>AURA</span>
+      </h1>
 
       {/* 📁 SAVED FOLDER */}
       <div
@@ -118,7 +132,14 @@ export default function HomeScreen() {
               e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.25)";
             }}
           >
-            <div style={{ fontSize: 36, textAlign: "center", marginBottom: 10 }}>
+            <div
+              style={{
+                fontSize: 36,
+                textAlign: "center",
+                marginBottom: 10,
+                animation: "fadeIn 0.6s ease",
+              }}
+            >
               {mod.icon}
             </div>
             <h3
@@ -154,18 +175,25 @@ export default function HomeScreen() {
           color: "#A8B0D0",
           fontSize: 14,
           textAlign: "center",
+          animation: "fadeIn 2s ease",
         }}
       >
-        © {new Date().getFullYear()} AURA <br />
+        © {new Date().getFullYear()}{" "}
+        <span style={{ fontWeight: 600, color: "#EAEAF5" }}>AURA</span>
+        <br />
         <span style={{ color: "#C7C9E0" }}>Adaptive AI Study Companion 🌙</span>
       </footer>
 
-      {/* 🌌 Fade-in Animation */}
+      {/* 🌌 Animations */}
       <style>
         {`
           @keyframes fadeIn {
             0% { opacity: 0; transform: scale(0.9); }
             100% { opacity: 1; transform: scale(1); }
+          }
+          @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(182,202,255,0.3); }
+            50% { box-shadow: 0 0 45px rgba(182,202,255,0.6); }
           }
         `}
       </style>
