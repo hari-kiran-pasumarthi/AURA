@@ -1,224 +1,207 @@
-from fastapi import APIRouter, HTTPException, Depends, Body
-from backend.models.schemas import PlannerRequest, PlannerResponse
-from backend.services import planner
-from backend.services.smart_calendar import save_to_calendar, list_calendar
+
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi.responses import FileResponse
 from backend.routers.auth import get_current_user
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
-from datetime import datetime, timedelta
-import os, json, asyncio
+from groq import Groq
+import os, json, tempfile, whisper, fitz, asyncio
+from datetime import datetime
 
-router = APIRouter(prefix="/planner", tags=["Planner"])
+router = APIRouter(prefix="/autonote", tags=["AutoNote"])
 
 # ---------------------------
-# 📁 Directory Setup
+# Groq / Model configuration
 # ---------------------------
-SAVE_DIR = os.path.join("saved_files", "planner_schedules")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise RuntimeError("GROQ_API_KEY environment variable is required")
+
+client = Groq(api_key=GROQ_API_KEY)
+MODEL_NAME = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+
+# ---------------------------
+# File storage setup
+# ---------------------------
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SAVE_DIR = os.path.join(PROJECT_ROOT, "saved_files", "autonote_notes")
 os.makedirs(SAVE_DIR, exist_ok=True)
 
-SAVE_FILE = os.path.join(SAVE_DIR, "planner_log.json")
-TASKS_FILE = os.path.join(SAVE_DIR, "tasks.json")
-
-for f in [SAVE_FILE, TASKS_FILE]:
-    if not os.path.exists(f):
-        with open(f, "w", encoding="utf-8") as file:
-            json.dump([], file, indent=2)
-
+SAVE_FILE = os.path.join(SAVE_DIR, "saved_autonotes.json")
+if not os.path.exists(SAVE_FILE):
+    with open(SAVE_FILE, "w", encoding="utf-8") as f:
+        json.dump([], f, indent=2)
 
 # ---------------------------
-# 📧 Email Helper
+# Email notifier
 # ---------------------------
-async def send_planner_email(user_email: str, summary: str, schedule: list):
-    """Send confirmation email after generating a study plan."""
+async def send_summary_email(user_email: str, title: str, summary: str):
+    fm = FastMail(conf)
+    subject = f"AURA | Your AutoNote '{title}' has been summarized!"
+    body = f"""
+    <h2>🧠 AURA AutoNote Summary Ready</h2>
+    <p><b>Title:</b> {title}</p>
+    <p><b>Summary:</b></p>
+    <p>{summary[:500]}...</p>
+    <hr>
+    <p>Open your AURA app to view full highlights and notes.</p>
+    <p style="color:gray;font-size:12px;">This is an automated message from AURA.</p>
+    """
+    message = MessageSchema(
+        subject=subject,
+        recipients=[user_email],
+        body=body,
+        subtype="html",
+    )
+    await fm.send_message(message)
+
+# ---------------------------
+# Helpers
+# ---------------------------
+def flatten_list(items):
+    if isinstance(items, list):
+        return [str(i.get("description", i)) if isinstance(i, dict) else str(i) for i in items]
+    return []
+
+def save_autonote_to_server(title, transcript, summary, highlights, bullets, user_email):
     try:
-        fm = FastMail(conf)
-        subject = "📅 AURA | Study Plan Confirmed!"
-        body = f"""
-        <h3>🧠 AURA Study Plan Scheduled</h3>
-        <p><b>Summary:</b> {summary}</p>
-        <p><b>Total Sessions:</b> {len(schedule)}</p>
-        <hr>
-        <p>Your study schedule has been added successfully. 
-        You'll receive reminders before each session.</p>
-        <p style="color:gray;font-size:12px;">This is an automated message from AURA.</p>
-        """
-        message = MessageSchema(subject=subject, recipients=[user_email], body=body, subtype="html")
-        await fm.send_message(message)
-    except Exception as e:
-        print(f"⚠️ Email sending failed: {e}")
-
-
-# ---------------------------
-# 📅 Generate Plan
-# ---------------------------
-@router.post("/generate", response_model=PlannerResponse)
-async def generate_plan(req: PlannerRequest = Body(...), current_user: dict = Depends(get_current_user)):
-    """Generate a personalized AI-assisted study plan."""
-    try:
-        print("🔑 Current user:", current_user)
-
-        if not req.tasks or len(req.tasks) == 0:
-            raise HTTPException(status_code=400, detail="No tasks provided. Please include at least one task.")
-
-        response = planner.generate(req)
-        print(f"✅ Plan generated for {current_user['email']}")
-
-        # Send notification email asynchronously
-        asyncio.create_task(send_planner_email(current_user["email"], "Your AI Study Plan is Ready!", response.schedule))
-
-        return response
-    except Exception as e:
-        print(f"❌ Planner generation error: {e}")
-        raise HTTPException(status_code=500, detail=f"Planner generation failed: {str(e)}")
-
-
-# ---------------------------
-# 💾 Save Plan
-# ---------------------------
-@router.post("/save")
-async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
-    """Save a generated or custom study plan."""
-    try:
-        summary = data.get("summary", "Untitled Plan")
-        schedule = data.get("schedule", [])
-        tasks = data.get("tasks", [])
-        date = data.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
-
-        if not schedule:
-            raise HTTPException(400, "Missing schedule data.")
-
         entry = {
-            "email": current_user["email"],
+            "id": datetime.utcnow().strftime("%Y%m%d%H%M%S"),
+            "email": user_email,
+            "title": title,
             "summary": summary,
-            "date": date,
-            "schedule": schedule,
-            "tasks": tasks,
+            "content": summary or (transcript[:200] + "..."),
+            "transcript": transcript,
+            "highlights": highlights,
+            "keywords": highlights,
+            "bullets": bullets,
             "timestamp": datetime.utcnow().isoformat(),
         }
 
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
-            data_log = json.load(f)
-            data_log.append(entry)
+            data = json.load(f)
+            data.append(entry)
             f.seek(0)
-            json.dump(data_log, f, indent=2)
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
-        file_name = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{current_user['email'].replace('@','_')}.json"
-        file_path = os.path.join(SAVE_DIR, file_name)
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(entry, f, indent=2)
-
-        asyncio.create_task(send_planner_email(current_user["email"], summary, schedule))
-        print(f"💾 Saved planner entry for {current_user['email']}")
-        return {"message": "Plan saved successfully", "file": file_name}
+        asyncio.create_task(send_summary_email(user_email, title, summary))
+        print(f"✅ AutoNote saved for {user_email}")
 
     except Exception as e:
-        print(f"❌ Save failed: {e}")
-        raise HTTPException(500, f"Failed to save plan: {e}")
-
+        print(f"⚠️ Failed to save AutoNote: {e}")
 
 # ---------------------------
-# 📂 Fetch Saved Plans
+# Summarization (Groq)
 # ---------------------------
+def summarize_content(text: str, user_email: str):
+    if not text.strip():
+        raise HTTPException(400, "Input text is empty.")
+
+    prompt = f"""
+You are an intelligent study assistant.
+Summarize the following text clearly.
+
+Output ONLY valid JSON in this format:
+{{
+  "summary": "<short summary>",
+  "highlights": ["<3–5 key phrases>"],
+  "bullets": ["<short study points>"]
+}}
+
+Text:
+\"\"\"{text}\"\"\""""
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
+        )
+        ai_output = response.choices[0].message.content.strip()
+        start, end = ai_output.find("{"), ai_output.rfind("}")
+        if start != -1 and end != -1:
+            parsed = json.loads(ai_output[start:end+1])
+            summary = parsed.get("summary", "").strip()
+            highlights = flatten_list(parsed.get("highlights", []))
+            bullets = flatten_list(parsed.get("bullets", []))
+            save_autonote_to_server("AutoNote Summary", text, summary, highlights, bullets, user_email)
+            return {"summary": summary, "highlights": highlights, "bullets": bullets}
+        raise ValueError("Invalid JSON output")
+
+    except Exception as e:
+        raise HTTPException(500, f"Summarization failed: {e}")
+
+# ---------------------------
+# Endpoints
+# ---------------------------
+@router.post("/transcribe")
+async def summarize_text(req: dict, current_user: dict = Depends(get_current_user)):
+    text = req.get("text", "")
+    print("🔍 Current user:", current_user)
+    result = summarize_content(text, current_user["email"])
+    return result
+
+
+@router.post("/audio")
+async def summarize_audio(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
+        temp_audio.write(await file.read())
+        temp_audio_path = temp_audio.name
+
+    model = whisper.load_model("base")
+    result = model.transcribe(temp_audio_path)
+    os.remove(temp_audio_path)
+
+    transcript = result.get("text", "")
+    summary_data = summarize_content(transcript, current_user["email"])
+    return {"transcript": transcript, **summary_data}
+
+
+@router.post("/upload")
+async def upload_file(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    try:
+        filename = file.filename.lower()
+        if filename.endswith(".txt"):
+            content = (await file.read()).decode("utf-8", errors="ignore")
+        elif filename.endswith(".pdf"):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
+                temp_pdf.write(await file.read())
+                temp_pdf_path = temp_pdf.name
+            content = ""
+            with fitz.open(temp_pdf_path) as doc:
+                for page in doc:
+                    content += page.get_text("text") + "\n"
+            os.remove(temp_pdf_path)
+        else:
+            raise HTTPException(400, "Unsupported file type. Upload .txt or .pdf only.")
+        if not content.strip():
+            raise HTTPException(400, "File is empty or unreadable.")
+        return summarize_content(content, current_user["email"])
+    except Exception as e:
+        raise HTTPException(500, f"File upload failed: {e}")
+
+
+@router.post("/save")
+async def manual_save(note: dict, current_user: dict = Depends(get_current_user)):
+    note["id"] = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    note["timestamp"] = datetime.utcnow().isoformat()
+    note["email"] = current_user["email"]
+    note["keywords"] = note.get("highlights", [])
+    with open(SAVE_FILE, "r+", encoding="utf-8") as f:
+        data = json.load(f)
+        data.append(note)
+        f.seek(0)
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    asyncio.create_task(send_summary_email(current_user["email"], note.get("title", "Manual Note"), note.get("summary", "")))
+    return {"message": "Note saved successfully!", "id": note["id"], "email": current_user["email"]}
+
+
 @router.get("/saved")
-async def get_saved_plans(current_user: dict = Depends(get_current_user)):
-    """Retrieve all saved study plans for the logged-in user."""
-    try:
-        if not os.path.exists(SAVE_FILE):
-            return {"entries": []}
-
-        with open(SAVE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        user_plans = [d for d in data if d.get("email") == current_user["email"]]
-        user_plans.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-
-        return {"entries": user_plans}
-    except Exception as e:
-        raise HTTPException(500, f"Failed to load saved plans: {e}")
-
-
-# ---------------------------
-# 📅 Upcoming Plans
-# ---------------------------
-@router.get("/upcoming")
-async def get_upcoming_plans(current_user: dict = Depends(get_current_user)):
-    """Fetch plans starting within the next 5 minutes."""
-    try:
-        if not os.path.exists(SAVE_FILE):
-            return {"upcoming": []}
-
-        with open(SAVE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        now = datetime.utcnow()
-        upcoming = []
-
-        for plan in data:
-            if plan["email"] != current_user["email"]:
-                continue
-            for session in plan.get("schedule", []):
-                try:
-                    sessions = session.get("blocks", []) if "blocks" in session else [session]
-                    for s in sessions:
-                        session_time = datetime.strptime(f"{plan['date']} {s['start_time']}", "%Y-%m-%d %H:%M")
-                        if now <= session_time <= now + timedelta(minutes=5):
-                            upcoming.append({
-                                "summary": plan["summary"],
-                                "start_time": s["start_time"],
-                                "date": plan["date"],
-                            })
-                except Exception as e:
-                    print("⚠️ Time parse error:", e)
-                    continue
-
-        return {"upcoming": upcoming}
-    except Exception as e:
-        raise HTTPException(500, f"Failed to fetch upcoming plans: {e}")
-
-
-# ---------------------------
-# ✅ Manage Tasks
-# ---------------------------
-@router.post("/tasks/add")
-async def add_task(task: dict, current_user: dict = Depends(get_current_user)):
-    """Add a new task to the planner."""
-    try:
-        task["created_at"] = datetime.utcnow().isoformat()
-        task["email"] = current_user["email"]
-        task["status"] = "pending"
-
-        with open(TASKS_FILE, "r+", encoding="utf-8") as f:
-            data = json.load(f)
-            data.append(task)
-            f.seek(0)
-            json.dump(data, f, indent=2)
-
-        return {"status": "success", "task": task}
-    except Exception as e:
-        raise HTTPException(500, f"Failed to add task: {e}")
-
-
-@router.post("/tasks/update")
-async def update_task(task_id: str, status: str, current_user: dict = Depends(get_current_user)):
-    """Update or mark a task as completed."""
-    try:
-        if not os.path.exists(TASKS_FILE):
-            raise HTTPException(404, "No task file found.")
-
-        with open(TASKS_FILE, "r+", encoding="utf-8") as f:
-            data = json.load(f)
-            updated = False
-            for task in data:
-                if task.get("id") == task_id and task.get("email") == current_user["email"]:
-                    task["status"] = status
-                    updated = True
-                    break
-            f.seek(0)
-            json.dump(data, f, indent=2)
-
-        if not updated:
-            raise HTTPException(404, f"Task with id '{task_id}' not found.")
-        return {"status": "updated", "task_id": task_id, "new_status": status}
-
-    except Exception as e:
-        raise HTTPException(500, f"Failed to update task: {e}")
+async def get_saved_autonotes(current_user: dict = Depends(get_current_user)):
+    if not os.path.exists(SAVE_FILE):
+        return {"entries": []}
+    with open(SAVE_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    user_notes = [n for n in data if n.get("email") == current_user["email"]]
+    user_notes.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    return {"entries": user_notes}
