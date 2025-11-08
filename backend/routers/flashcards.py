@@ -231,6 +231,9 @@ async def get_flashcards_alias(current_user: dict = Depends(get_current_user)):
 # -------------------------------------------
 # 💾 Save Flashcards (Manual Save from Frontend)
 # -------------------------------------------
+# -------------------------------------------
+# 💾 Save Flashcards (Manual Save from Frontend)
+# -------------------------------------------
 @router.post("/save")
 async def save_flashcards(data: dict, current_user: dict = Depends(get_current_user)):
     """Save generated or manually edited flashcards from frontend."""
@@ -243,22 +246,28 @@ async def save_flashcards(data: dict, current_user: dict = Depends(get_current_u
         if not cards:
             raise HTTPException(status_code=400, detail="No flashcards to save.")
 
+        # ✅ Include full flashcard data directly in the entry
         entry = {
             "email": current_user["email"],
             "title": title,
             "content": f"{len(cards)} flashcards saved manually.",
-            "metadata": metadata,
+            "flashcards": cards,  # <-- actual card data added here
+            "metadata": {
+                "source": source,
+                "num_cards": len(cards),
+                "tags": metadata.get("tags", ["manual"]),
+            },
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-        # Append to master JSON
+        # ✅ Save to master JSON
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data_log = json.load(f)
             data_log.append(entry)
             f.seek(0)
             json.dump(data_log, f, indent=2)
 
-        # Optional: also save as text backup
+        # ✅ Also save a readable text version
         backup_path = os.path.join(
             SAVE_DIR,
             f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{current_user['email'].replace('@','_')}.txt",
@@ -271,7 +280,11 @@ async def save_flashcards(data: dict, current_user: dict = Depends(get_current_u
         asyncio.create_task(send_flashcard_email(current_user["email"], title, len(cards)))
 
         print(f"💾 Saved {len(cards)} flashcards for {current_user['email']}")
-        return {"message": "Flashcards saved successfully", "filename": os.path.basename(backup_path)}
+        return {
+            "message": "Flashcards saved successfully",
+            "filename": os.path.basename(backup_path),
+            "count": len(cards),
+        }
 
     except Exception as e:
         print(f"❌ Save flashcards error: {e}")
