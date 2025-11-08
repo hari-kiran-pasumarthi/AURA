@@ -4,28 +4,21 @@ import { useNavigate } from "react-router-dom";
 export default function FocusScreen() {
   const navigate = useNavigate();
 
-  // Timer state
   const [seconds, setSeconds] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [sessions, setSessions] = useState(0);
-
-  // Focus + Agent state
   const [feedback, setFeedback] = useState("");
   const [agentStatus, setAgentStatus] = useState(false);
   const [loading, setLoading] = useState(false);
   const timerRef = useRef(null);
 
-  // ✅ Check agent connection every 5 seconds
+  // ✅ Agent check
   useEffect(() => {
     const checkAgent = async () => {
       try {
         const res = await fetch("https://loyal-beauty-production.up.railway.app/focus/status");
-        if (res.ok) {
-          const data = await res.json();
-          setAgentStatus(data.active);
-        } else {
-          setAgentStatus(false);
-        }
+        const data = await res.json();
+        setAgentStatus(data.active || false);
       } catch {
         setAgentStatus(false);
       }
@@ -57,7 +50,7 @@ export default function FocusScreen() {
     return () => clearInterval(timerRef.current);
   }, [isRunning]);
 
-  // ✅ Poll live focus updates ONLY while timer is running
+  // ✅ Poll live focus updates
   useEffect(() => {
     let poll;
     if (isRunning) {
@@ -77,51 +70,39 @@ export default function FocusScreen() {
         } catch (err) {
           console.log("⚠️ Live update error:", err);
         }
-      }, 10000); // every 10s
+      }, 10000);
     }
-
-    // 🧹 stop polling when paused/reset
-    return () => {
-      if (poll) clearInterval(poll);
-    };
+    return () => poll && clearInterval(poll);
   }, [isRunning]);
 
-  // 🔍 Analyze focus at the end of a session
+  // 🔍 Analyze focus
   const handleFocusAnalysis = async () => {
     setLoading(true);
     setFeedback("Analyzing your focus...");
-
     try {
       const res = await fetch("https://loyal-beauty-production.up.railway.app/focus/latest");
-      if (!res.ok) throw new Error(`Backend Error: ${res.status}`);
       const data = await res.json();
-
       if (data.focused) {
         setFeedback(`✅ You stayed focused! ${data.reason}`);
       } else {
         setFeedback(`⚠️ You seemed distracted. ${data.reason}`);
       }
-    } catch (err) {
-      console.error("❌ Focus analysis error:", err);
-      setFeedback("⚠️ Could not reach focus backend. Please check FastAPI.");
+    } catch {
+      setFeedback("⚠️ Could not reach focus backend.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Reset timer and feedback
   const handleReset = () => {
     setSeconds(25 * 60);
     setIsRunning(false);
     setFeedback("");
   };
 
-  // Format mm:ss
   const formatTime = (time) => {
-    const m = Math.floor(time / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = (time % 60).toString().padStart(2, "0");
+    const m = String(Math.floor(time / 60)).padStart(2, "0");
+    const s = String(time % 60).padStart(2, "0");
     return `${m}:${s}`;
   };
 
@@ -129,162 +110,186 @@ export default function FocusScreen() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#f9fafb",
-        padding: 20,
+        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        color: "#EAEAF5",
+        fontFamily: "'Poppins', sans-serif",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        padding: 20,
         position: "relative",
       }}
     >
-      {/* 🔙 Back Button */}
-      <button
-        onClick={() => navigate(-1)}
+      {/* 🔹 Header */}
+      <div
         style={{
           position: "absolute",
           top: 20,
           left: 20,
-          background: "none",
-          border: "none",
-          color: "#2563eb",
-          fontSize: 16,
-          cursor: "pointer",
-        }}
-      >
-        ← Back
-      </button>
-
-      {/* 📡 Agent Status */}
-      <div
-        style={{
-          position: "absolute",
-          top: 20,
           right: 20,
-          padding: "6px 12px",
-          borderRadius: 8,
-          backgroundColor: agentStatus ? "#22c55e" : "#ef4444",
-          color: "white",
-          fontWeight: "600",
-          fontSize: 14,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          background: "rgba(255,255,255,0.08)",
+          padding: "10px 20px",
+          borderRadius: 12,
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 2px 20px rgba(0,0,0,0.4)",
         }}
       >
-        {agentStatus ? "📡 Agent Connected" : "⚠️ Agent Not Running"}
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            color: "#C7C9E0",
+            background: "none",
+            border: "none",
+            fontSize: 16,
+            cursor: "pointer",
+          }}
+        >
+          ← Back
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <img
+            src="/FullLogo.jpg"
+            alt="AURA Logo"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              boxShadow: "0 0 15px rgba(182,202,255,0.3)",
+            }}
+          />
+          <h3 style={{ margin: 0, fontWeight: 700 }}>Focus Mode</h3>
+        </div>
+        <div
+          style={{
+            background: agentStatus ? "#16A34A" : "#EF4444",
+            color: "#fff",
+            fontWeight: 600,
+            padding: "5px 12px",
+            borderRadius: 8,
+            fontSize: 14,
+            boxShadow: agentStatus
+              ? "0 0 12px rgba(16,185,129,0.4)"
+              : "0 0 12px rgba(239,68,68,0.4)",
+          }}
+        >
+          {agentStatus ? "📡 Agent Connected" : "⚠️ Not Running"}
+        </div>
       </div>
 
-      <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 20 }}>
-        🕒 Focus Mode
-      </h2>
-
-      {/* 🧭 Circular Timer */}
+      {/* 🕒 Circular Timer */}
       <div
         style={{
-          width: 200,
-          height: 200,
+          width: 240,
+          height: 240,
           borderRadius: "50%",
-          border: "8px solid #2563eb",
+          border: "8px solid rgba(255,255,255,0.2)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          marginBottom: 30,
-          backgroundColor: "#fff",
+          marginTop: 100,
+          background: "rgba(255,255,255,0.1)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 0 25px rgba(59,130,246,0.4)",
+          transition: "all 0.3s ease",
         }}
       >
         <span
           style={{
             fontSize: 48,
             fontWeight: "bold",
-            color: "#1e3a8a",
+            color: "#EAEAF5",
             fontFamily: "monospace",
+            textShadow: "0 0 8px rgba(255,255,255,0.2)",
           }}
         >
           {formatTime(seconds)}
         </span>
       </div>
 
-      {/* 🎛 Buttons */}
-      <div style={{ display: "flex", gap: 10 }}>
+      {/* 🎛 Controls */}
+      <div style={{ display: "flex", gap: 20, marginTop: 40 }}>
         <button
           onClick={() => setIsRunning(true)}
           disabled={isRunning}
           style={{
-            backgroundColor: "#2563eb",
-            color: "white",
-            fontSize: 18,
-            fontWeight: 600,
-            border: "none",
-            borderRadius: 10,
-            padding: "12px 25px",
-            cursor: isRunning ? "not-allowed" : "pointer",
-            opacity: isRunning ? 0.6 : 1,
+            ...btnStyle,
+            background: "linear-gradient(135deg, #2563EB, #4F46E5)",
+            opacity: isRunning ? 0.5 : 1,
           }}
         >
-          Start
+          ▶ Start
         </button>
-
         <button
           onClick={() => setIsRunning(false)}
           style={{
-            backgroundColor: "#f59e0b",
-            color: "white",
-            fontSize: 18,
-            fontWeight: 600,
-            border: "none",
-            borderRadius: 10,
-            padding: "12px 25px",
-            cursor: "pointer",
+            ...btnStyle,
+            background: "linear-gradient(135deg, #F59E0B, #FBBF24)",
           }}
         >
-          Pause
+          ⏸ Pause
         </button>
-
         <button
           onClick={handleReset}
           style={{
-            backgroundColor: "#ef4444",
-            color: "white",
-            fontSize: 18,
-            fontWeight: 600,
-            border: "none",
-            borderRadius: 10,
-            padding: "12px 25px",
-            cursor: "pointer",
+            ...btnStyle,
+            background: "linear-gradient(135deg, #EF4444, #F87171)",
           }}
         >
-          Reset
+          🔄 Reset
         </button>
       </div>
 
       {/* 📊 Sessions */}
-      <p style={{ fontSize: 16, marginTop: 30, color: "#555" }}>
-        Sessions completed: {sessions}
+      <p style={{ fontSize: 16, marginTop: 30, color: "#C7C9E0" }}>
+        Sessions completed: <b>{sessions}</b>
       </p>
 
-      {/* 💬 Focus Feedback */}
+      {/* 💬 Feedback */}
       {feedback && (
         <div
           style={{
-            marginTop: 20,
-            backgroundColor: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: 10,
-            padding: 15,
-            maxWidth: 400,
-            boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+            marginTop: 25,
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: 12,
+            padding: 18,
+            maxWidth: 420,
             textAlign: "center",
+            color: feedback.includes("⚠️") ? "#FCA5A5" : "#86EFAC",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            backdropFilter: "blur(10px)",
+            animation: "fadeIn 0.6s ease",
+            whiteSpace: "pre-wrap",
           }}
         >
-          <p
-            style={{
-              fontSize: 16,
-              color: feedback.includes("⚠️") ? "#b91c1c" : "#15803d",
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {loading ? "⏳ Analyzing..." : feedback}
-          </p>
+          {loading ? "⏳ Analyzing..." : feedback}
         </div>
       )}
+
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
     </div>
   );
 }
+
+const btnStyle = {
+  color: "white",
+  fontWeight: 600,
+  fontSize: 16,
+  border: "none",
+  borderRadius: 10,
+  padding: "12px 25px",
+  cursor: "pointer",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+  transition: "transform 0.25s ease",
+};
