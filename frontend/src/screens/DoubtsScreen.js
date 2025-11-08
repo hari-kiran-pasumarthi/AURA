@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api"; // ✅ centralized axios instance
 
 export default function DoubtsScreen() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function DoubtsScreen() {
   const [saving, setSaving] = useState(false);
   const scrollRef = useRef(null);
 
-  // 🧠 Send doubt to backend
+  // 🧠 Send a doubt to the backend
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -24,45 +25,30 @@ export default function DoubtsScreen() {
     setLoading(true);
 
     try {
-      const payload = [
-        { timestamp: Date.now(), event: "pause", context: input },
-        { timestamp: Date.now(), event: "tab_switch", context: input },
-      ];
-
-      const res = await fetch("https://loyal-beauty-production.up.railway.app/doubts/report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      const data = await res.json();
-
-      const note = data.notes?.[0] || "No AI response available.";
-      const [confidenceLine, ...explanation] = note.split("\n\n");
+      // ✅ Backend expects { question: "..." }
+      const res = await API.post("/doubts/report", { question: userMsg.text });
+      const data = res.data;
 
       const aiResponse = `
-📘 **Doubt Analysis**
-🧩 **Topic:** ${data.topics?.[0] || "N/A"}
-🔍 **${confidenceLine || ""}**
-
-💬 **Clarification:**
-${explanation.join("\n\n")}
+📘 **AURA Clarification**
+🧩 **Topic:** ${data.topic || "General"}
+💬 ${data.response || "No detailed explanation provided."}
       `.trim();
 
       const botMsg = {
         sender: "bot",
         text: aiResponse,
-        topic: data.topics?.[0] || "N/A",
-        confidence: confidenceLine?.replace("Confidence: ", "") || "Unknown",
+        topic: data.topic || "General",
+        confidence: data.confidence || "N/A",
       };
 
       setMessages((prev) => [...prev, botMsg]);
     } catch (error) {
-      console.error("❌ Error fetching doubts:", error);
+      console.error("❌ Doubt fetch error:", error);
       const botMsg = {
         sender: "bot",
-        text: "⚠️ Unable to reach backend or AI engine. Please ensure FastAPI and Ollama are running properly.",
+        text:
+          "⚠️ Unable to connect to backend. Please check your FastAPI server or internet connection.",
       };
       setMessages((prev) => [...prev, botMsg]);
     } finally {
@@ -70,24 +56,18 @@ ${explanation.join("\n\n")}
     }
   };
 
-  // 💾 Save AI reply
+  // 💾 Save clarification
   const handleSave = async (msg) => {
     if (!msg || msg.sender !== "bot") return;
     setSaving(true);
     try {
       const payload = {
-        topic: msg.topic || "N/A",
+        topic: msg.topic,
         response: msg.text,
-        confidence: msg.confidence || "N/A",
+        confidence: msg.confidence,
       };
 
-      const res = await fetch("https://loyal-beauty-production.up.railway.app/doubts/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Save failed");
+      await API.post("/doubts/save", payload);
       alert("✅ Clarification saved successfully!");
     } catch (e) {
       console.error("⚠️ Save failed:", e);
@@ -97,11 +77,10 @@ ${explanation.join("\n\n")}
     }
   };
 
-  // Auto scroll
+  // Auto-scroll to bottom
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current)
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
   }, [messages]);
 
   return (
@@ -121,7 +100,7 @@ ${explanation.join("\n\n")}
           display: "flex",
           alignItems: "center",
           padding: "12px 20px",
-          background: "rgba(255, 255, 255, 0.08)",
+          background: "rgba(255,255,255,0.08)",
           backdropFilter: "blur(10px)",
           borderBottom: "1px solid rgba(255,255,255,0.1)",
           boxShadow: "0 2px 20px rgba(0,0,0,0.4)",
@@ -154,7 +133,7 @@ ${explanation.join("\n\n")}
         <h2 style={{ margin: 0, fontWeight: 700 }}>Doubt Solver</h2>
       </div>
 
-      {/* 💬 Chat Window */}
+      {/* 💬 Chat */}
       <div
         ref={scrollRef}
         style={{
@@ -189,14 +168,10 @@ ${explanation.join("\n\n")}
                   : "0 4px 20px rgba(0,0,0,0.3)",
               fontSize: 16,
               lineHeight: 1.5,
-              backdropFilter: "blur(5px)",
-              animation: "fadeIn 0.4s ease",
               whiteSpace: "pre-wrap",
             }}
           >
             {msg.text}
-
-            {/* 💾 Save Button for AI Replies */}
             {msg.sender === "bot" && (
               <button
                 onClick={() => handleSave(msg)}
@@ -213,14 +188,7 @@ ${explanation.join("\n\n")}
                   fontSize: 13,
                   fontWeight: 500,
                   cursor: saving ? "not-allowed" : "pointer",
-                  transition: "transform 0.25s ease",
                 }}
-                onMouseEnter={(e) => {
-                  if (!saving) e.currentTarget.style.transform = "scale(1.05)";
-                }}
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.transform = "scale(1)")
-                }
               >
                 {saving ? "Saving..." : "💾 Save"}
               </button>
@@ -238,7 +206,6 @@ ${explanation.join("\n\n")}
               color: "#C7C9E0",
               fontSize: 15,
               fontStyle: "italic",
-              animation: "pulse 1.5s infinite",
             }}
           >
             🤖 Analyzing your doubt...
@@ -246,7 +213,7 @@ ${explanation.join("\n\n")}
         )}
       </div>
 
-      {/* ✍️ Input Section */}
+      {/* ✍️ Input */}
       <div
         style={{
           display: "flex",
@@ -271,7 +238,6 @@ ${explanation.join("\n\n")}
             borderRadius: 20,
             padding: "12px 15px",
             fontSize: 16,
-            outline: "none",
           }}
         />
         <button
@@ -288,32 +254,11 @@ ${explanation.join("\n\n")}
             marginLeft: 10,
             fontWeight: 600,
             cursor: loading ? "not-allowed" : "pointer",
-            transition: "transform 0.25s ease",
           }}
-          onMouseEnter={(e) => {
-            if (!loading) e.currentTarget.style.transform = "scale(1.05)";
-          }}
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.transform = "scale(1)")
-          }
         >
           {loading ? "..." : "Send"}
         </button>
       </div>
-
-      {/* ✨ Animations */}
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-          }
-        `}
-      </style>
     </div>
   );
 }
