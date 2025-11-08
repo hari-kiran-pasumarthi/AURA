@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Body
 from backend.models.schemas import PlannerRequest, PlannerResponse
 from backend.services import planner
 from backend.services.smart_calendar import save_to_calendar, list_calendar
@@ -22,109 +22,160 @@ if not os.path.exists(SAVE_FILE):
     with open(SAVE_FILE, "w", encoding="utf-8") as f:
         json.dump([], f, indent=2)
 
+TASKS_FILE = os.path.join(SAVE_DIR, "tasks.json")
+if not os.path.exists(TASKS_FILE):
+    with open(TASKS_FILE, "w", encoding="utf-8") as f:
+        json.dump([], f, indent=2)
+
 
 # ---------------------------
 # 📧 Email Helper
 # ---------------------------
 async def send_planner_email(user_email: str, summary: str, schedule: list):
-    fm = FastMail(conf)
-    subject = "📅 AURA | Study Plan Confirmed!"
-    body = f"""
-    <h3>🧠 AURA Study Plan Scheduled</h3>
-    <p><b>Summary:</b> {summary}</p>
-    <p><b>Total Tasks:</b> {len(schedule)}</p>
-    <hr>
-    <p>Your study schedule has been added and you’ll receive notifications before each session!</p>
-    """
-    message = MessageSchema(subject=subject, recipients=[user_email], body=body, subtype="html")
-    await fm.send_message(message)
+    """Send a confirmation email after generating a study plan."""
+    try:
+        fm = FastMail(conf)
+        subject = "📅 AURA | Study Plan Confirmed!"
+        body = f"""
+        <h3>🧠 AURA Study Plan Scheduled</h3>
+        <p><b>Summary:</b> {summary}</p>
+        <p><b>Total Sessions:</b> {len(schedule)}</p>
+        <hr>
+        <p>Your study schedule has been added successfully. 
+        You'll receive reminders before each session.</p>
+        <p style="color:gray;font-size:12px;">This is an automated message from AURA.</p>
+        """
+        message = MessageSchema(subject=subject, recipients=[user_email], body=body, subtype="html")
+        await fm.send_message(message)
+    except Exception as e:
+        print(f"⚠️ Email sending failed: {e}")
 
 
 # ---------------------------
 # 📅 Generate Plan
 # ---------------------------
 @router.post("/generate", response_model=PlannerResponse)
-async def generate_plan(req: PlannerRequest, current_user: User = Depends(get_current_user)):
+async def generate_plan(req: PlannerRequest = Body(...), current_user: User = Depends(get_current_user)):
+    """Generate a personalized AI-assisted study plan."""
     try:
+        if not req.tasks or len(req.tasks) == 0:
+            raise HTTPException(status_code=400, detail="No tasks provided. Please include at least one task.")
+
         response = planner.generate(req)
         print(f"✅ Plan generated for {current_user.email}")
+
+        # Send notification email asynchronously
+        asyncio.create_task(send_planner_email(current_user.email, "Your AI Study Plan is Ready!", response.schedule))
+
         return response
     except Exception as e:
-        raise HTTPException(500, f"Planner generation failed: {e}")
+        print(f"❌ Planner generation error: {e}")
+        raise HTTPException(status_code=500, detail=f"Planner generation failed: {str(e)}")
 
 
 # ---------------------------
-# 💾 Save Plan with Date & Tasks
+# 💾 Save Plan
 # ---------------------------
 @router.post("/save")
 async def save_plan(data: dict, current_user: User = Depends(get_current_user)):
+    """Save a generated or custom study plan."""
     try:
         summary = data.get("summary", "Untitled Plan")
         schedule = data.get("schedule", [])
         tasks = data.get("tasks", [])
-        date = data.get("date")  # <-- selected date from frontend
+        date = data.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
 
-        if not schedule or not date:
-            raise HTTPException(400, "Missing schedule or date.")
+        if not schedule:
+            raise HTTPException(400, "Missing schedule data.")
 
-        timestamp = datetime.utcnow().isoformat()
-
-        # Save to JSON
         entry = {
             "email": current_user.email,
             "summary": summary,
             "date": date,
             "schedule": schedule,
             "tasks": tasks,
-            "timestamp": timestamp,
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
+        # Append to master log
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data_log = json.load(f)
             data_log.append(entry)
             f.seek(0)
             json.dump(data_log, f, indent=2)
 
-        # Save individual plan
+        # Save an individual JSON file
         file_name = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{current_user.email.replace('@','_')}.json"
-        with open(os.path.join(SAVE_DIR, file_name), "w", encoding="utf-8") as f:
+        file_path = os.path.join(SAVE_DIR, file_name)
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(entry, f, indent=2)
 
         asyncio.create_task(send_planner_email(current_user.email, summary, schedule))
 
-        return {"message": "Plan saved successfully", "email": current_user.email, "date": date}
+        print(f"💾 Saved planner entry for {current_user.email}")
+        return {"message": "Plan saved successfully", "file": file_name}
 
     except Exception as e:
+        print(f"❌ Save failed: {e}")
         raise HTTPException(500, f"Failed to save plan: {e}")
 
 
 # ---------------------------
-# 📅 Upcoming Plans (for Notifications)
+# 📂 Fetch Saved Plans
+# ---------------------------
+@router.get("/saved")
+async def get_saved_plans(current_user: User = Depends(get_current_user)):
+    """Retrieve all saved study plans for the logged-in user."""
+    try:
+        if not os.path.exists(SAVE_FILE):
+            return {"entries": []}
+
+        with open(SAVE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        user_plans = [d for d in data if d.get("email") == current_user.email]
+        user_plans.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+
+        return {"entries": user_plans}
+    except Exception as e:
+        raise HTTPException(500, f"Failed to load saved plans: {e}")
+
+
+# ---------------------------
+# 📅 Upcoming Plans
 # ---------------------------
 @router.get("/upcoming")
 async def get_upcoming_plans(current_user: User = Depends(get_current_user)):
     """Fetch plans starting within the next 5 minutes."""
     try:
+        if not os.path.exists(SAVE_FILE):
+            return {"upcoming": []}
+
         with open(SAVE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         now = datetime.utcnow()
         upcoming = []
+
         for plan in data:
             if plan["email"] != current_user.email:
                 continue
-            for session in plan["schedule"]:
+            for session in plan.get("schedule", []):
                 try:
-                    session_time = datetime.strptime(f"{plan['date']} {session['start_time']}", "%Y-%m-%d %H:%M")
-                    if now <= session_time <= now + timedelta(minutes=5):
-                        upcoming.append({
-                            "summary": plan["summary"],
-                            "start_time": session["start_time"],
-                            "date": plan["date"],
-                        })
+                    # Some schedule blocks may be nested under `blocks`
+                    sessions = session.get("blocks", []) if "blocks" in session else [session]
+                    for s in sessions:
+                        session_time = datetime.strptime(f"{plan['date']} {s['start_time']}", "%Y-%m-%d %H:%M")
+                        if now <= session_time <= now + timedelta(minutes=5):
+                            upcoming.append({
+                                "summary": plan["summary"],
+                                "start_time": s["start_time"],
+                                "date": plan["date"],
+                            })
                 except Exception as e:
-                    print("Time parse error:", e)
+                    print("⚠️ Time parse error:", e)
                     continue
+
         return {"upcoming": upcoming}
     except Exception as e:
         raise HTTPException(500, f"Failed to fetch upcoming plans: {e}")
@@ -135,17 +186,13 @@ async def get_upcoming_plans(current_user: User = Depends(get_current_user)):
 # ---------------------------
 @router.post("/tasks/add")
 async def add_task(task: dict, current_user: User = Depends(get_current_user)):
-    """Add a task to the planner."""
+    """Add a new task to the planner."""
     try:
         task["created_at"] = datetime.utcnow().isoformat()
         task["email"] = current_user.email
         task["status"] = "pending"
 
-        tasks_path = os.path.join(SAVE_DIR, "tasks.json")
-        if not os.path.exists(tasks_path):
-            with open(tasks_path, "w") as f:
-                json.dump([], f)
-        with open(tasks_path, "r+", encoding="utf-8") as f:
+        with open(TASKS_FILE, "r+", encoding="utf-8") as f:
             data = json.load(f)
             data.append(task)
             f.seek(0)
@@ -158,17 +205,25 @@ async def add_task(task: dict, current_user: User = Depends(get_current_user)):
 
 @router.post("/tasks/update")
 async def update_task(task_id: str, status: str, current_user: User = Depends(get_current_user)):
-    """Mark a task as completed or update its details."""
+    """Update or mark a task as completed."""
     try:
-        tasks_path = os.path.join(SAVE_DIR, "tasks.json")
-        with open(tasks_path, "r+", encoding="utf-8") as f:
+        if not os.path.exists(TASKS_FILE):
+            raise HTTPException(404, "No task file found.")
+
+        with open(TASKS_FILE, "r+", encoding="utf-8") as f:
             data = json.load(f)
+            updated = False
             for task in data:
                 if task.get("id") == task_id and task.get("email") == current_user.email:
                     task["status"] = status
+                    updated = True
                     break
             f.seek(0)
             json.dump(data, f, indent=2)
+
+        if not updated:
+            raise HTTPException(404, f"Task with id '{task_id}' not found.")
         return {"status": "updated", "task_id": task_id, "new_status": status}
+
     except Exception as e:
         raise HTTPException(500, f"Failed to update task: {e}")
