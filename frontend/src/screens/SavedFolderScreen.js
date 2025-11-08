@@ -22,18 +22,14 @@ export default function SavedFolderScreen() {
   useEffect(() => {
     const fetchAll = async () => {
       const all = {};
-
       for (const mod of modules) {
         try {
           let url = "";
-
           if (mod === "doubts") {
             url = "https://loyal-beauty-production.up.railway.app/doubts/history";
           } else if (mod === "autonote") {
-            // ✅ Correct backend endpoint for autonotes
             url = "https://loyal-beauty-production.up.railway.app/autonote/saved";
           } else {
-            // ✅ Adjust other modules for consistency
             url = `https://loyal-beauty-production.up.railway.app/${mod}/saved`;
           }
 
@@ -44,14 +40,15 @@ export default function SavedFolderScreen() {
             all[mod] = Array.isArray(data) ? data.slice(0, 3) : [];
           } else {
             const entriesData = data?.entries || [];
-            all[mod] = Array.isArray(entriesData) ? entriesData.slice(0, 3) : [];
+            all[mod] = Array.isArray(entriesData)
+              ? entriesData.slice(0, 3)
+              : [];
           }
         } catch (err) {
           console.warn(`⚠️ Failed to fetch ${mod}:`, err);
           all[mod] = [];
         }
       }
-
       setEntries(all);
       setLoading(false);
     };
@@ -60,7 +57,6 @@ export default function SavedFolderScreen() {
       try {
         const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/logs");
         const data = await res.json();
-        console.log("✅ Mood logs fetched:", data.logs);
         setMoodLogs(Array.isArray(data.logs) ? data.logs : []);
       } catch (err) {
         console.warn("⚠️ Failed to fetch mood logs:", err);
@@ -75,27 +71,60 @@ export default function SavedFolderScreen() {
   const getEntries = (mod) => (Array.isArray(entries[mod]) ? entries[mod] : []);
 
   return (
-    <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh", padding: 20 }}>
-      <button
-        onClick={() => navigate(-1)}
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        color: "#EAEAF5",
+        fontFamily: "'Poppins', sans-serif",
+        padding: 20,
+      }}
+    >
+      {/* 🔹 Header */}
+      <div
         style={{
-          color: "#2563eb",
-          background: "none",
-          border: "none",
-          fontSize: 16,
-          cursor: "pointer",
-          marginBottom: 15,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 20,
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 15,
+          padding: "12px 20px",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 2px 20px rgba(0,0,0,0.4)",
         }}
       >
-        ← Back
-      </button>
-
-      <h2 style={{ fontSize: 28, fontWeight: "700", marginBottom: 20 }}>
-        📁 Saved Files
-      </h2>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            color: "#C7C9E0",
+            background: "none",
+            border: "none",
+            fontSize: 16,
+            cursor: "pointer",
+          }}
+        >
+          ← Back
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <img
+            src="/FullLogo.jpg"
+            alt="AURA Logo"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              boxShadow: "0 0 15px rgba(182,202,255,0.3)",
+            }}
+          />
+          <h3 style={{ margin: 0, fontWeight: 700 }}>Saved Files</h3>
+        </div>
+      </div>
 
       {loading ? (
-        <p style={{ color: "#555" }}>Loading saved entries...</p>
+        <p style={{ textAlign: "center", color: "#BFC2D5" }}>
+          Loading saved entries...
+        </p>
       ) : (
         modules.map((mod) => {
           const modEntries = getEntries(mod);
@@ -112,15 +141,17 @@ export default function SavedFolderScreen() {
             <div
               key={mod}
               style={{
-                backgroundColor: "#fff",
-                border: "1px solid #ddd",
-                borderRadius: 12,
+                background: "rgba(255,255,255,0.08)",
+                borderRadius: 15,
                 padding: 15,
-                marginBottom: 15,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+                marginBottom: 20,
+                backdropFilter: "blur(10px)",
+                boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
               }}
             >
-              <h3 style={{ marginBottom: 10, color: "#111" }}>{sectionTitle}</h3>
+              <h3 style={{ marginBottom: 10, color: "#EAEAF5" }}>
+                {sectionTitle}
+              </h3>
 
               {modEntries.length > 0 ? (
                 modEntries.map((e, i) => (
@@ -128,27 +159,30 @@ export default function SavedFolderScreen() {
                     key={i}
                     onClick={() => setSelectedNote({ ...e, module: mod })}
                     style={{
-                      backgroundColor: "#f3f4f6",
-                      borderRadius: 8,
+                      background: "rgba(255,255,255,0.1)",
+                      borderRadius: 10,
                       padding: 10,
-                      marginBottom: 6,
+                      marginBottom: 8,
                       cursor: "pointer",
-                      transition: "background 0.2s",
+                      transition: "transform 0.25s ease, box-shadow 0.25s ease",
                     }}
-                    onMouseEnter={(ev) =>
-                      (ev.currentTarget.style.backgroundColor = "#e5e7eb")
-                    }
-                    onMouseLeave={(ev) =>
-                      (ev.currentTarget.style.backgroundColor = "#f3f4f6")
-                    }
+                    onMouseEnter={(el) => {
+                      el.currentTarget.style.transform = "translateY(-3px)";
+                      el.currentTarget.style.boxShadow =
+                        "0 6px 20px rgba(200,200,255,0.25)";
+                    }}
+                    onMouseLeave={(el) => {
+                      el.currentTarget.style.transform = "translateY(0)";
+                      el.currentTarget.style.boxShadow = "none";
+                    }}
                   >
-                    <p style={{ margin: 0, fontWeight: 600 }}>
+                    <p style={{ margin: 0, fontWeight: 600, color: "#EAEAF5" }}>
                       {e.title || e.topic || "Untitled"}
                     </p>
                     <p
                       style={{
-                        color: "#555",
-                        margin: 0,
+                        color: "#C7C9E0",
+                        margin: "4px 0",
                         fontSize: 14,
                         whiteSpace: "nowrap",
                         overflow: "hidden",
@@ -160,13 +194,13 @@ export default function SavedFolderScreen() {
                         e.summary ||
                         "[No content available]"}
                     </p>
-                    <p style={{ fontSize: 12, color: "#888" }}>
+                    <p style={{ fontSize: 12, color: "#A8B0D0" }}>
                       🕒 {e.timestamp || "N/A"}
                     </p>
                   </div>
                 ))
               ) : (
-                <p style={{ color: "#999", fontSize: 14 }}>
+                <p style={{ color: "#C7C9E0", fontSize: 14 }}>
                   No saved entries yet.
                 </p>
               )}
@@ -175,75 +209,80 @@ export default function SavedFolderScreen() {
         })
       )}
 
-      {/* 🧠 Mood Logs Section */}
+      {/* 🧠 Mood Logs */}
       <div
         style={{
-          backgroundColor: "#fff",
-          border: "1px solid #ddd",
-          borderRadius: 12,
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 15,
           padding: 15,
-          marginBottom: 15,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+          marginBottom: 20,
+          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
+          backdropFilter: "blur(10px)",
         }}
       >
-        <h3 style={{ marginBottom: 10, color: "#111" }}>🧠 Mood Logs</h3>
+        <h3 style={{ marginBottom: 10, color: "#EAEAF5" }}>🧠 Mood Logs</h3>
         {moodLogs.length > 0 ? (
           <ul style={{ listStyle: "none", padding: 0 }}>
-            {moodLogs.map((log, index) => {
+            {moodLogs.map((log, i) => {
               const parts = log.split(" | ");
               const timestamp = parts[0] || "N/A";
               const mood = parts[1] || "🧠 Unknown";
               const note = parts[2] || "[No note]";
               return (
                 <li
-                  key={index}
+                  key={i}
                   style={{
-                    marginBottom: 12,
                     padding: 10,
-                    borderBottom: "1px solid #eee",
+                    borderBottom: "1px solid rgba(255,255,255,0.1)",
+                    color: "#EAEAF5",
                   }}
                 >
                   <p style={{ margin: 0, fontWeight: 600 }}>{mood}</p>
-                  <p style={{ margin: "4px 0", color: "#555" }}>{note}</p>
-                  <p style={{ fontSize: 12, color: "#888" }}>🕒 {timestamp}</p>
+                  <p style={{ margin: "4px 0", color: "#C7C9E0" }}>{note}</p>
+                  <p style={{ fontSize: 12, color: "#A8B0D0" }}>🕒 {timestamp}</p>
                 </li>
               );
             })}
           </ul>
         ) : (
-          <p style={{ color: "#999", fontSize: 14 }}>No mood logs found.</p>
+          <p style={{ color: "#C7C9E0" }}>No mood logs found.</p>
         )}
       </div>
 
-      {/* 🔍 View Full Note Popup */}
+      {/* 🪟 Modal Popup */}
       {selectedNote && (
         <div
           onClick={() => setSelectedNote(null)}
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
+            background: "rgba(0,0,0,0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 999,
+            animation: "fadeIn 0.3s ease",
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#fff",
-              borderRadius: 10,
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 15,
               padding: 20,
               width: "90%",
               maxWidth: 700,
               maxHeight: "80vh",
               overflowY: "auto",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              color: "#EAEAF5",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
+              backdropFilter: "blur(12px)",
+              animation: "slideIn 0.3s ease",
             }}
           >
             <h2>{selectedNote.title || selectedNote.topic || "Untitled"}</h2>
-            <p style={{ color: "#666", fontSize: 13 }}>
+            <p style={{ color: "#C7C9E0", fontSize: 13 }}>
               🕒 {selectedNote.timestamp || "N/A"}
             </p>
 
@@ -253,14 +292,12 @@ export default function SavedFolderScreen() {
                 <p style={{ whiteSpace: "pre-wrap" }}>{selectedNote.response}</p>
               </>
             )}
-
             {selectedNote.summary && (
               <>
                 <h3>📋 Summary</h3>
                 <p style={{ whiteSpace: "pre-wrap" }}>{selectedNote.summary}</p>
               </>
             )}
-
             {selectedNote.content && (
               <>
                 <h3>📝 Content</h3>
@@ -268,61 +305,36 @@ export default function SavedFolderScreen() {
               </>
             )}
 
-            {Array.isArray(selectedNote.schedule) &&
-              selectedNote.schedule.length > 0 && (
-                <>
-                  <h3>🗓️ Daily Schedule</h3>
-                  {selectedNote.schedule.map((day, idx) => (
-                    <div key={idx} style={{ marginBottom: 12 }}>
-                      <h4 style={{ marginBottom: 6, color: "#2563eb" }}>
-                        📅 {day.date}
-                      </h4>
-                      {Array.isArray(day.blocks) && day.blocks.length > 0 ? (
-                        day.blocks.map((block, i) => (
-                          <div
-                            key={i}
-                            style={{
-                              background: "#f3f4f6",
-                              padding: "8px 10px",
-                              borderRadius: 8,
-                              marginBottom: 5,
-                            }}
-                          >
-                            <p style={{ margin: 0, fontWeight: 600 }}>
-                              {block.task}
-                            </p>
-                            <p style={{ margin: "2px 0", fontSize: 13 }}>
-                              ⏰ {block.start_time} - {block.end_time} |{" "}
-                              {block.hours} hrs | Difficulty:{" "}
-                              {block.difficulty}
-                            </p>
-                          </div>
-                        ))
-                      ) : (
-                        <p style={{ color: "#777" }}>
-                          No tasks scheduled for this day.
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </>
-              )}
-
             <button
               onClick={() => setSelectedNote(null)}
               style={{
                 marginTop: 15,
-                backgroundColor: "#2563eb",
+                background: "linear-gradient(135deg, #2563EB, #4F46E5)",
                 color: "#fff",
                 border: "none",
                 padding: "10px 18px",
                 borderRadius: 8,
                 cursor: "pointer",
+                fontWeight: 600,
+                boxShadow: "0 4px 15px rgba(59,130,246,0.3)",
               }}
             >
               Close
             </button>
           </div>
+
+          <style>
+            {`
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes slideIn {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+              }
+            `}
+          </style>
         </div>
       )}
     </div>
