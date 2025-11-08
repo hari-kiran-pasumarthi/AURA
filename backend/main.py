@@ -50,7 +50,7 @@ app.include_router(auth.router)  # ✅ JSON-file-based auth
 app.include_router(autonote.router)
 app.include_router(focus.router)
 app.include_router(planner.router)
-app.include_router(doubts.router, prefix="/doubts", tags=["Silent Study Partner"])
+app.include_router(doubts.router)
 app.include_router(flashcards.router)
 app.include_router(mood.router, prefix="/mood", tags=["StudyMood Logger"])
 app.include_router(distraction.router, prefix="/distraction", tags=["DistractionSniper"])
