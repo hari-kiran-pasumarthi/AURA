@@ -114,10 +114,13 @@ async def login(request: LoginRequest):
 # Get current user (JWT validation)
 # ---------------------------
 async def get_current_user(Authorization: str = Header(None)):
+    print("🔍 Incoming Authorization header:", Authorization)  # 👈 debug
+
     if not Authorization:
         raise HTTPException(status_code=401, detail="Missing token")
 
-    token = Authorization.replace("Bearer ", "")
+    token = Authorization.replace("Bearer ", "").strip()
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
