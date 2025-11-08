@@ -4,12 +4,11 @@ import { useNavigate } from "react-router-dom";
 export default function ChatbotScreen() {
   const navigate = useNavigate();
   const API_BASE = "https://loyal-beauty-production.up.railway.app";
- // ✅ Backend URL
 
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "👋 Hi there! I’m your AI study assistant. How can I help you today?",
+      text: "👋 Hi there! I’m AURA — your adaptive AI study assistant. How can I help you today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -31,19 +30,17 @@ export default function ChatbotScreen() {
       const response = await fetch(`${API_BASE}/chatbot/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: input }), // ✅ matches backend model
+        body: JSON.stringify({ question: input }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
       const data = await response.json();
       const aiResponse =
         data.answer ||
         "🤖 Sorry, I couldn’t come up with an answer this time. Try again!";
 
-      // Add delay for realistic typing
+      // Simulate typing delay
       setTimeout(() => {
         setMessages((prev) => [...prev, { sender: "bot", text: aiResponse }]);
         setIsTyping(false);
@@ -55,15 +52,15 @@ export default function ChatbotScreen() {
         ...prev,
         {
           sender: "bot",
-          text: "⚠️ Could not connect to the AI server. Please check if FastAPI is running.",
+          text: "⚠️ Unable to connect to the AI server. Please try again later.",
         },
       ]);
-      setLoading(false);
       setIsTyping(false);
+      setLoading(false);
     }
   };
 
-  // Auto-scroll to bottom
+  // Auto-scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -76,48 +73,59 @@ export default function ChatbotScreen() {
         display: "flex",
         flexDirection: "column",
         height: "100vh",
-        backgroundColor: "#f9fafb",
-        fontFamily: "system-ui",
+        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        color: "#EAEAF5",
+        fontFamily: "'Poppins', sans-serif",
       }}
     >
-      {/* 🔹 Header */}
+      {/* 🔹 Header with Logo */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
-          padding: "15px 20px",
-          backgroundColor: "#2563eb",
+          padding: "12px 20px",
+          background: "rgba(255, 255, 255, 0.08)",
+          backdropFilter: "blur(10px)",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          boxShadow: "0 2px 20px rgba(0,0,0,0.4)",
         }}
       >
         <button
           onClick={() => navigate(-1)}
           style={{
-            color: "white",
+            color: "#C7C9E0",
             background: "none",
             border: "none",
             fontSize: 16,
             cursor: "pointer",
+            marginRight: 15,
           }}
         >
           ← Back
         </button>
-        <h2 style={{ color: "white", margin: 0, fontWeight: "700" }}>
-          AI Chatbot
-        </h2>
-        <div style={{ width: 40 }}></div>
+        <img
+          src="/FullLogo.jpg"
+          alt="AURA Logo"
+          style={{
+            width: 45,
+            height: 45,
+            borderRadius: "10px",
+            marginRight: 12,
+            boxShadow: "0 0 15px rgba(182,202,255,0.3)",
+          }}
+        />
+        <h2 style={{ margin: 0, fontWeight: "700", color: "#EAEAF5" }}>AURA Chatbot</h2>
       </div>
 
-      {/* 💬 Chat Window */}
+      {/* 💬 Chat Area */}
       <div
         ref={scrollRef}
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: 15,
+          padding: 20,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-start",
         }}
       >
         {messages.map((msg, idx) => (
@@ -125,16 +133,27 @@ export default function ChatbotScreen() {
             key={idx}
             style={{
               alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
-              backgroundColor:
-                msg.sender === "user" ? "#2563eb" : "#e5e7eb",
-              color: msg.sender === "user" ? "#fff" : "#111",
-              borderRadius: 15,
-              padding: "12px 15px",
-              marginBottom: 10,
-              maxWidth: "80%",
-              boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+              background:
+                msg.sender === "user"
+                  ? "linear-gradient(135deg, #2563EB, #4F46E5)"
+                  : "rgba(255,255,255,0.08)",
+              color: msg.sender === "user" ? "#fff" : "#EAEAF5",
+              border: msg.sender === "bot" ? "1px solid rgba(255,255,255,0.1)" : "none",
+              borderRadius:
+                msg.sender === "user"
+                  ? "18px 18px 4px 18px"
+                  : "18px 18px 18px 4px",
+              padding: "12px 16px",
+              marginBottom: 12,
+              maxWidth: "75%",
+              boxShadow:
+                msg.sender === "user"
+                  ? "0 4px 20px rgba(59,130,246,0.4)"
+                  : "0 4px 20px rgba(0,0,0,0.3)",
               fontSize: 16,
               lineHeight: 1.5,
+              backdropFilter: "blur(5px)",
+              animation: "fadeIn 0.5s ease",
             }}
           >
             {msg.text}
@@ -145,12 +164,13 @@ export default function ChatbotScreen() {
           <div
             style={{
               alignSelf: "flex-start",
-              backgroundColor: "#e5e7eb",
-              borderRadius: 15,
-              padding: 10,
-              color: "#555",
+              background: "rgba(255,255,255,0.08)",
+              color: "#C7C9E0",
+              borderRadius: "18px 18px 18px 4px",
+              padding: "10px 14px",
               fontSize: 15,
               fontStyle: "italic",
+              animation: "pulse 1.5s infinite",
             }}
           >
             🤖 Typing...
@@ -158,28 +178,30 @@ export default function ChatbotScreen() {
         )}
       </div>
 
-      {/* 🧠 Input Area */}
+      {/* 🧠 Input Box */}
       <div
         style={{
           display: "flex",
-          borderTop: "1px solid #ddd",
-          backgroundColor: "#fff",
-          padding: 10,
+          padding: 15,
+          borderTop: "1px solid rgba(255,255,255,0.1)",
+          background: "rgba(255, 255, 255, 0.05)",
+          backdropFilter: "blur(10px)",
           alignItems: "center",
         }}
       >
         <input
           type="text"
-          placeholder="Ask me anything..."
+          placeholder="Ask AURA anything..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           style={{
             flex: 1,
-            backgroundColor: "#f3f4f6",
-            border: "none",
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "#EAEAF5",
             borderRadius: 20,
-            padding: "10px 15px",
+            padding: "12px 15px",
             fontSize: 16,
             outline: "none",
           }}
@@ -188,19 +210,41 @@ export default function ChatbotScreen() {
           onClick={sendMessage}
           disabled={loading}
           style={{
-            backgroundColor: loading ? "#93c5fd" : "#2563eb",
+            background: loading
+              ? "rgba(147,197,253,0.3)"
+              : "linear-gradient(135deg, #2563EB, #4F46E5)",
             color: "white",
             border: "none",
             borderRadius: 20,
-            padding: "10px 20px",
+            padding: "10px 22px",
             marginLeft: 10,
-            fontWeight: "600",
+            fontWeight: 600,
             cursor: loading ? "not-allowed" : "pointer",
+            transition: "transform 0.25s ease",
           }}
+          onMouseEnter={(e) => {
+            if (!loading) e.currentTarget.style.transform = "scale(1.05)";
+          }}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
           {loading ? "..." : "Send"}
         </button>
       </div>
+
+      {/* ✨ Animations */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+
+          @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+          }
+        `}
+      </style>
     </div>
   );
 }
