@@ -1,20 +1,15 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, status
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy import Column, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from jose import jwt, JWTError
-from passlib.context import CryptContext
 import os, json
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # ------------------------------------
 # Import routers for all your features
 # ------------------------------------
 from backend.routers import (
+    auth,            # ✅ JSON-based Auth router
     autonote,
     focus,
     planner,
@@ -38,116 +33,20 @@ app = FastAPI(title="The AURA", version="1.1.0")
 # ---------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://aura-three-phi.vercel.app", "http://localhost:8081"],
+    allow_origins=[
+        "https://aura-three-phi.vercel.app",  # your production frontend
+        "http://localhost:8081",              # local frontend
+        "http://localhost:3000",              # extra dev option
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ---------------------------
-# Database Setup (SQLite)
+# Include Routers (AI + Auth modules)
 # ---------------------------
-SQLALCHEMY_DATABASE_URL = "sqlite:///./aura_users.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-# ---------------------------
-# User Model
-# ---------------------------
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    name = Column(String, nullable=True)
-
-Base.metadata.create_all(bind=engine)
-
-# ---------------------------
-# Auth Configuration
-# ---------------------------
-SECRET_KEY = "YOUR_SUPER_SECRET_KEY_CHANGE_THIS"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-
-    user = db.query(User).filter(User.email == email).first()
-    if user is None:
-        raise credentials_exception
-    return user
-
-# ---------------------------
-# AUTH ROUTES
-# ---------------------------
-@app.post("/auth/register")
-def register_user(email: str, password: str, name: str = "", db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    hashed_pw = get_password_hash(password)
-    new_user = User(email=email, hashed_password=hashed_pw, name=name)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return {"message": "User registered successfully", "email": new_user.email}
-
-@app.post("/auth/login")
-def login_user(email: str, password: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == email).first()
-    if not user or not verify_password(password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_access_token({"sub": user.email})
-    return {"access_token": token, "token_type": "bearer"}
-
-@app.get("/auth/me")
-def get_profile(current_user: User = Depends(get_current_user)):
-    return {"email": current_user.email, "name": current_user.name}
-
-@app.post("/auth/update-profile")
-def update_profile(name: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    current_user.name = name
-    db.commit()
-    return {"message": "Profile updated", "name": name}
-
-# ---------------------------
-# Include Routers (AI modules)
-# ---------------------------
+app.include_router(auth.router)  # ✅ JSON-file-based auth
 app.include_router(autonote.router)
 app.include_router(focus.router)
 app.include_router(planner.router)
@@ -170,13 +69,13 @@ def root():
         "service": "Smart Study Assistant API",
         "version": "1.1.0",
         "features": [
-            "Email Authentication",
+            "JSON-based Email Authentication",
             "Focus Tracker",
-            "AutoNote",
+            "AutoNote Summarizer",
             "Planner",
             "Chatbot",
-            "Dashboard"
-        ]
+            "Dashboard",
+        ],
     }
 
 # ---------------------------
@@ -214,7 +113,7 @@ async def universal_saved_notes(module_name: str):
         return JSONResponse({"error": str(e), "entries": []}, status_code=500)
 
 # ---------------------------
-# Dashboard
+# Dashboard (for quick viewing)
 # ---------------------------
 @app.get("/dashboard", response_class=HTMLResponse)
 async def unified_dashboard():
