@@ -14,6 +14,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 USER_FILE = os.path.join(os.path.dirname(__file__), "..", "users.json")
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+# ✅ Stable bcrypt + passlib context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Initialize user file
@@ -29,18 +31,23 @@ class UserCreate(BaseModel):
     password: str
     name: str
 
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+
 # ---------------------------
 # Helper functions
 # ---------------------------
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def get_password_hash(password: str):
+    # ✅ bcrypt supports only 72 bytes; truncate to prevent errors
+    return pwd_context.hash(password[:72])
 
-def verify_password(plain, hashed):
-    return pwd_context.verify(plain, hashed)
+
+def verify_password(plain: str, hashed: str):
+    return pwd_context.verify(plain[:72], hashed)
+
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -48,13 +55,17 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+
 def find_user(email: str):
+    if not os.path.exists(USER_FILE):
+        return None
     with open(USER_FILE, "r") as f:
         users = json.load(f)
     for u in users:
         if u["email"].lower() == email.lower():
             return u
     return None
+
 
 # ---------------------------
 # Signup endpoint
@@ -72,8 +83,12 @@ async def signup(user: UserCreate):
         "created_at": datetime.utcnow().isoformat(),
     }
 
+    # Save to JSON
     with open(USER_FILE, "r+") as f:
-        users = json.load(f)
+        try:
+            users = json.load(f)
+        except json.JSONDecodeError:
+            users = []
         users.append(new_user)
         f.seek(0)
         json.dump(users, f, indent=2)
@@ -81,8 +96,9 @@ async def signup(user: UserCreate):
     token = create_access_token({"sub": user.email})
     return {"access_token": token, "token_type": "bearer", "user": user.email}
 
+
 # ---------------------------
-# Login endpoint (JSON version)
+# Login endpoint
 # ---------------------------
 @router.post("/login")
 async def login(request: LoginRequest):
@@ -93,8 +109,9 @@ async def login(request: LoginRequest):
     token = create_access_token({"sub": user["email"]})
     return {"access_token": token, "token_type": "bearer", "user": user["email"]}
 
+
 # ---------------------------
-# Get current user (JWT)
+# Get current user (JWT validation)
 # ---------------------------
 async def get_current_user(Authorization: str = Header(None)):
     if not Authorization:
