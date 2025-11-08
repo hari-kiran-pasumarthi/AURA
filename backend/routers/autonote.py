@@ -1,12 +1,10 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import FileResponse
 from backend.routers.auth import get_current_user
-from backend.models.user import User
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
 from groq import Groq
-import os, json, tempfile, whisper, fitz, pytesseract, re, asyncio
-from PIL import Image
+import os, json, tempfile, whisper, fitz, asyncio
 from datetime import datetime
 
 router = APIRouter(prefix="/autonote", tags=["AutoNote"])
@@ -22,7 +20,7 @@ client = Groq(api_key=GROQ_API_KEY)
 MODEL_NAME = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 
 # ---------------------------
-# File storage setup (Shared with frontend)
+# File storage setup
 # ---------------------------
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SAVE_DIR = os.path.join(PROJECT_ROOT, "saved_files", "autonote_notes")
@@ -37,7 +35,6 @@ if not os.path.exists(SAVE_FILE):
 # Email notifier
 # ---------------------------
 async def send_summary_email(user_email: str, title: str, summary: str):
-    """Send an async email to the user when summarization completes."""
     fm = FastMail(conf)
     subject = f"AURA | Your AutoNote '{title}' has been summarized!"
     body = f"""
@@ -53,7 +50,7 @@ async def send_summary_email(user_email: str, title: str, summary: str):
         subject=subject,
         recipients=[user_email],
         body=body,
-        subtype="html"
+        subtype="html",
     )
     await fm.send_message(message)
 
@@ -66,15 +63,13 @@ def flatten_list(items):
     return []
 
 def save_autonote_to_server(title, transcript, summary, highlights, bullets, user_email):
-    """Save summary & metadata to JSON + text file."""
     try:
-        preview = summary or (transcript[:200] + "...") if transcript else "[No content]"
         entry = {
             "id": datetime.utcnow().strftime("%Y%m%d%H%M%S"),
             "email": user_email,
             "title": title,
             "summary": summary,
-            "content": preview,
+            "content": summary or (transcript[:200] + "..."),
             "transcript": transcript,
             "highlights": highlights,
             "keywords": highlights,
@@ -82,27 +77,14 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets, use
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-        # Save JSON metadata
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data = json.load(f)
             data.append(entry)
             f.seek(0)
             json.dump(data, f, indent=2, ensure_ascii=False)
 
-        # Save note as .txt file
-        txt_filename = f"{entry['id']}_{user_email.replace('@', '_')}.txt"
-        txt_path = os.path.join(SAVE_DIR, txt_filename)
-        with open(txt_path, "w", encoding="utf-8") as f:
-            f.write(f"🧠 AutoNote Entry\nUser: {user_email}\nTitle: {title}\nTimestamp: {entry['timestamp']}\n\n")
-            f.write("=== Summary ===\n" + (summary or "") + "\n\n")
-            f.write("=== Highlights ===\n" + "\n".join(highlights or []) + "\n\n")
-            f.write("=== Bullets ===\n" + "\n".join(bullets or []) + "\n\n")
-            f.write("=== Transcript ===\n" + (transcript or ""))
-
-        # Send notification asynchronously
         asyncio.create_task(send_summary_email(user_email, title, summary))
-
-        print(f"✅ AutoNote saved successfully for {user_email}")
+        print(f"✅ AutoNote saved for {user_email}")
 
     except Exception as e:
         print(f"⚠️ Failed to save AutoNote: {e}")
@@ -111,7 +93,7 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets, use
 # Summarization (Groq)
 # ---------------------------
 def summarize_content(text: str, user_email: str):
-    if not text or not text.strip():
+    if not text.strip():
         raise HTTPException(400, "Input text is empty.")
 
     prompt = f"""
@@ -134,10 +116,7 @@ Text:
             messages=[{"role": "user", "content": prompt}],
             temperature=0.0,
         )
-
         ai_output = response.choices[0].message.content.strip()
-
-        # Extract valid JSON
         start, end = ai_output.find("{"), ai_output.rfind("}")
         if start != -1 and end != -1:
             parsed = json.loads(ai_output[start:end+1])
@@ -146,7 +125,6 @@ Text:
             bullets = flatten_list(parsed.get("bullets", []))
             save_autonote_to_server("AutoNote Summary", text, summary, highlights, bullets, user_email)
             return {"summary": summary, "highlights": highlights, "bullets": bullets}
-
         raise ValueError("Invalid JSON output")
 
     except Exception as e:
@@ -155,18 +133,16 @@ Text:
 # ---------------------------
 # Endpoints
 # ---------------------------
-
 @router.post("/transcribe")
-async def summarize_text(req: dict, current_user: User = Depends(get_current_user)):
-    """Summarize plain text."""
+async def summarize_text(req: dict, current_user: dict = Depends(get_current_user)):
     text = req.get("text", "")
-    result = summarize_content(text, current_user.email)
+    print("🔍 Current user:", current_user)
+    result = summarize_content(text, current_user["email"])
     return result
 
 
 @router.post("/audio")
-async def summarize_audio(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
-    """Transcribe & summarize audio."""
+async def summarize_audio(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
         temp_audio.write(await file.read())
         temp_audio_path = temp_audio.name
@@ -176,13 +152,12 @@ async def summarize_audio(file: UploadFile = File(...), current_user: User = Dep
     os.remove(temp_audio_path)
 
     transcript = result.get("text", "")
-    summary_data = summarize_content(transcript, current_user.email)
+    summary_data = summarize_content(transcript, current_user["email"])
     return {"transcript": transcript, **summary_data}
 
 
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
-    """Extract and summarize uploaded text or PDF file."""
+async def upload_file(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     try:
         filename = file.filename.lower()
         if filename.endswith(".txt"):
@@ -200,34 +175,32 @@ async def upload_file(file: UploadFile = File(...), current_user: User = Depends
             raise HTTPException(400, "Unsupported file type. Upload .txt or .pdf only.")
         if not content.strip():
             raise HTTPException(400, "File is empty or unreadable.")
-        return summarize_content(content, current_user.email)
+        return summarize_content(content, current_user["email"])
     except Exception as e:
         raise HTTPException(500, f"File upload failed: {e}")
 
 
 @router.post("/save")
-async def manual_save(note: dict, current_user: User = Depends(get_current_user)):
-    """Save manual AutoNote from frontend."""
+async def manual_save(note: dict, current_user: dict = Depends(get_current_user)):
     note["id"] = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     note["timestamp"] = datetime.utcnow().isoformat()
-    note["email"] = current_user.email
+    note["email"] = current_user["email"]
     note["keywords"] = note.get("highlights", [])
     with open(SAVE_FILE, "r+", encoding="utf-8") as f:
         data = json.load(f)
         data.append(note)
         f.seek(0)
         json.dump(data, f, indent=2, ensure_ascii=False)
-    asyncio.create_task(send_summary_email(current_user.email, note.get("title", "Manual Note"), note.get("summary", "")))
-    return {"message": "Note saved successfully!", "id": note["id"], "email": current_user.email}
+    asyncio.create_task(send_summary_email(current_user["email"], note.get("title", "Manual Note"), note.get("summary", "")))
+    return {"message": "Note saved successfully!", "id": note["id"], "email": current_user["email"]}
 
 
 @router.get("/saved")
-async def get_saved_autonotes(current_user: User = Depends(get_current_user)):
-    """Return all saved autonotes for the current user."""
+async def get_saved_autonotes(current_user: dict = Depends(get_current_user)):
     if not os.path.exists(SAVE_FILE):
         return {"entries": []}
     with open(SAVE_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
-    user_notes = [n for n in data if n.get("email") == current_user.email]
+    user_notes = [n for n in data if n.get("email") == current_user["email"]]
     user_notes.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return {"entries": user_notes}
