@@ -4,7 +4,12 @@ import { useNavigate } from "react-router-dom";
 export default function DoubtsScreen() {
   const navigate = useNavigate();
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    {
+      sender: "bot",
+      text: "💭 Hi, I’m AURA Doubt Solver. Ask me any concept you’re confused about — I’ll clarify it for you!",
+    },
+  ]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const scrollRef = useRef(null);
@@ -65,7 +70,7 @@ ${explanation.join("\n\n")}
     }
   };
 
-  // 💾 Save reply to backend
+  // 💾 Save AI reply
   const handleSave = async (msg) => {
     if (!msg || msg.sender !== "bot") return;
     setSaving(true);
@@ -83,7 +88,7 @@ ${explanation.join("\n\n")}
       });
 
       if (!res.ok) throw new Error("Save failed");
-      alert("💾 Saved successfully!");
+      alert("✅ Clarification saved successfully!");
     } catch (e) {
       console.error("⚠️ Save failed:", e);
       alert("⚠️ Failed to save reply. Check backend connection.");
@@ -92,7 +97,7 @@ ${explanation.join("\n\n")}
     }
   };
 
-  // Auto-scroll
+  // Auto scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -104,137 +109,152 @@ ${explanation.join("\n\n")}
       style={{
         display: "flex",
         flexDirection: "column",
-        height: "100vh",
-        backgroundColor: "#f9fafb",
+        minHeight: "100vh",
+        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        color: "#EAEAF5",
+        fontFamily: "'Poppins', sans-serif",
       }}
     >
-      {/* 🔙 Back Button */}
-      <button
-        onClick={() => navigate(-1)}
+      {/* 🔹 Header */}
+      <div
         style={{
-          color: "#2563eb",
-          background: "none",
-          border: "none",
-          fontSize: 16,
-          textAlign: "left",
-          padding: 15,
-          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          padding: "12px 20px",
+          background: "rgba(255, 255, 255, 0.08)",
+          backdropFilter: "blur(10px)",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          boxShadow: "0 2px 20px rgba(0,0,0,0.4)",
         }}
       >
-        ← Back
-      </button>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            color: "#C7C9E0",
+            background: "none",
+            border: "none",
+            fontSize: 16,
+            cursor: "pointer",
+            marginRight: 15,
+          }}
+        >
+          ← Back
+        </button>
+        <img
+          src="/FullLogo.jpg"
+          alt="AURA Logo"
+          style={{
+            width: 45,
+            height: 45,
+            borderRadius: 10,
+            marginRight: 12,
+            boxShadow: "0 0 15px rgba(182,202,255,0.3)",
+          }}
+        />
+        <h2 style={{ margin: 0, fontWeight: 700 }}>Doubt Solver</h2>
+      </div>
 
-      {/* Header */}
-      <h2
-        style={{
-          fontSize: 28,
-          fontWeight: "700",
-          textAlign: "center",
-          marginBottom: 10,
-        }}
-      >
-        💭 Doubt Solver
-      </h2>
-
-      <p
-        style={{
-          textAlign: "center",
-          color: "#555",
-          marginBottom: 10,
-          padding: "0 20px",
-        }}
-      >
-        Ask any academic question. The AI will detect confusion and clarify it simply.
-      </p>
-
-      {/* 💬 Chat Area */}
+      {/* 💬 Chat Window */}
       <div
         ref={scrollRef}
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "15px",
+          padding: 20,
           display: "flex",
           flexDirection: "column",
-          justifyContent: messages.length ? "flex-start" : "center",
+          scrollBehavior: "smooth",
         }}
       >
-        {messages.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#888", fontSize: 16 }}>
-            Ask your first doubt below 👇
-          </p>
-        ) : (
-          messages.map((msg, index) => (
-            <div
-              key={index}
-              style={{
-                alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
-                backgroundColor:
-                  msg.sender === "user" ? "#2563eb" : "#e5e7eb",
-                borderRadius: 15,
-                padding: 12,
-                marginBottom: 10,
-                maxWidth: "80%",
-                boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
-                position: "relative",
-              }}
-            >
-              <p
-                style={{
-                  color: msg.sender === "user" ? "#fff" : "#111",
-                  fontSize: 16,
-                  margin: 0,
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {msg.text}
-              </p>
+        {messages.map((msg, idx) => (
+          <div
+            key={idx}
+            style={{
+              alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
+              background:
+                msg.sender === "user"
+                  ? "linear-gradient(135deg, #2563EB, #4F46E5)"
+                  : "rgba(255,255,255,0.08)",
+              color: msg.sender === "user" ? "#fff" : "#EAEAF5",
+              borderRadius:
+                msg.sender === "user"
+                  ? "18px 18px 4px 18px"
+                  : "18px 18px 18px 4px",
+              padding: "12px 16px",
+              marginBottom: 12,
+              maxWidth: "80%",
+              boxShadow:
+                msg.sender === "user"
+                  ? "0 4px 20px rgba(59,130,246,0.4)"
+                  : "0 4px 20px rgba(0,0,0,0.3)",
+              fontSize: 16,
+              lineHeight: 1.5,
+              backdropFilter: "blur(5px)",
+              animation: "fadeIn 0.4s ease",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {msg.text}
 
-              {/* 💾 Save Button */}
-              {msg.sender === "bot" && (
-                <button
-                  onClick={() => handleSave(msg)}
-                  disabled={saving}
-                  style={{
-                    marginTop: 8,
-                    fontSize: 13,
-                    backgroundColor: "#2563eb",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 8,
-                    padding: "5px 10px",
-                    cursor: "pointer",
-                    alignSelf: "flex-end",
-                  }}
-                >
-                  {saving ? "Saving..." : "💾 Save"}
-                </button>
-              )}
-            </div>
-          ))
-        )}
+            {/* 💾 Save Button for AI Replies */}
+            {msg.sender === "bot" && (
+              <button
+                onClick={() => handleSave(msg)}
+                disabled={saving}
+                style={{
+                  marginTop: 10,
+                  background: saving
+                    ? "rgba(37,99,235,0.5)"
+                    : "linear-gradient(135deg, #2563EB, #4F46E5)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "6px 10px",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: saving ? "not-allowed" : "pointer",
+                  transition: "transform 0.25s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (!saving) e.currentTarget.style.transform = "scale(1.05)";
+                }}
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
+              >
+                {saving ? "Saving..." : "💾 Save"}
+              </button>
+            )}
+          </div>
+        ))}
 
         {loading && (
           <div
             style={{
-              textAlign: "center",
-              color: "#2563eb",
+              alignSelf: "flex-start",
+              background: "rgba(255,255,255,0.08)",
+              borderRadius: "18px 18px 18px 4px",
+              padding: "10px 14px",
+              color: "#C7C9E0",
+              fontSize: 15,
               fontStyle: "italic",
-              marginTop: 10,
+              animation: "pulse 1.5s infinite",
             }}
           >
-            ⏳ Analyzing your doubt...
+            🤖 Analyzing your doubt...
           </div>
         )}
       </div>
 
-      {/* ✍️ Input Box */}
+      {/* ✍️ Input Section */}
       <div
         style={{
           display: "flex",
-          padding: "10px",
-          borderTop: "1px solid #ddd",
-          backgroundColor: "#fff",
+          padding: 15,
+          borderTop: "1px solid rgba(255,255,255,0.1)",
+          background: "rgba(255,255,255,0.05)",
+          backdropFilter: "blur(10px)",
+          alignItems: "center",
         }}
       >
         <input
@@ -245,10 +265,11 @@ ${explanation.join("\n\n")}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           style={{
             flex: 1,
-            backgroundColor: "#f3f4f6",
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "#EAEAF5",
             borderRadius: 20,
-            border: "none",
-            padding: "10px 15px",
+            padding: "12px 15px",
             fontSize: 16,
             outline: "none",
           }}
@@ -257,19 +278,42 @@ ${explanation.join("\n\n")}
           onClick={sendMessage}
           disabled={loading}
           style={{
-            backgroundColor: loading ? "#93c5fd" : "#2563eb",
+            background: loading
+              ? "rgba(147,197,253,0.3)"
+              : "linear-gradient(135deg, #2563EB, #4F46E5)",
             color: "white",
             border: "none",
             borderRadius: 20,
-            padding: "10px 20px",
+            padding: "10px 22px",
             marginLeft: 10,
-            fontWeight: "600",
+            fontWeight: 600,
             cursor: loading ? "not-allowed" : "pointer",
+            transition: "transform 0.25s ease",
           }}
+          onMouseEnter={(e) => {
+            if (!loading) e.currentTarget.style.transform = "scale(1.05)";
+          }}
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.transform = "scale(1)")
+          }
         >
           {loading ? "..." : "Send"}
         </button>
       </div>
+
+      {/* ✨ Animations */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+          }
+        `}
+      </style>
     </div>
   );
 }
