@@ -11,7 +11,7 @@ pydantic
 requests
 python-dotenv
 aiohttp
-
+pypdf
 # Database + ORM + Auth
 sqlalchemy
 alembic
