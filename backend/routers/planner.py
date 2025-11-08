@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from backend.models.schemas import PlannerRequest, PlannerResponse
 from backend.services import planner
 from backend.services.smart_calendar import save_to_calendar, list_calendar
-from backend.auth import get_current_user
+from backend.routers.auth import get_current_user
 from backend.models.user import User
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
