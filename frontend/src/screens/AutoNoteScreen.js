@@ -14,18 +14,17 @@ export default function AutoNoteScreen() {
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
 
-  // 🧠 Utility: Get headers with Bearer token
-  const getAuthHeaders = () => {
+  // 🧩 Auth helper
+  const getAuthHeaders = (isJSON = true) => {
     const token = localStorage.getItem("token");
     if (!token) {
       alert("⚠️ Please log in first!");
       window.location.href = "/login";
       return {};
     }
-    return {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
+    return isJSON
+      ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+      : { Authorization: `Bearer ${token}` };
   };
 
   // 🎙️ Start Recording
@@ -63,16 +62,12 @@ export default function AutoNoteScreen() {
     try {
       const res = await fetch(`${API_BASE}/autonote/transcribe`, {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers: getAuthHeaders(true),
         body: JSON.stringify({ text: note }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to summarize");
-      setSummary(
-        `📋 Summary:\n${data.summary}\n\n⭐ Highlights:\n${data.highlights.join(
-          ", "
-        )}\n\n🔹 Bullets:\n${data.bullets.join("\n")}`
-      );
+      if (!res.ok) throw new Error(data.detail || "Summarization failed");
+      setSummary(formatSummary(data));
     } catch (err) {
       alert(`⚠️ ${err.message}`);
     } finally {
@@ -83,24 +78,18 @@ export default function AutoNoteScreen() {
   // 🎧 Summarize Audio
   const summarizeAudio = async () => {
     if (!audioBlob) return alert("Record audio first!");
-    const token = localStorage.getItem("token");
-    if (!token) return alert("⚠️ Please log in first!");
     const formData = new FormData();
     formData.append("file", audioBlob, "lecture.webm");
 
     try {
       const res = await fetch(`${API_BASE}/autonote/audio`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: getAuthHeaders(false),
         body: formData,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to summarize audio");
-      setSummary(
-        `📋 Summary:\n${data.summary}\n\n⭐ Highlights:\n${data.highlights.join(
-          ", "
-        )}\n\n🔹 Bullets:\n${data.bullets.join("\n")}`
-      );
+      if (!res.ok) throw new Error(data.detail || "Audio summarization failed");
+      setSummary(formatSummary(data));
     } catch (err) {
       alert(`⚠️ ${err.message}`);
     }
@@ -109,24 +98,19 @@ export default function AutoNoteScreen() {
   // 📄 Summarize File
   const summarizeFile = async () => {
     if (!file) return alert("Select a file first!");
-    const token = localStorage.getItem("token");
-    if (!token) return alert("⚠️ Please log in first!");
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
+
     try {
       const res = await fetch(`${API_BASE}/autonote/upload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: getAuthHeaders(false),
         body: formData,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to summarize file");
-      setSummary(
-        `📋 Summary:\n${data.summary}\n\n⭐ Highlights:\n${data.highlights.join(
-          ", "
-        )}\n\n🔹 Bullets:\n${data.bullets.join("\n")}`
-      );
+      if (!res.ok) throw new Error(data.detail || "File summarization failed");
+      setSummary(formatSummary(data));
     } catch (err) {
       alert(`⚠️ ${err.message}`);
     } finally {
@@ -134,7 +118,7 @@ export default function AutoNoteScreen() {
     }
   };
 
-  // 💾 Save
+  // 💾 Save Note
   const saveNote = async () => {
     if (!summary.trim()) return alert("Nothing to save!");
     const title = prompt("Enter note title:", "New AutoNote");
@@ -142,7 +126,7 @@ export default function AutoNoteScreen() {
     try {
       const res = await fetch(`${API_BASE}/autonote/save`, {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers: getAuthHeaders(true),
         body: JSON.stringify({ title, summary }),
       });
       if (!res.ok) throw new Error("Save failed");
@@ -151,6 +135,13 @@ export default function AutoNoteScreen() {
     } catch (err) {
       alert(`⚠️ ${err.message}`);
     }
+  };
+
+  // 🧾 Helper to format summaries
+  const formatSummary = (data) => {
+    const highlights = data.highlights?.join(", ") || "No highlights found.";
+    const bullets = data.bullets?.join("\n") || "No key points.";
+    return `📋 Summary:\n${data.summary}\n\n⭐ Highlights:\n${highlights}\n\n🔹 Bullets:\n${bullets}`;
   };
 
   return (
@@ -164,6 +155,7 @@ export default function AutoNoteScreen() {
         overflowX: "hidden",
       }}
     >
+      {/* 🌌 Header */}
       <div style={{ textAlign: "center", marginBottom: 40 }}>
         <img
           src="/FullLogo.jpg"
@@ -176,11 +168,11 @@ export default function AutoNoteScreen() {
         />
         <h2 style={{ marginTop: 20 }}>🧠 AURA AutoNotes</h2>
         <p style={{ color: "#C7C9E0" }}>
-          Convert your study materials into smart summaries ✨
+          Convert your lectures and notes into smart summaries ✨
         </p>
       </div>
 
-      {/* 📝 Text Section */}
+      {/* 📝 Text Summarization */}
       <div
         style={{
           background: "rgba(255,255,255,0.08)",
@@ -226,9 +218,77 @@ export default function AutoNoteScreen() {
         </button>
       </div>
 
-      {/* 🎧 Audio & File Section (unchanged style) */}
-      {/* ... same as before, no visual change ... */}
+      {/* 🎧 Audio Summarizer */}
+      <div
+        style={{
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 20,
+          padding: 20,
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
+          marginBottom: 30,
+        }}
+      >
+        <h3>🎧 Audio Summarizer</h3>
+        <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+          <button
+            onClick={startRecording}
+            style={btnStyle("#2563EB")}
+          >
+            🎙️ Start Recording
+          </button>
+          <button
+            onClick={stopRecording}
+            style={btnStyle("#DC2626")}
+          >
+            🛑 Stop
+          </button>
+          <button
+            onClick={summarizeAudio}
+            disabled={!audioBlob}
+            style={btnStyle("#22C55E")}
+          >
+            ✨ Summarize Audio
+          </button>
+        </div>
+      </div>
 
+      {/* 📄 File Summarizer */}
+      <div
+        style={{
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 20,
+          padding: 20,
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
+        }}
+      >
+        <h3>📄 Summarize File (PDF / TXT)</h3>
+        <input
+          type="file"
+          accept=".pdf,.txt"
+          onChange={(e) => setFile(e.target.files[0])}
+          style={{ marginTop: 10, color: "#EAEAF5" }}
+        />
+        <button
+          onClick={summarizeFile}
+          disabled={!file || uploading}
+          style={{
+            marginTop: 15,
+            padding: "10px 16px",
+            borderRadius: 10,
+            border: "none",
+            background: "#16A34A",
+            color: "#fff",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          {uploading ? "⏳ Processing..." : "✨ Summarize File"}
+        </button>
+      </div>
+
+      {/* 📘 Summary Output */}
       {summary && (
         <div
           style={{
@@ -263,3 +323,14 @@ export default function AutoNoteScreen() {
     </div>
   );
 }
+
+// 🔧 Shared button style helper
+const btnStyle = (color) => ({
+  background: color,
+  color: "#fff",
+  border: "none",
+  borderRadius: 10,
+  padding: "10px 16px",
+  fontWeight: 600,
+  cursor: "pointer",
+});
