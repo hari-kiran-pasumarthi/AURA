@@ -1,9 +1,15 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+from jose import jwt, JWTError
+from passlib.context import CryptContext
 import os, json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # ------------------------------------
 # Import routers for all your features
@@ -25,21 +31,122 @@ from backend.routers import (
 # ------------------
 # Initialize FastAPI
 # ------------------
-app = FastAPI(title="The AURA", version="1.0.0")
+app = FastAPI(title="The AURA", version="1.1.0")
 
 # ---------------------------
 # CORS Configuration
 # ---------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://aura-three-phi.vercel.app"],  # ✅ Vercel frontend
+    allow_origins=["https://aura-three-phi.vercel.app", "http://localhost:8081"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ---------------------------
-# Include Routers
+# Database Setup (SQLite)
+# ---------------------------
+SQLALCHEMY_DATABASE_URL = "sqlite:///./aura_users.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+# ---------------------------
+# User Model
+# ---------------------------
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    name = Column(String, nullable=True)
+
+Base.metadata.create_all(bind=engine)
+
+# ---------------------------
+# Auth Configuration
+# ---------------------------
+SECRET_KEY = "YOUR_SUPER_SECRET_KEY_CHANGE_THIS"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        raise credentials_exception
+    return user
+
+# ---------------------------
+# AUTH ROUTES
+# ---------------------------
+@app.post("/auth/register")
+def register_user(email: str, password: str, name: str = "", db: Session = Depends(get_db)):
+    if db.query(User).filter(User.email == email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed_pw = get_password_hash(password)
+    new_user = User(email=email, hashed_password=hashed_pw, name=name)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "User registered successfully", "email": new_user.email}
+
+@app.post("/auth/login")
+def login_user(email: str, password: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    if not user or not verify_password(password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token({"sub": user.email})
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.get("/auth/me")
+def get_profile(current_user: User = Depends(get_current_user)):
+    return {"email": current_user.email, "name": current_user.name}
+
+@app.post("/auth/update-profile")
+def update_profile(name: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    current_user.name = name
+    db.commit()
+    return {"message": "Profile updated", "name": name}
+
+# ---------------------------
+# Include Routers (AI modules)
 # ---------------------------
 app.include_router(autonote.router)
 app.include_router(focus.router)
@@ -61,8 +168,15 @@ def root():
     return {
         "ok": True,
         "service": "Smart Study Assistant API",
-        "version": "1.0.0",
-        "llm_provider": "Groq",
+        "version": "1.1.0",
+        "features": [
+            "Email Authentication",
+            "Focus Tracker",
+            "AutoNote",
+            "Planner",
+            "Chatbot",
+            "Dashboard"
+        ]
     }
 
 # ---------------------------
@@ -70,14 +184,7 @@ def root():
 # ---------------------------
 @app.get("/notes/list/{module_name}")
 async def universal_saved_notes(module_name: str):
-    """
-    ✅ Universal fallback route for /notes/list/<module>
-    Ensures frontend 'Saved Files' page works across all modules.
-    Automatically creates missing folders/files if needed.
-    """
     base_path = os.path.join(os.path.dirname(__file__), "backend", "saved_files")
-
-    # Mapping between modules and their save files
     file_map = {
         "autonote": "autonote_notes/saved_autonotes.json",
         "planner": "planner_notes/saved_plans.json",
@@ -87,20 +194,17 @@ async def universal_saved_notes(module_name: str):
         "timepredict": "timepredict_notes/saved_timepredict.json",
     }
 
-    # If module name not recognized, return empty response
     if module_name not in file_map:
         return JSONResponse({"entries": []}, status_code=200)
 
     save_file_path = os.path.join(base_path, file_map[module_name])
     save_dir = os.path.dirname(save_file_path)
-
-    # Auto-create folder and empty JSON file if missing
     os.makedirs(save_dir, exist_ok=True)
+
     if not os.path.exists(save_file_path):
         with open(save_file_path, "w", encoding="utf-8") as f:
             json.dump([], f, indent=2)
 
-    # Read and return saved entries
     try:
         with open(save_file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -109,9 +213,8 @@ async def universal_saved_notes(module_name: str):
     except Exception as e:
         return JSONResponse({"error": str(e), "entries": []}, status_code=500)
 
-
 # ---------------------------
-# Dashboard and Log Rendering
+# Dashboard
 # ---------------------------
 @app.get("/dashboard", response_class=HTMLResponse)
 async def unified_dashboard():
@@ -173,12 +276,10 @@ async def unified_dashboard():
     html += "</body></html>"
     return HTMLResponse(content=html)
 
-
-# -------------------------------------
-# Serve Frontend React Build (if exists)
-# -------------------------------------
+# ---------------------------
+# Serve Frontend Build (if exists)
+# ---------------------------
 frontend_build_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "build"))
-
 if os.path.isdir(frontend_build_dir):
     app.mount("/static", StaticFiles(directory=os.path.join(frontend_build_dir, "static")), name="static")
 
