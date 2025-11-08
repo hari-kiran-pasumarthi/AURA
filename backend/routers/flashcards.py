@@ -228,3 +228,51 @@ async def get_saved_flashcards(current_user: dict = Depends(get_current_user)):
 @router.get("/notes/list/flashcards")
 async def get_flashcards_alias(current_user: dict = Depends(get_current_user)):
     return await get_saved_flashcards(current_user)
+# -------------------------------------------
+# 💾 Save Flashcards (Manual Save from Frontend)
+# -------------------------------------------
+@router.post("/save")
+async def save_flashcards(data: dict, current_user: dict = Depends(get_current_user)):
+    """Save generated or manually edited flashcards from frontend."""
+    try:
+        title = data.get("title", "Untitled Flashcards")
+        metadata = data.get("metadata", {})
+        cards = metadata.get("cards", [])
+        source = metadata.get("source", "Manual Entry")
+
+        if not cards:
+            raise HTTPException(status_code=400, detail="No flashcards to save.")
+
+        entry = {
+            "email": current_user["email"],
+            "title": title,
+            "content": f"{len(cards)} flashcards saved manually.",
+            "metadata": metadata,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+        # Append to master JSON
+        with open(SAVE_FILE, "r+", encoding="utf-8") as f:
+            data_log = json.load(f)
+            data_log.append(entry)
+            f.seek(0)
+            json.dump(data_log, f, indent=2)
+
+        # Optional: also save as text backup
+        backup_path = os.path.join(
+            SAVE_DIR,
+            f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{current_user['email'].replace('@','_')}.txt",
+        )
+        with open(backup_path, "w", encoding="utf-8") as f:
+            f.write(f"User: {current_user['email']}\nTitle: {title}\n\n")
+            for i, c in enumerate(cards, 1):
+                f.write(f"Q{i}: {c.get('q')}\nA{i}: {c.get('a')}\n\n")
+
+        asyncio.create_task(send_flashcard_email(current_user["email"], title, len(cards)))
+
+        print(f"💾 Saved {len(cards)} flashcards for {current_user['email']}")
+        return {"message": "Flashcards saved successfully", "filename": os.path.basename(backup_path)}
+
+    except Exception as e:
+        print(f"❌ Save flashcards error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save flashcards: {e}")
