@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../api"; // ✅ centralized axios instance
+import API from "../api"; // ✅ centralized axios instance with auth
 
 export default function DoubtsScreen() {
   const navigate = useNavigate();
@@ -31,14 +31,14 @@ export default function DoubtsScreen() {
 
       const aiResponse = `
 📘 **AURA Clarification**
-🧩 **Topic:** ${data.topic || "General"}
+🧩 **Topic:** ${data.question || "General"}
 💬 ${data.response || "No detailed explanation provided."}
       `.trim();
 
       const botMsg = {
         sender: "bot",
         text: aiResponse,
-        topic: data.topic || "General",
+        topic: data.question || "General",
         confidence: data.confidence || "N/A",
       };
 
@@ -48,7 +48,7 @@ export default function DoubtsScreen() {
       const botMsg = {
         sender: "bot",
         text:
-          "⚠️ Unable to connect to backend. Please check your FastAPI server or internet connection.",
+          "⚠️ Unable to connect to backend or unauthorized. Please log in again or check server connection.",
       };
       setMessages((prev) => [...prev, botMsg]);
     } finally {
@@ -66,12 +66,11 @@ export default function DoubtsScreen() {
         response: msg.text,
         confidence: msg.confidence,
       };
-
       await API.post("/doubts/save", payload);
       alert("✅ Clarification saved successfully!");
     } catch (e) {
       console.error("⚠️ Save failed:", e);
-      alert("⚠️ Failed to save reply. Check backend connection.");
+      alert("⚠️ Failed to save reply. Please check backend connection.");
     } finally {
       setSaving(false);
     }
@@ -133,7 +132,7 @@ export default function DoubtsScreen() {
         <h2 style={{ margin: 0, fontWeight: 700 }}>Doubt Solver</h2>
       </div>
 
-      {/* 💬 Chat */}
+      {/* 💬 Chat Window */}
       <div
         ref={scrollRef}
         style={{
