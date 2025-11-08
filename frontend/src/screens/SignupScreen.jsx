@@ -14,7 +14,8 @@ export default function SignupScreen() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
+      // ✅ fixed endpoint
+      const res = await fetch(`${API_BASE}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, name }),
@@ -22,7 +23,7 @@ export default function SignupScreen() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Signup failed");
 
-      alert("🎉 Account created! Please log in.");
+      alert("🎉 Account created successfully! Please log in.");
       navigate("/login");
     } catch (err) {
       alert(`⚠️ ${err.message}`);
