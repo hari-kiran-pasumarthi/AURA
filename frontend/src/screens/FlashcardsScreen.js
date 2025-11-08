@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api"; // ✅ Axios instance with token injection
 
 export default function FlashcardsScreen() {
   const navigate = useNavigate();
@@ -28,44 +29,33 @@ export default function FlashcardsScreen() {
     try {
       let payload = { pdf_path: null, text: "", num: 10 };
 
+      // ✅ Upload PDF (Authenticated)
       if (file) {
         const formData = new FormData();
         formData.append("file", file);
 
-        const uploadRes = await fetch(
-          "https://loyal-beauty-production.up.railway.app/flashcards/upload-pdf/",
-          { method: "POST", body: formData }
-        );
+        const uploadRes = await API.post("/flashcards/upload-pdf/", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
 
-        if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
-        const uploadData = await uploadRes.json();
-        payload.pdf_path = uploadData.pdf_path;
+        payload.pdf_path = uploadRes.data.pdf_path;
       } else {
         payload.text = text;
       }
 
-      const res = await fetch(
-        "https://loyal-beauty-production.up.railway.app/flashcards/generate",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!res.ok) throw new Error(`Backend Error: ${res.status}`);
-      const data = await res.json();
-      setCards(data.cards || []);
-      alert(`✅ Generated ${data.cards?.length || 0} flashcards!`);
+      // ✅ Generate flashcards (Authenticated)
+      const res = await API.post("/flashcards/generate", payload);
+      setCards(res.data.cards || []);
+      alert(`✅ Generated ${res.data.cards?.length || 0} flashcards!`);
     } catch (err) {
       console.error("❌ Flashcard generation failed:", err);
-      alert("⚠️ Could not connect to backend. Ensure FastAPI is running.");
+      alert("⚠️ Could not connect to backend or you are not logged in.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 💾 Save Flashcards
+  // 💾 Save Flashcards (Authenticated)
   const handleSave = async () => {
     if (cards.length === 0) {
       alert("⚠️ No flashcards to save.");
@@ -84,25 +74,15 @@ export default function FlashcardsScreen() {
         },
       };
 
-      const res = await fetch(
-        "https://loyal-beauty-production.up.railway.app/flashcards/save",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
-      const data = await res.json();
-      alert(`✅ Flashcards saved successfully as ${data.filename}`);
+      const res = await API.post("/flashcards/save", payload);
+      alert(`✅ Flashcards saved successfully!`);
     } catch (err) {
       console.error("❌ Save failed:", err);
-      alert("⚠️ Could not save flashcards. Try again.");
+      alert("⚠️ Could not save flashcards. Please log in again.");
     }
   };
 
-  // Card Navigation
+  // Navigation
   const nextCard = () => {
     if (index < cards.length - 1) {
       setIndex(index + 1);
@@ -276,16 +256,6 @@ export default function FlashcardsScreen() {
           </button>
         </>
       )}
-
-      {/* ✨ Animations */}
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
     </div>
   );
 }
