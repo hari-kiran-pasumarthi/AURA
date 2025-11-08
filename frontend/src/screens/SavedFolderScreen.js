@@ -22,22 +22,30 @@ export default function SavedFolderScreen() {
   useEffect(() => {
     const fetchAll = async () => {
       const all = {};
+      const token = localStorage.getItem("token");
+
       for (const mod of modules) {
         try {
           let url = "";
           if (mod === "doubts") {
-            url = "https://loyal-beauty-production.up.railway.app/doubts/history";
+            url =
+              "https://loyal-beauty-production.up.railway.app/doubts/history";
           } else if (mod === "autonote") {
-            url = "https://loyal-beauty-production.up.railway.app/autonote/saved";
+            url =
+              "https://loyal-beauty-production.up.railway.app/autonote/saved";
           } else {
             url = `https://loyal-beauty-production.up.railway.app/${mod}/saved`;
           }
 
-          const res = await fetch(url);
+          const res = await fetch(url, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
           const data = await res.json();
 
           if (mod === "doubts") {
-            all[mod] = Array.isArray(data) ? data.slice(0, 3) : [];
+            all[mod] = Array.isArray(data.entries)
+              ? data.entries.slice(0, 3)
+              : [];
           } else {
             const entriesData = data?.entries || [];
             all[mod] = Array.isArray(entriesData)
@@ -55,7 +63,13 @@ export default function SavedFolderScreen() {
 
     const fetchMoodLogs = async () => {
       try {
-        const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/logs");
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          "https://loyal-beauty-production.up.railway.app/mood/logs",
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
         const data = await res.json();
         setMoodLogs(Array.isArray(data.logs) ? data.logs : []);
       } catch (err) {
@@ -223,26 +237,26 @@ export default function SavedFolderScreen() {
         <h3 style={{ marginBottom: 10, color: "#EAEAF5" }}>🧠 Mood Logs</h3>
         {moodLogs.length > 0 ? (
           <ul style={{ listStyle: "none", padding: 0 }}>
-            {moodLogs.map((log, i) => {
-              const parts = log.split(" | ");
-              const timestamp = parts[0] || "N/A";
-              const mood = parts[1] || "🧠 Unknown";
-              const note = parts[2] || "[No note]";
-              return (
-                <li
-                  key={i}
-                  style={{
-                    padding: 10,
-                    borderBottom: "1px solid rgba(255,255,255,0.1)",
-                    color: "#EAEAF5",
-                  }}
-                >
-                  <p style={{ margin: 0, fontWeight: 600 }}>{mood}</p>
-                  <p style={{ margin: "4px 0", color: "#C7C9E0" }}>{note}</p>
-                  <p style={{ fontSize: 12, color: "#A8B0D0" }}>🕒 {timestamp}</p>
-                </li>
-              );
-            })}
+            {moodLogs.map((log, i) => (
+              <li
+                key={i}
+                style={{
+                  padding: 10,
+                  borderBottom: "1px solid rgba(255,255,255,0.1)",
+                  color: "#EAEAF5",
+                }}
+              >
+                <p style={{ margin: 0, fontWeight: 600 }}>
+                  {log.mood || "🧠 Unknown"}
+                </p>
+                <p style={{ margin: "4px 0", color: "#C7C9E0" }}>
+                  {log.notes || "[No note]"}
+                </p>
+                <p style={{ fontSize: 12, color: "#A8B0D0" }}>
+                  🕒 {log.timestamp || "N/A"}
+                </p>
+              </li>
+            ))}
           </ul>
         ) : (
           <p style={{ color: "#C7C9E0" }}>No mood logs found.</p>
@@ -286,12 +300,6 @@ export default function SavedFolderScreen() {
               🕒 {selectedNote.timestamp || "N/A"}
             </p>
 
-            {selectedNote.response && (
-              <>
-                <h3>💬 AI Clarification</h3>
-                <p style={{ whiteSpace: "pre-wrap" }}>{selectedNote.response}</p>
-              </>
-            )}
             {selectedNote.summary && (
               <>
                 <h3>📋 Summary</h3>
@@ -302,6 +310,14 @@ export default function SavedFolderScreen() {
               <>
                 <h3>📝 Content</h3>
                 <p style={{ whiteSpace: "pre-wrap" }}>{selectedNote.content}</p>
+              </>
+            )}
+            {selectedNote.response && (
+              <>
+                <h3>💬 AI Clarification</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>
+                  {selectedNote.response}
+                </p>
               </>
             )}
 
@@ -322,19 +338,6 @@ export default function SavedFolderScreen() {
               Close
             </button>
           </div>
-
-          <style>
-            {`
-              @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-              }
-              @keyframes slideIn {
-                from { transform: translateY(20px); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
-              }
-            `}
-          </style>
         </div>
       )}
     </div>
