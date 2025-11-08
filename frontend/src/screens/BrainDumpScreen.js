@@ -10,12 +10,9 @@ export default function BrainDumpScreen() {
   const [filePath, setFilePath] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🧠 Handle organize request
+  // 🧠 Send text to backend for organization
   const handleOrganize = async () => {
-    if (!thoughts.trim()) {
-      alert("⚠️ Please write your thoughts first!");
-      return;
-    }
+    if (!thoughts.trim()) return alert("⚠️ Please write your thoughts first!");
 
     setLoading(true);
     setOrganized("");
@@ -31,29 +28,26 @@ export default function BrainDumpScreen() {
       if (!res.ok) throw new Error(`Backend error: ${res.status}`);
 
       const data = await res.json();
-      setOrganized(data.organized_text || "🧠 AI couldn't generate a response.");
+      setOrganized(data.organized_text || "🧠 AI couldn’t organize your text.");
       setFilePath(data.file_path || "");
-    } catch (error) {
-      console.error("❌ Backend request failed:", error);
-      alert("❌ Could not reach the backend. Please ensure FastAPI is running.");
+    } catch (err) {
+      console.error("❌ Request failed:", err);
+      alert("❌ Could not connect to backend. Please ensure FastAPI is running.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 💾 Simulated Save (frontend-only reset)
+  // 💾 Save locally (simple reset)
   const handleSave = () => {
-    if (!thoughts.trim() && !organized.trim()) {
-      alert("⚠️ Nothing to save!");
-      return;
-    }
+    if (!thoughts.trim() && !organized.trim()) return alert("⚠️ Nothing to save!");
     alert("✅ Your brain dump has been saved successfully!");
     setThoughts("");
     setOrganized("");
     setFilePath("");
   };
 
-  // 🧹 Clear all fields
+  // 🧹 Clear inputs
   const handleClear = () => {
     setThoughts("");
     setOrganized("");
@@ -63,13 +57,15 @@ export default function BrainDumpScreen() {
   return (
     <div
       style={{
-        backgroundColor: "#f9fafb",
         minHeight: "100vh",
+        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        backgroundAttachment: "fixed",
+        color: "#EAEAF5",
         padding: 20,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        fontFamily: "system-ui",
+        fontFamily: "'Poppins', sans-serif",
       }}
     >
       {/* 🔙 Back Button */}
@@ -77,98 +73,120 @@ export default function BrainDumpScreen() {
         onClick={() => navigate(-1)}
         style={{
           alignSelf: "flex-start",
-          color: "#2563eb",
+          color: "#C7C9E0",
           background: "none",
           border: "none",
           fontSize: 16,
           cursor: "pointer",
-          marginBottom: 10,
+          marginBottom: 20,
+          transition: "color 0.3s ease",
         }}
+        onMouseEnter={(e) => (e.target.style.color = "#A5B4FC")}
+        onMouseLeave={(e) => (e.target.style.color = "#C7C9E0")}
       >
         ← Back
       </button>
 
-      <h2 style={{ fontSize: 28, fontWeight: "700", marginBottom: 15 }}>
-        🧠 Brain Dump
-      </h2>
+      {/* 🌌 Logo Header */}
+      <div style={{ textAlign: "center", marginBottom: 30 }}>
+        <img
+          src="/FullLogo.jpg"
+          alt="AURA Logo"
+          style={{
+            width: 160,
+            borderRadius: 20,
+            boxShadow: "0 0 25px rgba(182, 202, 255, 0.3)",
+          }}
+        />
+        <h2 style={{ marginTop: 15, color: "#EAEAF5" }}>🧠 AURA Brain Dump</h2>
+        <p style={{ color: "#C7C9E0", maxWidth: 500, margin: "10px auto" }}>
+          Empty your mind. Organize your thoughts. Boost your focus.
+        </p>
+      </div>
 
-      <p
-        style={{
-          color: "#555",
-          textAlign: "center",
-          maxWidth: 500,
-          marginBottom: 15,
-        }}
-      >
-        Write down everything that’s on your mind — tasks, worries, ideas, or
-        distractions. Then let AI help you organize it into clear, actionable thoughts.
-      </p>
-
-      {/* ✍️ Input Box */}
-      <textarea
-        placeholder="Start typing your thoughts here..."
-        value={thoughts}
-        onChange={(e) => setThoughts(e.target.value)}
-        rows={8}
-        style={{
-          width: "100%",
-          maxWidth: 600,
-          backgroundColor: "#fff",
-          border: "1px solid #ddd",
-          borderRadius: 10,
-          padding: 15,
-          fontSize: 16,
-          fontFamily: "inherit",
-          marginBottom: 15,
-          outline: "none",
-          resize: "vertical",
-        }}
-      />
-
-      {/* 💾 Save & 🗑 Clear Buttons */}
+      {/* ✍️ Input Section */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
           width: "100%",
-          maxWidth: 600,
-          marginBottom: 20,
-          gap: 10,
+          maxWidth: 800,
+          background: "rgba(255, 255, 255, 0.08)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          borderRadius: 20,
+          padding: 25,
+          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
+          backdropFilter: "blur(10px)",
+          marginBottom: 30,
         }}
       >
-        <button
-          onClick={handleSave}
+        <h3 style={{ marginBottom: 10, color: "#EAEAF5" }}>✍️ Write Your Thoughts</h3>
+        <textarea
+          placeholder="Start typing your thoughts here..."
+          value={thoughts}
+          onChange={(e) => setThoughts(e.target.value)}
+          rows={8}
           style={{
-            flex: 1,
-            backgroundColor: "#16a34a",
-            color: "white",
-            border: "none",
+            width: "100%",
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.15)",
             borderRadius: 10,
-            padding: "12px 20px",
+            padding: 15,
+            color: "#EAEAF5",
             fontSize: 16,
-            fontWeight: 600,
-            cursor: "pointer",
+            fontFamily: "inherit",
+            outline: "none",
+            resize: "vertical",
           }}
-        >
-          💾 Save
-        </button>
+        />
 
-        <button
-          onClick={handleClear}
+        {/* 💾 Save & 🧹 Clear Buttons */}
+        <div
           style={{
-            flex: 1,
-            backgroundColor: "#ef4444",
-            color: "white",
-            border: "none",
-            borderRadius: 10,
-            padding: "12px 20px",
-            fontSize: 16,
-            fontWeight: 600,
-            cursor: "pointer",
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 20,
+            gap: 10,
           }}
         >
-          🗑 Clear
-        </button>
+          <button
+            onClick={handleSave}
+            style={{
+              flex: 1,
+              background: "#16A34A",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "12px 20px",
+              fontSize: 16,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "background 0.3s ease",
+            }}
+            onMouseEnter={(e) => (e.target.style.background = "#22C55E")}
+            onMouseLeave={(e) => (e.target.style.background = "#16A34A")}
+          >
+            💾 Save
+          </button>
+
+          <button
+            onClick={handleClear}
+            style={{
+              flex: 1,
+              background: "#DC2626",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "12px 20px",
+              fontSize: 16,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "background 0.3s ease",
+            }}
+            onMouseEnter={(e) => (e.target.style.background = "#EF4444")}
+            onMouseLeave={(e) => (e.target.style.background = "#DC2626")}
+          >
+            🧹 Clear
+          </button>
+        </div>
       </div>
 
       {/* 🧩 Organize Button */}
@@ -176,53 +194,60 @@ export default function BrainDumpScreen() {
         onClick={handleOrganize}
         disabled={loading}
         style={{
-          backgroundColor: loading ? "#93c5fd" : "#2563eb",
-          color: "white",
+          background: loading ? "rgba(147,197,253,0.3)" : "#2563EB",
+          color: "#fff",
           border: "none",
-          borderRadius: 10,
+          borderRadius: 12,
           padding: "15px 25px",
           fontSize: 18,
           fontWeight: 600,
           cursor: loading ? "not-allowed" : "pointer",
           width: "100%",
-          maxWidth: 600,
-          marginBottom: 20,
+          maxWidth: 800,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+          backdropFilter: "blur(10px)",
+          transition: "transform 0.25s ease, box-shadow 0.25s ease",
+          marginBottom: 30,
+        }}
+        onMouseEnter={(e) => {
+          if (!loading) {
+            e.currentTarget.style.transform = "translateY(-3px)";
+            e.currentTarget.style.boxShadow = "0 8px 25px rgba(100,149,237,0.4)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.3)";
         }}
       >
         {loading ? "⏳ Organizing..." : "🧩 Organize My Thoughts"}
       </button>
 
-      {/* 🧠 Organized Output */}
+      {/* ✨ AI Output Section */}
       {organized && (
         <div
           style={{
             width: "100%",
-            maxWidth: 600,
-            backgroundColor: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: 10,
-            padding: 15,
-            boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+            maxWidth: 800,
+            background: "rgba(255,255,255,0.1)",
+            borderRadius: 20,
+            padding: 25,
+            border: "1px solid rgba(255,255,255,0.1)",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
+            animation: "fadeIn 1s ease-in-out",
           }}
         >
-          <h3 style={{ fontSize: 20, fontWeight: "700", marginBottom: 5 }}>
-            ✨ AI Summary
+          <h3 style={{ fontSize: 20, color: "#EAEAF5", marginBottom: 10 }}>
+            ✨ AI-Organized Thoughts
           </h3>
-          <p
-            style={{
-              color: "#333",
-              fontSize: 16,
-              margin: 0,
-              whiteSpace: "pre-line",
-            }}
-          >
+          <p style={{ color: "#C7C9E0", whiteSpace: "pre-line", fontSize: 16 }}>
             {organized}
           </p>
-
           {filePath && (
             <p
               style={{
-                color: "#777",
+                color: "#A8B0D0",
                 fontSize: 14,
                 marginTop: 10,
                 wordBreak: "break-all",
@@ -233,6 +258,30 @@ export default function BrainDumpScreen() {
           )}
         </div>
       )}
+
+      {/* 🌙 Footer */}
+      <footer
+        style={{
+          marginTop: "auto",
+          paddingTop: 40,
+          color: "#A8B0D0",
+          fontSize: 14,
+          textAlign: "center",
+        }}
+      >
+        © {new Date().getFullYear()} AURA <br />
+        <span style={{ color: "#C7C9E0" }}>Mind Clarity Assistant 🌙</span>
+      </footer>
+
+      {/* ✨ Animation */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
     </div>
   );
 }
