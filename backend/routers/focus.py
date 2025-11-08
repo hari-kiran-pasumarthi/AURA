@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from backend.models.schemas import FocusEvent, FocusSuggestResponse
 from backend.services import focus_detect
-from backend.auth import get_current_user
+from backend.routers.auth import get_current_user
 from backend.models.user import User
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
