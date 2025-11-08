@@ -25,33 +25,62 @@ def generate(req: PlannerRequest) -> PlannerResponse:
     - Saves structured schedules to Smart Calendar and Saved Files.
     """
 
+    print("🧠 Starting planner generation...")
+
     # Step 1️⃣ — Setup planning window
-    start = date.fromisoformat(req.start_date) if req.start_date else date.today()
-    end = date.fromisoformat(req.end_date) if req.end_date else (start + timedelta(days=7))
+    try:
+        start = date.fromisoformat(req.start_date) if req.start_date else date.today()
+    except Exception:
+        start = date.today()
+
+    try:
+        end = date.fromisoformat(req.end_date) if req.end_date else (start + timedelta(days=7))
+    except Exception:
+        end = start + timedelta(days=7)
+
     horizon_days = (end - start).days + 1
     daily_limit = float(req.daily_hours or 4)
     buckets: Dict[date, List[Dict[str, Any]]] = {start + timedelta(days=i): [] for i in range(horizon_days)}
 
-    # Step 2️⃣ — Score tasks
+    print(f"📅 Planning from {start} to {end} ({horizon_days} days), daily limit: {daily_limit} hrs")
+
+    # Step 2️⃣ — Validate tasks
+    if not hasattr(req, "tasks") or not req.tasks:
+        print("⚠️ No tasks found in request. Generating empty planner.")
+        return PlannerResponse(schedule=[])
+
+    # Step 3️⃣ — Score tasks
     scored_tasks = []
     for t in req.tasks:
+        t_name = getattr(t, "name", "Untitled Task")
+        t_subject = getattr(t, "subject", "General")
+        t_due = getattr(t, "due", None)
+        t_difficulty = getattr(t, "difficulty", 3)
+        t_estimated = getattr(t, "estimated_hours", None)
+
         urgency = 1.0
-        if t.due:
+        if t_due:
             try:
-                due = date.fromisoformat(t.due)
+                due = date.fromisoformat(t_due)
                 days_left = max(1, (due - start).days)
                 urgency = 1 / days_left
             except Exception:
                 urgency = 1.0
 
-        difficulty = t.difficulty or 3
-        total_hours = float(t.estimated_hours or (difficulty * 1.5))
-        score = urgency * difficulty
-        scored_tasks.append((score, t, total_hours))
+        total_hours = float(t_estimated or (t_difficulty * 1.5))
+        score = urgency * t_difficulty
+        scored_tasks.append((score, {
+            "name": t_name,
+            "subject": t_subject,
+            "due": t_due,
+            "difficulty": t_difficulty,
+            "hours": total_hours
+        }))
 
     scored_tasks.sort(key=lambda x: x[0], reverse=True)
+    print(f"🧾 Found {len(scored_tasks)} tasks, prioritized by urgency × difficulty.")
 
-    # Step 3️⃣ — Define available time slots (excluding meals)
+    # Step 4️⃣ — Define available time slots (excluding meals)
     def get_free_slots():
         full_day_start = datetime.strptime("07:00", "%H:%M")
         full_day_end = datetime.strptime("22:30", "%H:%M")
@@ -70,17 +99,17 @@ def generate(req: PlannerRequest) -> PlannerResponse:
         return free
 
     free_slots = get_free_slots()
+    print(f"🕒 Available free slots per day: {len(free_slots)}")
 
-    # Step 4️⃣ — Assign tasks to slots
-    for score, t, total_hours in scored_tasks:
+    # Step 5️⃣ — Assign tasks to slots
+    for score, t in scored_tasks:
+        remaining = t["hours"]
         try:
-            due_date = date.fromisoformat(t.due) if t.due else end
+            due_date = date.fromisoformat(t["due"]) if t["due"] else end
         except Exception:
             due_date = end
 
-        remaining = total_hours
         current_day = start
-
         while remaining > 0 and current_day <= end:
             if current_day > due_date:
                 break
@@ -102,31 +131,33 @@ def generate(req: PlannerRequest) -> PlannerResponse:
                 if available > 0:
                     end_time = slot_start + timedelta(hours=available)
                     buckets[current_day].append({
-                        "task": t.name,
-                        "subject": t.subject or "General",
+                        "task": t["name"],
+                        "subject": t["subject"],
                         "hours": round(available, 2),
                         "start_time": slot_start.strftime("%H:%M"),
                         "end_time": end_time.strftime("%H:%M"),
-                        "due": t.due or "N/A",
-                        "difficulty": t.difficulty or 3,
+                        "due": t["due"] or "N/A",
+                        "difficulty": t["difficulty"],
                     })
                     remaining -= available
                     used_today += available
 
             current_day += timedelta(days=1)
 
-    # Step 5️⃣ — Build structured schedule
+    # Step 6️⃣ — Build structured schedule
     schedule = [{"date": d.isoformat(), "blocks": blocks} for d, blocks in buckets.items() if blocks]
 
-    # Step 6️⃣ — Save to Smart Calendar
+    print(f"✅ Generated {len(schedule)} days of structured schedule.")
+
+    # Step 7️⃣ — Save to Smart Calendar
     try:
         calendar_status = save_to_calendar(schedule)
-        print(f"✅ Saved {calendar_status['count']} days to Smart Calendar.")
+        print(f"📆 Smart Calendar updated ({calendar_status.get('count', 0)} days).")
     except Exception as e:
         print(f"⚠️ Calendar save failed: {e}")
         calendar_status = {"status": "failed", "count": 0}
 
-    # Step 7️⃣ — Log to unified timeline
+    # Step 8️⃣ — Log to unified timeline
     try:
         summary = f"Generated {len(schedule)} study days with {len(req.tasks)} tasks."
         save_entry(
@@ -140,11 +171,11 @@ def generate(req: PlannerRequest) -> PlannerResponse:
                 "calendar_status": calendar_status,
             },
         )
-        print("✅ Planner log entry saved.")
+        print("🗂️ Planner log entry saved.")
     except Exception as e:
         print(f"⚠️ Logging failed: {e}")
 
-    # ✅ Step 8️⃣ — Save the FULL plan including schedule
+    # Step 9️⃣ — Save the full plan to disk
     try:
         save_dir = os.path.join("saved_files", "notes", "planner")
         os.makedirs(save_dir, exist_ok=True)
@@ -153,8 +184,8 @@ def generate(req: PlannerRequest) -> PlannerResponse:
         file_data = {
             "title": f"AI Study Plan - {timestamp_now}",
             "summary": f"📅 {len(schedule)} days planned covering {len(req.tasks)} tasks.",
-            "content": f"Tasks: {', '.join([t.name for t in req.tasks]) or 'No tasks'}",
-            "schedule": schedule,  # ✅ Include full structured plan
+            "content": f"Tasks: {', '.join([t['name'] for _, t in scored_tasks]) or 'No tasks'}",
+            "schedule": schedule,
             "timestamp": datetime.utcnow().isoformat(),
         }
 
@@ -162,9 +193,9 @@ def generate(req: PlannerRequest) -> PlannerResponse:
         with open(save_path, "w", encoding="utf-8") as f:
             json.dump(file_data, f, indent=2, ensure_ascii=False)
 
-        print(f"✅ Full planner schedule saved to {save_path}")
+        print(f"💾 Full planner schedule saved at {save_path}")
     except Exception as e:
         print(f"⚠️ Failed to save full planner schedule: {e}")
 
-    # Step 9️⃣ — Return final structured response
+    # ✅ Step 🔟 — Return structured response
     return PlannerResponse(schedule=schedule)
