@@ -4,6 +4,7 @@ from backend.routers.auth import get_current_user
 from datetime import datetime
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
+from groq import Groq  # ✅ Groq AI SDK
 
 router = APIRouter(prefix="/doubts", tags=["Doubts"])
 
@@ -17,6 +18,14 @@ SAVE_FILE = os.path.join(SAVE_DIR, "saved_doubts.json")
 if not os.path.exists(SAVE_FILE):
     with open(SAVE_FILE, "w", encoding="utf-8") as f:
         json.dump([], f, indent=2)
+
+# -------------------------------
+# 🤖 Initialize Groq Client
+# -------------------------------
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    print("⚠️ Warning: GROQ_API_KEY not found in environment.")
+client = Groq(api_key=GROQ_API_KEY)
 
 # -------------------------------
 # 📧 Email Notification Helper (Safe)
@@ -40,50 +49,67 @@ async def send_doubt_email(user_email: str, topic: str, response: str):
         print(f"⚠️ Email skipped: {e}")
 
 # -------------------------------
-# 🧠 Report a Doubt
+# 🧠 Report a Doubt (Groq-powered)
 # -------------------------------
 @router.post("/report")
 async def report_doubt(data: dict, current_user: dict = Depends(get_current_user)):
     """
-    Logs a user's question/doubt and stores it locally.
+    Logs a user's question/doubt and uses Groq AI to generate a clarification.
     """
     try:
         question = data.get("question", "").strip()
         if not question:
             raise HTTPException(400, "Question cannot be empty.")
 
-        # Mock AI clarification for now
-        clarification = f"Here's a quick explanation for '{question}'. Review related notes for better understanding."
+        # 🔮 Generate Groq AI response
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",  # ⚡ You can replace this model if desired
+            messages=[
+                {"role": "system", "content": "You are AURA, an intelligent academic assistant who gives clear, structured answers to student doubts."},
+                {"role": "user", "content": f"Explain this concept in a simple and detailed way: {question}"}
+            ],
+            temperature=0.7,
+            max_tokens=400
+        )
 
+        clarification = response.choices[0].message.content.strip() if response.choices else "No response generated."
+
+        # 🧾 Save the entry
         entry = {
             "email": current_user["email"],
             "topic": question,
             "response": clarification,
-            "confidence": "N/A",
+            "confidence": "AI-generated",
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-        # Save to central JSON
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data_log = json.load(f)
             data_log.append(entry)
             f.seek(0)
             json.dump(data_log, f, indent=2)
 
-        # Save a text version too
+        # 📁 Optional text file log
         txt_file = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{current_user['email'].replace('@','_')}.txt"
         with open(os.path.join(SAVE_DIR, txt_file), "w", encoding="utf-8") as f:
             f.write(f"User: {current_user['email']}\n")
             f.write(f"Topic: {question}\n\n")
             f.write(f"Response:\n{clarification}")
 
-        # Send async email if available
+        # 📧 Send async email
         asyncio.create_task(send_doubt_email(current_user["email"], question, clarification))
 
-        return {"question": question, "response": clarification, "timestamp": entry["timestamp"]}
+        # ✅ Return structured response
+        return {
+            "topic": question,
+            "response": clarification,
+            "confidence": "High",
+            "timestamp": entry["timestamp"],
+        }
 
     except Exception as e:
-        raise HTTPException(500, f"Failed to record doubt: {e}")
+        print(f"❌ Groq doubt generation error: {e}")
+        raise HTTPException(500, f"Failed to record or generate doubt: {e}")
 
 # -------------------------------
 # 💾 Manual Save
