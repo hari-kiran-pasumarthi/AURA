@@ -1,15 +1,11 @@
-import os, json, time, asyncio
+import os, json, asyncio
 from fastapi import APIRouter, HTTPException, Depends
-from typing import List
-from backend.models.schemas import DoubtEvent, DoubtReport
-from backend.services import doubt_logger
 from backend.routers.auth import get_current_user
-from backend.models.user import User
+from datetime import datetime
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
-from datetime import datetime
 
-router = APIRouter(prefix="/doubts", tags=["Silent Study Partner"])
+router = APIRouter(prefix="/doubts", tags=["Doubts"])
 
 # -------------------------------
 # 📁 Centralized Save Directory
@@ -22,93 +18,82 @@ if not os.path.exists(SAVE_FILE):
     with open(SAVE_FILE, "w", encoding="utf-8") as f:
         json.dump([], f, indent=2)
 
-
 # -------------------------------
-# 📬 Email Notification Helper
+# 📧 Email Notification Helper (Safe)
 # -------------------------------
 async def send_doubt_email(user_email: str, topic: str, response: str):
-    """Send async email when a doubt clarification is generated."""
-    fm = FastMail(conf)
-    subject = f"🤔 AURA | Clarification on '{topic}'"
-    body = f"""
-    <h3>📘 AURA Doubt Clarification Ready</h3>
-    <p><b>Topic:</b> {topic}</p>
-    <p><b>Clarification:</b></p>
-    <blockquote>{response[:600]}...</blockquote>
-    <hr>
-    <p>Check your AURA app for full details and study follow-ups.</p>
-    """
-    message = MessageSchema(
-        subject=subject,
-        recipients=[user_email],
-        body=body,
-        subtype="html",
-    )
-    await fm.send_message(message)
-
+    """Send async email if SMTP works; otherwise skip gracefully."""
+    try:
+        fm = FastMail(conf)
+        subject = f"🤔 AURA | Clarification on '{topic}'"
+        body = f"""
+        <h3>📘 AURA Doubt Clarification Ready</h3>
+        <p><b>Topic:</b> {topic}</p>
+        <p><b>Clarification:</b></p>
+        <blockquote>{response[:600]}...</blockquote>
+        <hr>
+        <p>Check your AURA app for full details and study follow-ups.</p>
+        """
+        message = MessageSchema(subject=subject, recipients=[user_email], body=body, subtype="html")
+        await fm.send_message(message)
+    except Exception as e:
+        print(f"⚠️ Email skipped: {e}")
 
 # -------------------------------
-# 🧠 Analyze & Report Doubts
+# 🧠 Report a Doubt
 # -------------------------------
-@router.post("/report", response_model=DoubtReport)
-async def report_doubts(
-    events: List[DoubtEvent],
-    current_user: User = Depends(get_current_user)
-):
+@router.post("/report")
+async def report_doubt(data: dict, current_user: dict = Depends(get_current_user)):
     """
-    Analyze confusion signals and generate AI clarification per user.
-    """
-    result = doubt_logger.report(events)
-    result_data = result.dict() if hasattr(result, "dict") else result
-
-    # Attach user info and save automatically
-    topic = result_data.get("topic", "General Doubt")
-    response = result_data.get("response", "No response generated.")
-    timestamp = datetime.utcnow().isoformat()
-
-    entry = {
-        "email": current_user.email,
-        "topic": topic,
-        "confidence": result_data.get("confidence", "N/A"),
-        "response": response,
-        "timestamp": timestamp,
-    }
-
-    with open(SAVE_FILE, "r+", encoding="utf-8") as f:
-        data = json.load(f)
-        data.append(entry)
-        f.seek(0)
-        json.dump(data, f, indent=2)
-
-    # Save individual .txt file
-    txt_file = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{current_user.email.replace('@','_')}.txt"
-    txt_path = os.path.join(SAVE_DIR, txt_file)
-    with open(txt_path, "w", encoding="utf-8") as f:
-        f.write(f"User: {current_user.email}\n")
-        f.write(f"Timestamp: {timestamp}\n")
-        f.write(f"Topic: {topic}\n")
-        f.write(f"Confidence: {entry['confidence']}\n\n")
-        f.write("=== Clarification ===\n")
-        f.write(response)
-
-    # Send email asynchronously
-    asyncio.create_task(send_doubt_email(current_user.email, topic, response))
-
-    return result_data
-
-
-# -------------------------------
-# 💾 Manual Save (Optional)
-# -------------------------------
-@router.post("/save")
-async def save_doubt(entry: dict, current_user: User = Depends(get_current_user)):
-    """
-    💾 Save AI clarification to saved_files/doubts/ as JSON and send notification.
+    Logs a user's question/doubt and stores it locally.
     """
     try:
-        timestamp = datetime.utcnow().isoformat()
-        entry["email"] = current_user.email
-        entry["timestamp"] = timestamp
+        question = data.get("question", "").strip()
+        if not question:
+            raise HTTPException(400, "Question cannot be empty.")
+
+        # Mock AI clarification for now
+        clarification = f"Here's a quick explanation for '{question}'. Review related notes for better understanding."
+
+        entry = {
+            "email": current_user["email"],
+            "topic": question,
+            "response": clarification,
+            "confidence": "N/A",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+        # Save to central JSON
+        with open(SAVE_FILE, "r+", encoding="utf-8") as f:
+            data_log = json.load(f)
+            data_log.append(entry)
+            f.seek(0)
+            json.dump(data_log, f, indent=2)
+
+        # Save a text version too
+        txt_file = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{current_user['email'].replace('@','_')}.txt"
+        with open(os.path.join(SAVE_DIR, txt_file), "w", encoding="utf-8") as f:
+            f.write(f"User: {current_user['email']}\n")
+            f.write(f"Topic: {question}\n\n")
+            f.write(f"Response:\n{clarification}")
+
+        # Send async email if available
+        asyncio.create_task(send_doubt_email(current_user["email"], question, clarification))
+
+        return {"question": question, "response": clarification, "timestamp": entry["timestamp"]}
+
+    except Exception as e:
+        raise HTTPException(500, f"Failed to record doubt: {e}")
+
+# -------------------------------
+# 💾 Manual Save
+# -------------------------------
+@router.post("/save")
+async def save_doubt(entry: dict, current_user: dict = Depends(get_current_user)):
+    """Manually save a clarified doubt."""
+    try:
+        entry["email"] = current_user["email"]
+        entry["timestamp"] = datetime.utcnow().isoformat()
 
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data = json.load(f)
@@ -116,34 +101,29 @@ async def save_doubt(entry: dict, current_user: User = Depends(get_current_user)
             f.seek(0)
             json.dump(data, f, indent=2)
 
-        # Send notification
         asyncio.create_task(
             send_doubt_email(
-                current_user.email,
+                current_user["email"],
                 entry.get("topic", "Unknown Topic"),
-                entry.get("response", "No response text"),
+                entry.get("response", "No response available"),
             )
         )
 
-        return {"status": "success", "email": current_user.email, "message": "Saved successfully!"}
-
+        return {"status": "success", "message": "Doubt saved successfully!"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save doubt: {e}")
-
+        raise HTTPException(500, f"Failed to save doubt: {e}")
 
 # -------------------------------
-# 📚 Doubt History (Per User)
+# 📜 History
 # -------------------------------
 @router.get("/history")
-async def list_saved_doubts(current_user: User = Depends(get_current_user)):
-    """
-    📚 Return all saved doubts for the logged-in user.
-    """
+async def get_doubt_history(current_user: dict = Depends(get_current_user)):
+    """Retrieve saved doubts for the current user."""
     try:
         with open(SAVE_FILE, "r", encoding="utf-8") as f:
             all_data = json.load(f)
-        user_data = [d for d in all_data if d["email"] == current_user.email]
+        user_data = [d for d in all_data if d["email"] == current_user["email"]]
         user_data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return {"entries": user_data}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load saved doubts: {e}")
+        raise HTTPException(500, f"Failed to load saved doubts: {e}")
