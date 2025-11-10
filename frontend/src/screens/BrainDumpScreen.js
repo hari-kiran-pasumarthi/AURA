@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api"; // ✅ import your authorized Axios instance
 
 export default function BrainDumpScreen() {
   const navigate = useNavigate();
-  const API_BASE = "https://loyal-beauty-production.up.railway.app"; // ✅ Backend URL
 
   const [thoughts, setThoughts] = useState("");
   const [organized, setOrganized] = useState("");
   const [filePath, setFilePath] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🧠 Send text to backend for organization
+  // 🧠 Send text to backend for organization (with auth)
   const handleOrganize = async () => {
     if (!thoughts.trim()) return alert("⚠️ Please write your thoughts first!");
 
@@ -19,26 +19,21 @@ export default function BrainDumpScreen() {
     setFilePath("");
 
     try {
-      const res = await fetch(`${API_BASE}/braindump/save`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: thoughts }),
-      });
+      // ✅ Authorized API call (token auto-attached by interceptor)
+      const res = await API.post("/braindump/save", { text: thoughts });
 
-      if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-
-      const data = await res.json();
+      const data = res.data;
       setOrganized(data.organized_text || "🧠 AI couldn’t organize your text.");
       setFilePath(data.file_path || "");
     } catch (err) {
       console.error("❌ Request failed:", err);
-      alert("❌ Could not connect to backend. Please ensure FastAPI is running.");
+      alert("⚠️ Could not save. Please log in again — your session may have expired.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 💾 Save locally (simple reset)
+  // 💾 Save locally (client-side)
   const handleSave = () => {
     if (!thoughts.trim() && !organized.trim()) return alert("⚠️ Nothing to save!");
     alert("✅ Your brain dump has been saved successfully!");
@@ -259,7 +254,6 @@ export default function BrainDumpScreen() {
         </div>
       )}
 
-      {/* 🌙 Footer */}
       <footer
         style={{
           marginTop: "auto",
@@ -273,7 +267,6 @@ export default function BrainDumpScreen() {
         <span style={{ color: "#C7C9E0" }}>Mind Clarity Assistant 🌙</span>
       </footer>
 
-      {/* ✨ Animation */}
       <style>
         {`
           @keyframes fadeIn {
