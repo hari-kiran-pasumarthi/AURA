@@ -55,9 +55,9 @@ app.include_router(flashcards.router)
 app.include_router(mood.router)
 app.include_router(distraction.router, prefix="/distraction", tags=["DistractionSniper"])
 app.include_router(timepredict.router)
-app.include_router(braindump.router, prefix="/braindump", tags=["AutoSave BrainDump"])
+app.include_router(braindump.router)
 app.include_router(confusion.router)
-app.include_router(chatbot.router, prefix="/chatbot", tags=["ChatBot"])
+app.include_router(chatbot.router)
 
 # ---------------------------
 # Root Route
