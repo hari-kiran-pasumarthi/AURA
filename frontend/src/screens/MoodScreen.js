@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
+import API from "../api"; // ✅ Authenticated Axios instance
 
 const moods = [
   { emoji: "😄", label: "Happy" },
@@ -21,6 +22,7 @@ export default function MoodScreen() {
   const [loading, setLoading] = useState(false);
   const [detectedMood, setDetectedMood] = useState(null);
 
+  // 📸 Detect mood from camera
   const detectMoodFromCamera = async () => {
     const screenshot = webcamRef.current.getScreenshot();
     if (!screenshot) return alert("⚠️ Could not capture image.");
@@ -31,26 +33,26 @@ export default function MoodScreen() {
       const formData = new FormData();
       formData.append("image", blob, "mood.jpg");
 
-      const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/detect", {
-        method: "POST",
-        body: formData,
+      const res = await API.post("/mood/detect", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (!res.ok) throw new Error("Detection failed");
-      const data = await res.json();
-
+      const data = res.data;
       const moodLabel = data.mood.charAt(0).toUpperCase() + data.mood.slice(1);
-      const matched = moods.find((m) => m.label.toLowerCase() === data.mood.toLowerCase());
+      const matched = moods.find(
+        (m) => m.label.toLowerCase() === data.mood.toLowerCase()
+      );
       setSelectedMood(matched || { label: moodLabel, emoji: "🧠" });
       setDetectedMood(moodLabel);
     } catch (err) {
       console.error("❌ Detection error:", err);
-      alert("⚠️ Mood detection failed.");
+      alert("⚠️ Mood detection failed. Please log in again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // 💾 Save mood
   const saveMood = async () => {
     if (!selectedMood) return alert("⚠️ Please select or detect a mood first!");
 
@@ -63,15 +65,7 @@ export default function MoodScreen() {
 
     setLoading(true);
     try {
-      const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newEntry),
-      });
-
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-      const data = await res.json();
-
+      const res = await API.post("/mood/log", newEntry);
       setEntries((prev) => [newEntry, ...prev]);
       setSelectedMood(null);
       setNote("");
@@ -80,18 +74,17 @@ export default function MoodScreen() {
       fetchSavedLogs();
     } catch (err) {
       console.error("❌ Logging failed:", err);
-      alert("⚠️ Backend error. Is FastAPI running?");
+      alert("⚠️ Failed to save mood. Please log in again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // 📜 Fetch saved logs
   const fetchSavedLogs = async () => {
     try {
-      const res = await fetch("https://loyal-beauty-production.up.railway.app/mood/logs");
-      if (!res.ok) throw new Error("Failed to fetch logs");
-      const data = await res.json();
-      setSavedLogs(data.logs);
+      const res = await API.get("/mood/logs");
+      setSavedLogs(res.data.entries || []);
     } catch (err) {
       console.error("❌ Failed to load saved logs:", err);
     }
@@ -298,7 +291,9 @@ export default function MoodScreen() {
       >
         <h3>🗓️ Mood History</h3>
         {entries.length === 0 ? (
-          <p style={{ color: "#C7C9E0" }}>No mood entries yet. Record how you feel today!</p>
+          <p style={{ color: "#C7C9E0" }}>
+            No mood entries yet. Record how you feel today!
+          </p>
         ) : (
           entries.map((item, index) => (
             <div
@@ -317,36 +312,12 @@ export default function MoodScreen() {
                 📅 {new Date(item.timestamp).toLocaleDateString()}
               </p>
               {item.note && (
-                <p style={{ color: "#EAEAF5", marginTop: 5 }}>📝 {item.note}</p>
+                <p style={{ color: "#EAEAF5", marginTop: 5 }}>
+                  📝 {item.note}
+                </p>
               )}
             </div>
           ))
-        )}
-      </div>
-
-      {/* 📁 Saved Logs */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 600,
-          marginTop: 30,
-          background: "rgba(255,255,255,0.08)",
-          padding: 20,
-          borderRadius: 15,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-        }}
-      >
-        <h3>📁 Saved Mood Logs</h3>
-        {savedLogs.length === 0 ? (
-          <p style={{ color: "#C7C9E0" }}>No saved logs found.</p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {savedLogs.map((log, index) => (
-              <li key={index} style={{ marginBottom: 6 }}>
-                <span style={{ color: "#EAEAF5" }}>{log}</span>
-              </li>
-            ))}
-          </ul>
         )}
       </div>
     </div>
