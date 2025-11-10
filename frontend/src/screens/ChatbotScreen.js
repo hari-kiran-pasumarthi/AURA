@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api"; // ✅ Import your token-based axios instance
 
 export default function ChatbotScreen() {
   const navigate = useNavigate();
-  const API_BASE = "https://loyal-beauty-production.up.railway.app";
 
   const [messages, setMessages] = useState([
     {
@@ -16,7 +16,7 @@ export default function ChatbotScreen() {
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef(null);
 
-  // ✅ Send message to FastAPI backend
+  // ✅ Send message to FastAPI backend (with token)
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -27,17 +27,14 @@ export default function ChatbotScreen() {
     setIsTyping(true);
 
     try {
-      const response = await fetch(`${API_BASE}/chatbot/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: input }),
-      });
+      // ✅ Send authenticated request using API.post()
+      const res = await API.post("/chatbot/", { query: input });
 
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
-      const data = await response.json();
+      const data = res.data;
       const aiResponse =
         data.answer ||
+        data.response ||
+        data.reply ||
         "🤖 Sorry, I couldn’t come up with an answer this time. Try again!";
 
       // Simulate typing delay
@@ -48,19 +45,22 @@ export default function ChatbotScreen() {
       }, 800);
     } catch (error) {
       console.error("❌ Chatbot error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "bot",
-          text: "⚠️ Unable to connect to the AI server. Please try again later.",
-        },
-      ]);
+
+      let errorMessage = "⚠️ Unable to connect to the AI server. Please try again later.";
+
+      if (error.response?.status === 401) {
+        errorMessage = "⚠️ Session expired. Please log in again.";
+        localStorage.removeItem("token");
+        setTimeout(() => (window.location.href = "/login"), 1500);
+      }
+
+      setMessages((prev) => [...prev, { sender: "bot", text: errorMessage }]);
       setIsTyping(false);
       setLoading(false);
     }
   };
 
-  // Auto-scroll
+  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -78,7 +78,7 @@ export default function ChatbotScreen() {
         fontFamily: "'Poppins', sans-serif",
       }}
     >
-      {/* 🔹 Header with Logo */}
+      {/* 🔹 Header */}
       <div
         style={{
           display: "flex",
@@ -225,8 +225,7 @@ export default function ChatbotScreen() {
           onMouseEnter={(e) => {
             if (!loading) e.currentTarget.style.transform = "scale(1.05)";
           }}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-        >
+          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}>
           {loading ? "..." : "Send"}
         </button>
       </div>
