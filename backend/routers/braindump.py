@@ -64,81 +64,109 @@ def save_to_file(input_text: str, response_text: str, user_email: str) -> str:
         data = json.load(f)
         data.append(entry)
         f.seek(0)
-        json.dump(data, f, indent=2)
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
     return file_path
 
 
 async def send_notification_email(user_email: str, organized_text: str):
     """Send async email notifying user their brain dump was processed."""
-    fm = FastMail(conf)
-    subject = "🧠 AURA | Your BrainDump Summary is Ready!"
-    body = f"""
-    <h2>🧘 AURA BrainDump Organized Response</h2>
-    <p><b>Your thoughts have been processed successfully!</b></p>
-    <p>Here's what we generated for you:</p>
-    <blockquote>{organized_text}</blockquote>
-    <hr>
-    <p>Open your AURA app to view and manage all your dumps.</p>
-    """
-    message = MessageSchema(
-        subject=subject,
-        recipients=[user_email],
-        body=body,
-        subtype="html"
-    )
-    await fm.send_message(message)
+    try:
+        fm = FastMail(conf)
+        subject = "🧠 AURA | Your BrainDump Summary is Ready!"
+        body = f"""
+        <h2>🧘 AURA BrainDump Organized Response</h2>
+        <p><b>Your thoughts have been processed successfully!</b></p>
+        <p>Here's what we generated for you:</p>
+        <blockquote>{organized_text}</blockquote>
+        <hr>
+        <p>Open your AURA app to view and manage all your dumps.</p>
+        """
+        message = MessageSchema(
+            subject=subject,
+            recipients=[user_email],
+            body=body,
+            subtype="html",
+        )
+        await fm.send_message(message)
+    except Exception as e:
+        print(f"⚠️ Failed to send email notification: {e}")
 
 
 # ---------- Main Route ----------
 @router.post("/save", response_model=BrainDumpResponse)
 async def save_brain_dump(req: BrainDumpRequest, current_user: User = Depends(get_current_user)):
     """Organize user thoughts and notify via email."""
-    text = req.text.strip().lower()
-    user_email = current_user.email
-
-    if not text:
-        raise HTTPException(status_code=400, detail="Empty brain dump text.")
-
-    # Simple AI-like logic
-    if any(word in text for word in ["study", "exam", "test"]):
-        organized_text = (
-            "📚 You seem worried about your studies. Try organizing your topics into smaller chunks "
-            "and review them one by one. Short, focused sessions work better than long cramming."
+    try:
+        # ✅ Works with both dict and model
+        user_email = (
+            current_user.get("email")
+            if isinstance(current_user, dict)
+            else getattr(current_user, "email", None)
         )
-    elif any(word in text for word in ["project", "work", "deadline"]):
-        organized_text = (
-            "🗂 You’re managing multiple responsibilities. List your pending tasks, set clear priorities, "
-            "and focus on one task at a time to reduce stress."
-        )
-    elif any(word in text for word in ["tired", "anxious", "overwhelmed"]):
-        organized_text = (
-            "💆 It sounds like you’re overwhelmed. Take short breaks and give yourself time to recover. "
-            "Remember, productivity improves when you rest and reset."
-        )
-    else:
-        organized_text = random.choice([
-            "🧠 It looks like your thoughts are scattered. Try writing down 3 key priorities to regain focus.",
-            "✨ Focus on one clear goal right now. Avoid multitasking and reward yourself after completing it.",
-            "📋 Create a short to-do list — start with something easy to build momentum."
-        ])
+        if not user_email:
+            raise HTTPException(status_code=401, detail="Invalid user authentication.")
 
-    # Save locally and record in JSON
-    file_path = save_to_file(req.text, organized_text, user_email)
+        text = req.text.strip().lower()
+        if not text:
+            raise HTTPException(status_code=400, detail="Empty brain dump text.")
 
-    # Send email notification asynchronously
-    asyncio.create_task(send_notification_email(user_email, organized_text))
+        # Simple AI-like logic
+        if any(word in text for word in ["study", "exam", "test"]):
+            organized_text = (
+                "📚 You seem worried about your studies. Try organizing your topics into smaller chunks "
+                "and review them one by one. Short, focused sessions work better than long cramming."
+            )
+        elif any(word in text for word in ["project", "work", "deadline"]):
+            organized_text = (
+                "🗂 You’re managing multiple responsibilities. List your pending tasks, set clear priorities, "
+                "and focus on one task at a time to reduce stress."
+            )
+        elif any(word in text for word in ["tired", "anxious", "overwhelmed"]):
+            organized_text = (
+                "💆 It sounds like you’re overwhelmed. Take short breaks and give yourself time to recover. "
+                "Remember, productivity improves when you rest and reset."
+            )
+        else:
+            organized_text = random.choice([
+                "🧠 It looks like your thoughts are scattered. Try writing down 3 key priorities to regain focus.",
+                "✨ Focus on one clear goal right now. Avoid multitasking and reward yourself after completing it.",
+                "📋 Create a short to-do list — start with something easy to build momentum."
+            ])
 
-    return {"organized_text": organized_text, "file_path": file_path}
+        # Save locally and record in JSON
+        file_path = save_to_file(req.text, organized_text, user_email)
+
+        # Send email notification asynchronously
+        asyncio.create_task(send_notification_email(user_email, organized_text))
+
+        return {"organized_text": organized_text, "file_path": file_path}
+
+    except Exception as e:
+        print(f"❌ BrainDump Save Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Error saving brain dump: {str(e)}")
 
 
 # ---------- Retrieve all dumps for current user ----------
 @router.get("/saved")
 async def get_saved_brain_dumps(current_user: User = Depends(get_current_user)):
     """Return all saved brain dumps for the logged-in user."""
-    _, save_file = ensure_save_paths()
-    with open(save_file, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    user_data = [d for d in data if d["email"] == current_user.email]
-    user_data.sort(key=lambda x: x["timestamp"], reverse=True)
-    return {"entries": user_data}
+    try:
+        _, save_file = ensure_save_paths()
+        with open(save_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        user_email = (
+            current_user.get("email")
+            if isinstance(current_user, dict)
+            else getattr(current_user, "email", None)
+        )
+
+        user_data = [d for d in data if d.get("email") == user_email]
+        user_data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+
+        return {"entries": user_data}
+
+    except Exception as e:
+        print(f"⚠️ Error fetching brain dumps: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve saved brain dumps.")
