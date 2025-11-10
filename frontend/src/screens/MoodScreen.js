@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
-import API, { getMoodLogs } from "../utils/api"; // ✅ import from your api.js
+import API, { getMoodLogs } from "../api"; // ✅ import from your api.js
 
 const moods = [
   { emoji: "😄", label: "Happy" },
