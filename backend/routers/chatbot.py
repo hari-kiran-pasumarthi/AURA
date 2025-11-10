@@ -11,10 +11,11 @@ import asyncio, os, json
 router = APIRouter(prefix="/chatbot", tags=["AI ChatBot"])
 
 # -------------------------------
-# Pydantic Model
+# ✅ Pydantic Model (compatible with both frontend keys)
 # -------------------------------
 class ChatRequest(BaseModel):
-    question: str
+    question: str | None = None
+    query: str | None = None
 
 
 # -------------------------------
@@ -67,13 +68,13 @@ async def send_chat_email(user_email: str, question: str, answer: str):
 
 
 # -------------------------------
-# ChatBot Endpoint
+# 💬 ChatBot Endpoint
 # -------------------------------
 @router.post("/")
 async def chatbot(request: ChatRequest, current_user: User = Depends(get_current_user)):
-    """💬 Handle chat requests and link them to user identity."""
-    user_email = current_user.email
-    user_question = request.question.strip()
+    """Handle chat requests and link them to user identity."""
+    user_email = current_user["email"] if isinstance(current_user, dict) else current_user.email
+    user_question = (request.question or request.query or "").strip()
 
     if not user_question:
         raise HTTPException(status_code=400, detail="Empty question received.")
@@ -81,17 +82,25 @@ async def chatbot(request: ChatRequest, current_user: User = Depends(get_current
     messages = [
         {
             "role": "system",
-            "content": "You are AURA: a Smart Study Assistant AI. Help students with study tips, summaries, explanations, and motivation.",
+            "content": (
+                "You are AURA: a Smart Study Assistant AI. "
+                "Help students with study tips, summaries, explanations, and motivation."
+            ),
         },
         {"role": "user", "content": user_question},
     ]
 
-    # Get AI response
-    answer = ask_gpt(messages)
+    # ✅ Await ask_gpt() if it’s async
+    try:
+        answer = await ask_gpt(messages)
+    except TypeError:
+        # Fallback if ask_gpt is synchronous
+        answer = ask_gpt(messages)
+
     if not answer:
         raise HTTPException(status_code=500, detail="Failed to get response from GPT.")
 
-    # Log conversation
+    # Save chat
     log_chat(user_email, user_question, answer)
 
     # Send chat summary email asynchronously
@@ -106,17 +115,19 @@ async def chatbot(request: ChatRequest, current_user: User = Depends(get_current
 
 
 # -------------------------------
-# Retrieve Saved Chats
+# 📜 Retrieve Chat History
 # -------------------------------
 @router.get("/history")
 async def get_chat_history(current_user: User = Depends(get_current_user)):
-    """📜 Fetch all past chats for the logged-in user."""
+    """Fetch all past chats for the logged-in user."""
     if not os.path.exists(SAVE_PATH):
         return {"entries": []}
 
     with open(SAVE_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    user_chats = [c for c in data if c.get("email") == current_user.email]
+    user_chats = [c for c in data if c.get("email") == (
+        current_user["email"] if isinstance(current_user, dict) else current_user.email
+    )]
     user_chats.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return {"entries": user_chats}
