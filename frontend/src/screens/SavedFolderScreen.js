@@ -71,7 +71,8 @@ export default function SavedFolderScreen() {
           }
         );
         const data = await res.json();
-        setMoodLogs(Array.isArray(data.logs) ? data.logs : []);
+        console.log("📜 Mood logs response:", data);
+        setMoodLogs(Array.isArray(data.entries) ? data.entries : []);
       } catch (err) {
         console.warn("⚠️ Failed to fetch mood logs:", err);
         setMoodLogs([]);
@@ -247,10 +248,10 @@ export default function SavedFolderScreen() {
                 }}
               >
                 <p style={{ margin: 0, fontWeight: 600 }}>
-                  {log.mood || "🧠 Unknown"}
+                  {log.emoji || "🧠"} {log.mood || "Unknown Mood"}
                 </p>
                 <p style={{ margin: "4px 0", color: "#C7C9E0" }}>
-                  {log.notes || "[No note]"}
+                  📝 {log.note || "[No note]"}
                 </p>
                 <p style={{ fontSize: 12, color: "#A8B0D0" }}>
                   🕒 {log.timestamp || "N/A"}
@@ -275,7 +276,6 @@ export default function SavedFolderScreen() {
             alignItems: "center",
             justifyContent: "center",
             zIndex: 999,
-            animation: "fadeIn 0.3s ease",
           }}
         >
           <div
@@ -292,7 +292,6 @@ export default function SavedFolderScreen() {
               color: "#EAEAF5",
               boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
               backdropFilter: "blur(12px)",
-              animation: "slideIn 0.3s ease",
             }}
           >
             <h2>{selectedNote.title || selectedNote.topic || "Untitled"}</h2>
