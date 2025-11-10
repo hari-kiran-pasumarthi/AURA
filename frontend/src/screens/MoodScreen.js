@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
-import API from "../api"; // ✅ Authenticated Axios instance
+import API, { getMoodLogs } from "../utils/api"; // ✅ import from your api.js
 
 const moods = [
   { emoji: "😄", label: "Happy" },
@@ -22,7 +22,7 @@ export default function MoodScreen() {
   const [loading, setLoading] = useState(false);
   const [detectedMood, setDetectedMood] = useState(null);
 
-  // 📸 Detect mood from camera
+  // 🧠 Detect mood using webcam
   const detectMoodFromCamera = async () => {
     const screenshot = webcamRef.current.getScreenshot();
     if (!screenshot) return alert("⚠️ Could not capture image.");
@@ -33,6 +33,7 @@ export default function MoodScreen() {
       const formData = new FormData();
       formData.append("image", blob, "mood.jpg");
 
+      // ✅ Authenticated API call
       const res = await API.post("/mood/detect", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -46,7 +47,7 @@ export default function MoodScreen() {
       setDetectedMood(moodLabel);
     } catch (err) {
       console.error("❌ Detection error:", err);
-      alert("⚠️ Mood detection failed. Please log in again.");
+      alert("⚠️ Mood detection failed or unauthorized.");
     } finally {
       setLoading(false);
     }
@@ -65,7 +66,9 @@ export default function MoodScreen() {
 
     setLoading(true);
     try {
-      const res = await API.post("/mood/log", newEntry);
+      // ✅ Authenticated API call
+      await API.post("/mood/log", newEntry);
+
       setEntries((prev) => [newEntry, ...prev]);
       setSelectedMood(null);
       setNote("");
@@ -74,15 +77,16 @@ export default function MoodScreen() {
       fetchSavedLogs();
     } catch (err) {
       console.error("❌ Logging failed:", err);
-      alert("⚠️ Failed to save mood. Please log in again.");
+      alert("⚠️ Please log in again. Your session may have expired.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 📜 Fetch saved logs
+  // 📜 Fetch user logs
   const fetchSavedLogs = async () => {
     try {
+      // ✅ Authenticated API call
       const res = await API.get("/mood/logs");
       setSavedLogs(res.data.entries || []);
     } catch (err) {
@@ -107,7 +111,7 @@ export default function MoodScreen() {
         padding: 20,
       }}
     >
-      {/* 🔹 Header */}
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -150,7 +154,7 @@ export default function MoodScreen() {
         </div>
       </div>
 
-      {/* 🎥 Webcam Section */}
+      {/* Webcam Section */}
       <div
         style={{
           background: "rgba(255,255,255,0.08)",
@@ -201,7 +205,7 @@ export default function MoodScreen() {
         )}
       </div>
 
-      {/* 😄 Mood Selection */}
+      {/* Manual Mood Selection */}
       <h3 style={{ marginBottom: 10 }}>Select Mood Manually</h3>
       <div
         style={{
@@ -235,7 +239,7 @@ export default function MoodScreen() {
         ))}
       </div>
 
-      {/* ✍️ Note */}
+      {/* Note Input */}
       <textarea
         placeholder="Add a short note about your day (optional)"
         value={note}
@@ -254,7 +258,7 @@ export default function MoodScreen() {
           resize: "none",
           backdropFilter: "blur(8px)",
         }}
-      ></textarea>
+      />
 
       <button
         onClick={saveMood}
@@ -276,50 +280,6 @@ export default function MoodScreen() {
       >
         {loading ? "⏳ Saving..." : "💾 Save Mood"}
       </button>
-
-      {/* 🗓 Mood History */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 600,
-          background: "rgba(255,255,255,0.08)",
-          padding: 20,
-          borderRadius: 15,
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-        }}
-      >
-        <h3>🗓️ Mood History</h3>
-        {entries.length === 0 ? (
-          <p style={{ color: "#C7C9E0" }}>
-            No mood entries yet. Record how you feel today!
-          </p>
-        ) : (
-          entries.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                background: "rgba(255,255,255,0.1)",
-                borderRadius: 10,
-                padding: 12,
-                marginBottom: 8,
-              }}
-            >
-              <p style={{ fontSize: 18 }}>
-                {item.emoji} {item.mood}
-              </p>
-              <p style={{ color: "#C7C9E0", margin: "4px 0" }}>
-                📅 {new Date(item.timestamp).toLocaleDateString()}
-              </p>
-              {item.note && (
-                <p style={{ color: "#EAEAF5", marginTop: 5 }}>
-                  📝 {item.note}
-                </p>
-              )}
-            </div>
-          ))
-        )}
-      </div>
     </div>
   );
 }
