@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 export default function AutoNoteScreen() {
   const API_BASE = "https://loyal-beauty-production.up.railway.app";
@@ -10,9 +10,13 @@ export default function AutoNoteScreen() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [transcribing, setTranscribing] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+  const timerRef = useRef(null);
 
   // 🧩 Auth helper
   const getAuthHeaders = (isJSON = true) => {
@@ -41,18 +45,31 @@ export default function AutoNoteScreen() {
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioBlob(blob);
+        setRecording(false);
+        clearInterval(timerRef.current);
       };
+
       mediaRecorder.start();
-      alert("🎙️ Recording started!");
+      setRecording(true);
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
     } catch (err) {
-      alert("Microphone permission denied.");
+      alert("🎤 Microphone permission denied. Please enable it and retry.");
+      console.error(err);
     }
   };
 
   // 🛑 Stop Recording
   const stopRecording = () => {
     if (mediaRecorderRef.current) mediaRecorderRef.current.stop();
-    alert("Recording stopped!");
+    setRecording(false);
+  };
+
+  // ⏱ Format timer
+  const formatTime = (s) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec < 10 ? "0" + sec : sec}`;
   };
 
   // ✨ Summarize Text
@@ -78,6 +95,7 @@ export default function AutoNoteScreen() {
   // 🎧 Summarize Audio
   const summarizeAudio = async () => {
     if (!audioBlob) return alert("Record audio first!");
+    setTranscribing(true);
     const formData = new FormData();
     formData.append("file", audioBlob, "lecture.webm");
 
@@ -92,6 +110,8 @@ export default function AutoNoteScreen() {
       setSummary(formatSummary(data));
     } catch (err) {
       alert(`⚠️ ${err.message}`);
+    } finally {
+      setTranscribing(false);
     }
   };
 
@@ -144,6 +164,10 @@ export default function AutoNoteScreen() {
     return `📋 Summary:\n${data.summary}\n\n⭐ Highlights:\n${highlights}\n\n🔹 Bullets:\n${bullets}`;
   };
 
+  useEffect(() => {
+    return () => clearInterval(timerRef.current);
+  }, []);
+
   return (
     <div
       style={{
@@ -152,7 +176,6 @@ export default function AutoNoteScreen() {
         color: "#EAEAF5",
         padding: 20,
         fontFamily: "'Poppins', sans-serif",
-        overflowX: "hidden",
       }}
     >
       {/* 🌌 Header */}
@@ -172,13 +195,55 @@ export default function AutoNoteScreen() {
         </p>
       </div>
 
-      {/* 📝 Text Summarization */}
+      {/* 🎧 Audio Recorder */}
       <div
         style={{
           background: "rgba(255,255,255,0.08)",
           borderRadius: 20,
           padding: 20,
-          backdropFilter: "blur(10px)",
+          marginBottom: 30,
+          textAlign: "center",
+          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
+        }}
+      >
+        <h3>🎧 Audio Recorder</h3>
+        <p style={{ margin: "10px 0", fontSize: 16 }}>
+          {recording ? `⏱ Recording... (${formatTime(recordingTime)})` : "Press start to begin"}
+        </p>
+        <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+          <button onClick={startRecording} disabled={recording} style={btnStyle("#2563EB")}>
+            🎙️ Start
+          </button>
+          <button onClick={stopRecording} disabled={!recording} style={btnStyle("#DC2626")}>
+            🛑 Stop
+          </button>
+        </div>
+
+        {audioBlob && (
+          <>
+            <audio
+              controls
+              src={URL.createObjectURL(audioBlob)}
+              style={{ marginTop: 15, width: "100%" }}
+            />
+            <button
+              onClick={summarizeAudio}
+              disabled={transcribing}
+              style={btnStyle("#22C55E")}
+            >
+              {transcribing ? "⏳ Transcribing..." : "✨ Summarize Audio"}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* 📝 Text and File Summarization sections (unchanged) */}
+      {/* 🧾 Text Input */}
+      <div
+        style={{
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 20,
+          padding: 20,
           boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
           marginBottom: 30,
         }}
@@ -197,60 +262,11 @@ export default function AutoNoteScreen() {
             color: "#EAEAF5",
             padding: 10,
             fontSize: 15,
-            marginTop: 10,
           }}
         />
-        <button
-          onClick={summarizeText}
-          disabled={loadingText}
-          style={{
-            marginTop: 15,
-            padding: "10px 16px",
-            border: "none",
-            borderRadius: 10,
-            background: "#6C63FF",
-            color: "#fff",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
+        <button onClick={summarizeText} disabled={loadingText} style={btnStyle("#6C63FF")}>
           {loadingText ? "⏳ Summarizing..." : "✨ Summarize Text"}
         </button>
-      </div>
-
-      {/* 🎧 Audio Summarizer */}
-      <div
-        style={{
-          background: "rgba(255,255,255,0.08)",
-          borderRadius: 20,
-          padding: 20,
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
-          marginBottom: 30,
-        }}
-      >
-        <h3>🎧 Audio Summarizer</h3>
-        <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
-          <button
-            onClick={startRecording}
-            style={btnStyle("#2563EB")}
-          >
-            🎙️ Start Recording
-          </button>
-          <button
-            onClick={stopRecording}
-            style={btnStyle("#DC2626")}
-          >
-            🛑 Stop
-          </button>
-          <button
-            onClick={summarizeAudio}
-            disabled={!audioBlob}
-            style={btnStyle("#22C55E")}
-          >
-            ✨ Summarize Audio
-          </button>
-        </div>
       </div>
 
       {/* 📄 File Summarizer */}
@@ -259,7 +275,6 @@ export default function AutoNoteScreen() {
           background: "rgba(255,255,255,0.08)",
           borderRadius: 20,
           padding: 20,
-          backdropFilter: "blur(10px)",
           boxShadow: "0 4px 25px rgba(0,0,0,0.3)",
         }}
       >
@@ -273,22 +288,13 @@ export default function AutoNoteScreen() {
         <button
           onClick={summarizeFile}
           disabled={!file || uploading}
-          style={{
-            marginTop: 15,
-            padding: "10px 16px",
-            borderRadius: 10,
-            border: "none",
-            background: "#16A34A",
-            color: "#fff",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
+          style={btnStyle("#16A34A")}
         >
           {uploading ? "⏳ Processing..." : "✨ Summarize File"}
         </button>
       </div>
 
-      {/* 📘 Summary Output */}
+      {/* 📘 Summary */}
       {summary && (
         <div
           style={{
@@ -300,9 +306,7 @@ export default function AutoNoteScreen() {
           }}
         >
           <h3>📘 Summary</h3>
-          <pre style={{ whiteSpace: "pre-wrap", color: "#EAEAF5" }}>
-            {summary}
-          </pre>
+          <pre style={{ whiteSpace: "pre-wrap", color: "#EAEAF5" }}>{summary}</pre>
           <button
             onClick={saveNote}
             style={{
@@ -324,7 +328,7 @@ export default function AutoNoteScreen() {
   );
 }
 
-// 🔧 Shared button style helper
+// 🔧 Button Style Helper
 const btnStyle = (color) => ({
   background: color,
   color: "#fff",
@@ -333,4 +337,5 @@ const btnStyle = (color) => ({
   padding: "10px 16px",
   fontWeight: 600,
   cursor: "pointer",
+  boxShadow: "0 3px 10px rgba(0,0,0,0.3)",
 });
