@@ -9,7 +9,8 @@ from datetime import datetime
 import os, json, asyncio, statistics, time
 
 # Optional Camera-based detection (OpenCV + Mediapipe)
-import cv2, mediapipe as mp
+import mediapipe_silicon as mp
+
 
 router = APIRouter(prefix="/focus", tags=["FocusSense"])
 
