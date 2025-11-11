@@ -1,5 +1,5 @@
 # ============================================================
-# ⚙️  AURA Backend - Unified Stable Requirements (2025)
+# ⚙️  AURA Backend - Universal Stable Requirements (Python 3.13)
 # ============================================================
 
 # -------------------------------
@@ -32,7 +32,7 @@ fastapi-mail==1.5.8
 apscheduler==3.11.1
 
 # -------------------------------
-# 🧠 Machine Learning / NLP (Balanced Size)
+# 🧠 Machine Learning / NLP
 # -------------------------------
 numpy==2.2.6
 pandas==2.3.3
@@ -45,7 +45,7 @@ sumy==0.11.0
 rake_nltk==1.0.6
 
 # -------------------------------
-# 🖥️ Vision + Audio + OCR (Optimized)
+# 🖥️ Vision + Audio + OCR
 # -------------------------------
 opencv-python==4.12.0.88
 pytesseract==0.3.13
@@ -58,33 +58,26 @@ ffmpeg-python==0.2.0
 # -------------------------------
 # 🎙️ Whisper / Speech Modules
 # -------------------------------
-# The openai-whisper package is lighter and Py3.13-compatible
 openai-whisper==20250625
-# whisper package may fallback to this if versioning issues occur
 whisper==1.1.10
 
 # -------------------------------
-# 🤖 AI Connectors (Cloud-based Inference)
+# 🤖 AI Connectors
 # -------------------------------
 openai==2.7.2
 groq==0.33.0
 ollama==0.6.0
 
 # -------------------------------
-# 🧬 Deep Learning (Lighter Build)
+# 🧬 Deep Learning (Python 3.13-safe builds)
 # -------------------------------
-# Avoid massive CUDA wheels — these are CPU-only, cloud-safe
 tensorflow-cpu==2.20.0
-torch==2.3.1
+torch==2.9.0          # ✅ Python 3.13 compatible CPU build
 tf_keras==2.20.1
-
-# -------------------------------
-# 🧍 Emotion & Face Recognition (Optional)
-# -------------------------------
 deepface==0.0.95
 
 # -------------------------------
-# 🧰 System & Utility
+# 🧰 Utilities
 # -------------------------------
 psutil==7.1.3
 PyPDF2==3.0.1
