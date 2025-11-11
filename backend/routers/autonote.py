@@ -32,27 +32,38 @@ if not os.path.exists(SAVE_FILE):
         json.dump([], f, indent=2)
 
 # ---------------------------
-# Email notifier
+# Email notifier (Safe Async)
 # ---------------------------
 async def send_summary_email(user_email: str, title: str, summary: str):
-    fm = FastMail(conf)
-    subject = f"AURA | Your AutoNote '{title}' has been summarized!"
-    body = f"""
-    <h2>🧠 AURA AutoNote Summary Ready</h2>
-    <p><b>Title:</b> {title}</p>
-    <p><b>Summary:</b></p>
-    <p>{summary[:500]}...</p>
-    <hr>
-    <p>Open your AURA app to view full highlights and notes.</p>
-    <p style="color:gray;font-size:12px;">This is an automated message from AURA.</p>
-    """
-    message = MessageSchema(
-        subject=subject,
-        recipients=[user_email],
-        body=body,
-        subtype="html",
-    )
-    await fm.send_message(message)
+    """Sends summary email safely (won’t crash if email server is unreachable)."""
+    if os.getenv("DISABLE_EMAILS", "false").lower() == "true":
+        print(f"📭 Email sending disabled for {user_email}")
+        return
+
+    try:
+        fm = FastMail(conf)
+        subject = f"AURA | Your AutoNote '{title}' has been summarized!"
+        body = f"""
+        <h2>🧠 AURA AutoNote Summary Ready</h2>
+        <p><b>Title:</b> {title}</p>
+        <p><b>Summary:</b></p>
+        <p>{summary[:500]}...</p>
+        <hr>
+        <p>Open your AURA app to view full highlights and notes.</p>
+        <p style="color:gray;font-size:12px;">This is an automated message from AURA.</p>
+        """
+        message = MessageSchema(
+            subject=subject,
+            recipients=[user_email],
+            body=body,
+            subtype="html",
+        )
+        await fm.send_message(message)
+        print(f"📨 Email sent successfully to {user_email}")
+    except Exception as e:
+        print(f"⚠️ Email sending failed: {e}")
+        # Don’t crash if email fails
+        return
 
 # ---------------------------
 # Helpers
@@ -63,7 +74,7 @@ def flatten_list(items):
     return []
 
 def save_autonote_to_server(title, transcript, summary, highlights, bullets, user_email):
-    """Save summarized note to JSON and send email."""
+    """Save summarized note to JSON and send email safely."""
     try:
         entry = {
             "id": datetime.utcnow().strftime("%Y%m%d%H%M%S"),
@@ -84,6 +95,7 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets, use
             f.seek(0)
             json.dump(data, f, indent=2, ensure_ascii=False)
 
+        # Run email in background safely
         asyncio.create_task(send_summary_email(user_email, title, summary))
         print(f"✅ AutoNote saved for {user_email}")
 
@@ -126,7 +138,7 @@ Text:
             bullets = flatten_list(parsed.get("bullets", []))
             save_autonote_to_server("AutoNote Summary", text, summary, highlights, bullets, user_email)
             return {"summary": summary, "highlights": highlights, "bullets": bullets}
-        raise ValueError("Invalid JSON output")
+        raise ValueError("Invalid JSON output from AI model")
 
     except Exception as e:
         raise HTTPException(500, f"Summarization failed: {e}")
@@ -134,7 +146,6 @@ Text:
 # ---------------------------
 # Endpoints
 # ---------------------------
-
 @router.post("/transcribe")
 async def summarize_text(req: dict, current_user: dict = Depends(get_current_user)):
     text = req.get("text", "")
@@ -144,17 +155,13 @@ async def summarize_text(req: dict, current_user: dict = Depends(get_current_use
 
 
 @router.post("/audio")
-async def summarize_audio(
-    file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
-):
+async def summarize_audio(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     """🎙 Convert audio to text using Whisper and summarize it."""
     try:
         filename = file.filename.lower()
         if not any(filename.endswith(ext) for ext in [".mp3", ".wav", ".m4a", ".webm"]):
             raise HTTPException(400, "Unsupported file type. Please upload MP3, WAV, M4A, or WEBM files.")
 
-        # ✅ Save temporary audio file
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_audio:
             file_data = await file.read()
             if not file_data:
@@ -162,25 +169,14 @@ async def summarize_audio(
             temp_audio.write(file_data)
             temp_audio_path = temp_audio.name
 
-        # ✅ Load Whisper model
-        try:
-            model = whisper.load_model("base")
-        except Exception as e:
-            raise HTTPException(500, f"Whisper model failed to load: {e}")
-
-        # ✅ Transcribe
-        try:
-            result = model.transcribe(temp_audio_path)
-        except Exception as e:
-            raise HTTPException(500, f"Audio transcription failed: {e}")
-        finally:
-            os.remove(temp_audio_path)
+        model = whisper.load_model("base")
+        result = model.transcribe(temp_audio_path)
+        os.remove(temp_audio_path)
 
         transcript = result.get("text", "").strip()
         if not transcript:
             raise HTTPException(400, "Audio could not be transcribed. Please use clearer speech or another format.")
 
-        # ✅ Summarize
         summary_data = summarize_content(transcript, current_user["email"])
         return {"transcript": transcript, **summary_data}
 
