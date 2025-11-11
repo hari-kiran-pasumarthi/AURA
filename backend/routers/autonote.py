@@ -62,7 +62,6 @@ async def send_summary_email(user_email: str, title: str, summary: str):
         print(f"📨 Email sent successfully to {user_email}")
     except Exception as e:
         print(f"⚠️ Email sending failed: {e}")
-        # Don’t crash if email fails
         return
 
 # ---------------------------
@@ -95,7 +94,6 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets, use
             f.seek(0)
             json.dump(data, f, indent=2, ensure_ascii=False)
 
-        # Run email in background safely
         asyncio.create_task(send_summary_email(user_email, title, summary))
         print(f"✅ AutoNote saved for {user_email}")
 
@@ -103,45 +101,86 @@ def save_autonote_to_server(title, transcript, summary, highlights, bullets, use
         print(f"⚠️ Failed to save AutoNote: {e}")
 
 # ---------------------------
-# Summarization (Groq)
+# Chunked Summarization (Handles long text)
 # ---------------------------
 def summarize_content(text: str, user_email: str):
     if not text.strip():
         raise HTTPException(400, "Input text is empty.")
 
-    prompt = f"""
-You are an intelligent study assistant.
-Summarize the following text clearly.
+    MAX_CHARS = 6000  # split for Groq
+    chunks = [text[i:i + MAX_CHARS] for i in range(0, len(text), MAX_CHARS)]
+    summaries, highlights_all, bullets_all = [], [], []
 
-Output ONLY valid JSON in this format:
+    print(f"🧠 Summarizing {len(chunks)} chunks for {user_email}...")
+
+    for idx, chunk in enumerate(chunks, start=1):
+        prompt = f"""
+You are a smart academic summarizer.
+Summarize clearly and concisely.
+
+Return valid JSON:
 {{
-  "summary": "<short summary>",
-  "highlights": ["<3–5 key phrases>"],
-  "bullets": ["<short study points>"]
+  "summary": "<summary of this part>",
+  "highlights": ["<keywords>"],
+  "bullets": ["<study points>"]
 }}
 
-Text:
-\"\"\"{text}\"\"\""""
+Text (Part {idx}/{len(chunks)}):
+\"\"\"{chunk}\"\"\""""
+
+        try:
+            response = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.0,
+            )
+            ai_output = response.choices[0].message.content.strip()
+            start, end = ai_output.find("{"), ai_output.rfind("}")
+            if start != -1 and end != -1:
+                parsed = json.loads(ai_output[start:end + 1])
+                summaries.append(parsed.get("summary", ""))
+                highlights_all.extend(flatten_list(parsed.get("highlights", [])))
+                bullets_all.extend(flatten_list(parsed.get("bullets", [])))
+        except Exception as e:
+            print(f"⚠️ Chunk {idx} failed: {e}")
+
+    # Merge summaries
+    combined_summary = "\n".join(summaries)
+    merge_prompt = f"""
+Combine these partial summaries into one final academic summary.
+
+Return JSON:
+{{
+  "summary": "<final summary>",
+  "highlights": ["<key themes>"],
+  "bullets": ["<main points>"]
+}}
+
+Summaries:
+{combined_summary}
+"""
 
     try:
         response = client.chat.completions.create(
             model=MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": merge_prompt}],
             temperature=0.0,
         )
-        ai_output = response.choices[0].message.content.strip()
-        start, end = ai_output.find("{"), ai_output.rfind("}")
+        merged_output = response.choices[0].message.content.strip()
+        start, end = merged_output.find("{"), merged_output.rfind("}")
         if start != -1 and end != -1:
-            parsed = json.loads(ai_output[start:end+1])
-            summary = parsed.get("summary", "").strip()
-            highlights = flatten_list(parsed.get("highlights", []))
-            bullets = flatten_list(parsed.get("bullets", []))
-            save_autonote_to_server("AutoNote Summary", text, summary, highlights, bullets, user_email)
-            return {"summary": summary, "highlights": highlights, "bullets": bullets}
-        raise ValueError("Invalid JSON output from AI model")
-
+            parsed = json.loads(merged_output[start:end + 1])
+            summary = parsed.get("summary", combined_summary)
+            highlights = list(set(highlights_all + flatten_list(parsed.get("highlights", []))))
+            bullets = list(set(bullets_all + flatten_list(parsed.get("bullets", []))))
+        else:
+            summary, highlights, bullets = combined_summary, highlights_all, bullets_all
     except Exception as e:
-        raise HTTPException(500, f"Summarization failed: {e}")
+        print(f"⚠️ Merge failed: {e}")
+        summary, highlights, bullets = combined_summary, highlights_all, bullets_all
+
+    save_autonote_to_server("AutoNote Summary", text, summary, highlights, bullets, user_email)
+    return {"summary": summary, "highlights": highlights, "bullets": bullets}
 
 # ---------------------------
 # Endpoints
@@ -156,32 +195,31 @@ async def summarize_text(req: dict, current_user: dict = Depends(get_current_use
 
 @router.post("/audio")
 async def summarize_audio(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
-    """🎙 Convert audio to text using Whisper and summarize it."""
+    """🎙 Convert audio to text using Whisper and summarize."""
     try:
         filename = file.filename.lower()
         if not any(filename.endswith(ext) for ext in [".mp3", ".wav", ".m4a", ".webm"]):
-            raise HTTPException(400, "Unsupported file type. Please upload MP3, WAV, M4A, or WEBM files.")
+            raise HTTPException(400, "Unsupported file type. Upload MP3, WAV, M4A, or WEBM.")
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_audio:
-            file_data = await file.read()
-            if not file_data:
-                raise HTTPException(400, "Empty file uploaded. Please record or select a valid audio file.")
-            temp_audio.write(file_data)
+            data = await file.read()
+            if not data:
+                raise HTTPException(400, "Empty file uploaded.")
+            temp_audio.write(data)
             temp_audio_path = temp_audio.name
 
+        # Whisper chunked transcription for long audios
         model = whisper.load_model("base")
-        result = model.transcribe(temp_audio_path)
+        result = model.transcribe(temp_audio_path, verbose=False, chunk_length=30)
         os.remove(temp_audio_path)
 
         transcript = result.get("text", "").strip()
         if not transcript:
-            raise HTTPException(400, "Audio could not be transcribed. Please use clearer speech or another format.")
+            raise HTTPException(400, "Audio could not be transcribed clearly.")
 
         summary_data = summarize_content(transcript, current_user["email"])
         return {"transcript": transcript, **summary_data}
 
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(500, f"Audio processing failed: {e}")
 
