@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.responses import FileResponse
 from backend.routers.auth import get_current_user
@@ -64,6 +63,7 @@ def flatten_list(items):
     return []
 
 def save_autonote_to_server(title, transcript, summary, highlights, bullets, user_email):
+    """Save summarized note to JSON and send email."""
     try:
         entry = {
             "id": datetime.utcnow().strftime("%Y%m%d%H%M%S"),
@@ -134,6 +134,7 @@ Text:
 # ---------------------------
 # Endpoints
 # ---------------------------
+
 @router.post("/transcribe")
 async def summarize_text(req: dict, current_user: dict = Depends(get_current_user)):
     text = req.get("text", "")
@@ -143,22 +144,55 @@ async def summarize_text(req: dict, current_user: dict = Depends(get_current_use
 
 
 @router.post("/audio")
-async def summarize_audio(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
-        temp_audio.write(await file.read())
-        temp_audio_path = temp_audio.name
+async def summarize_audio(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """🎙 Convert audio to text using Whisper and summarize it."""
+    try:
+        filename = file.filename.lower()
+        if not any(filename.endswith(ext) for ext in [".mp3", ".wav", ".m4a", ".webm"]):
+            raise HTTPException(400, "Unsupported file type. Please upload MP3, WAV, M4A, or WEBM files.")
 
-    model = whisper.load_model("base")
-    result = model.transcribe(temp_audio_path)
-    os.remove(temp_audio_path)
+        # ✅ Save temporary audio file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_audio:
+            file_data = await file.read()
+            if not file_data:
+                raise HTTPException(400, "Empty file uploaded. Please record or select a valid audio file.")
+            temp_audio.write(file_data)
+            temp_audio_path = temp_audio.name
 
-    transcript = result.get("text", "")
-    summary_data = summarize_content(transcript, current_user["email"])
-    return {"transcript": transcript, **summary_data}
+        # ✅ Load Whisper model
+        try:
+            model = whisper.load_model("base")
+        except Exception as e:
+            raise HTTPException(500, f"Whisper model failed to load: {e}")
+
+        # ✅ Transcribe
+        try:
+            result = model.transcribe(temp_audio_path)
+        except Exception as e:
+            raise HTTPException(500, f"Audio transcription failed: {e}")
+        finally:
+            os.remove(temp_audio_path)
+
+        transcript = result.get("text", "").strip()
+        if not transcript:
+            raise HTTPException(400, "Audio could not be transcribed. Please use clearer speech or another format.")
+
+        # ✅ Summarize
+        summary_data = summarize_content(transcript, current_user["email"])
+        return {"transcript": transcript, **summary_data}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Audio processing failed: {e}")
 
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    """📄 Handle text/PDF uploads for summarization."""
     try:
         filename = file.filename.lower()
         if filename.endswith(".txt"):
