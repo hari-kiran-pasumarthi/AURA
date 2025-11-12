@@ -58,20 +58,28 @@ async def generate_plan(req: PlannerRequest = Body(...), current_user: dict = De
         if not req.tasks or len(req.tasks) == 0:
             raise HTTPException(status_code=400, detail="No tasks provided. Please include at least one task.")
 
-        # 🧭 Log and validate datetime values from frontend
+        # 🧭 Safely validate datetime values (accept both string & datetime)
         for t in req.tasks:
-            if not isinstance(t.due, datetime):
+            if isinstance(t.due, str):
+                try:
+                    t.due = datetime.fromisoformat(t.due)
+                except Exception:
+                    raise HTTPException(status_code=400, detail=f"Invalid due datetime for task '{t.name}'")
+            elif not isinstance(t.due, datetime) and t.due is not None:
                 raise HTTPException(status_code=400, detail=f"Invalid datetime format for task '{t.name}'")
-            print(f"📘 Task: {t.name} | Due: {t.due.isoformat()} | Difficulty: {t.difficulty}")
 
-        # Call planner logic
+            print(f"📘 Task: {t.name} | Due: {t.due} | Difficulty: {t.difficulty}")
+
+        # Generate plan using smart planner
         response = planner.generate(req)
-        print(f"✅ Plan generated successfully for {current_user['email']}")
+        print(f"✅ Plan generated successfully for {current_user['email']} ({len(response.schedule)} days)")
 
-        # Send notification email asynchronously
+        # Send email asynchronously
         asyncio.create_task(send_planner_email(current_user["email"], "Your AI Study Plan is Ready!", response.schedule))
 
         return response
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Planner generation error: {e}")
         raise HTTPException(status_code=500, detail=f"Planner generation failed: {str(e)}")
@@ -162,7 +170,6 @@ async def get_upcoming_plans(current_user: dict = Depends(get_current_user)):
                 try:
                     sessions = session.get("blocks", []) if "blocks" in session else [session]
                     for s in sessions:
-                        # 🔄 Handle start_time correctly
                         session_time_str = f"{plan['date']} {s.get('start_time', '00:00')}"
                         session_time = datetime.strptime(session_time_str, "%Y-%m-%d %H:%M")
                         if now <= session_time <= now + timedelta(minutes=5):
