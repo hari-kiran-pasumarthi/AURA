@@ -58,8 +58,15 @@ async def generate_plan(req: PlannerRequest = Body(...), current_user: dict = De
         if not req.tasks or len(req.tasks) == 0:
             raise HTTPException(status_code=400, detail="No tasks provided. Please include at least one task.")
 
+        # 🧭 Log and validate datetime values from frontend
+        for t in req.tasks:
+            if not isinstance(t.due, datetime):
+                raise HTTPException(status_code=400, detail=f"Invalid datetime format for task '{t.name}'")
+            print(f"📘 Task: {t.name} | Due: {t.due.isoformat()} | Difficulty: {t.difficulty}")
+
+        # Call planner logic
         response = planner.generate(req)
-        print(f"✅ Plan generated for {current_user['email']}")
+        print(f"✅ Plan generated successfully for {current_user['email']}")
 
         # Send notification email asynchronously
         asyncio.create_task(send_planner_email(current_user["email"], "Your AI Study Plan is Ready!", response.schedule))
@@ -155,7 +162,9 @@ async def get_upcoming_plans(current_user: dict = Depends(get_current_user)):
                 try:
                     sessions = session.get("blocks", []) if "blocks" in session else [session]
                     for s in sessions:
-                        session_time = datetime.strptime(f"{plan['date']} {s['start_time']}", "%Y-%m-%d %H:%M")
+                        # 🔄 Handle start_time correctly
+                        session_time_str = f"{plan['date']} {s.get('start_time', '00:00')}"
+                        session_time = datetime.strptime(session_time_str, "%Y-%m-%d %H:%M")
                         if now <= session_time <= now + timedelta(minutes=5):
                             upcoming.append({
                                 "summary": plan["summary"],
@@ -175,11 +184,18 @@ async def get_upcoming_plans(current_user: dict = Depends(get_current_user)):
 # ---------------------------
 @router.post("/tasks/add")
 async def add_task(task: dict, current_user: dict = Depends(get_current_user)):
-    """Add a new task to the planner."""
+    """Add a new task to the planner (supports datetime)."""
     try:
         task["created_at"] = datetime.utcnow().isoformat()
         task["email"] = current_user["email"]
         task["status"] = "pending"
+
+        # Ensure due is valid datetime
+        if "due" in task:
+            try:
+                datetime.fromisoformat(task["due"])
+            except Exception:
+                raise HTTPException(400, f"Invalid datetime format for due: {task['due']}")
 
         with open(TASKS_FILE, "r+", encoding="utf-8") as f:
             data = json.load(f)
