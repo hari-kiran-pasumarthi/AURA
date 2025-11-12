@@ -13,12 +13,14 @@ class TranscriptResponse(BaseModel):
 
 # ---------- Focus ----------
 class FocusEvent(BaseModel):
-    timestamp: float
+    timestamp: Optional[float] = None  # 👈 make optional
     app: str
     is_study_app: bool
     keys_per_min: float
     mouse_clicks: int
     window_changes: int
+    camera_focus: Optional[bool] = None  # 👈 optional camera data support
+
 
 class FocusSuggestResponse(BaseModel):
     focused: bool
