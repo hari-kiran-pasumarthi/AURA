@@ -63,7 +63,7 @@ export default function FocusScreen() {
     setCameraActive(false);
   };
 
-  // ✅ Face visibility check (simple mock indicator)
+  // ✅ Face visibility check
   useEffect(() => {
     let interval;
     if (cameraActive) {
@@ -107,7 +107,7 @@ export default function FocusScreen() {
     };
   }, [isRunning]);
 
-  // ✅ Send telemetry every 15s (mock + webcam + JWT)
+  // ✅ Send telemetry every 15s
   useEffect(() => {
     let telemetryInterval;
     if (isRunning) {
@@ -115,6 +115,7 @@ export default function FocusScreen() {
         try {
           const telemetryData = [
             {
+              timestamp: Date.now() / 1000, // ✅ add timestamp (seconds)
               keys_per_min: Math.floor(Math.random() * 100),
               mouse_clicks: Math.floor(Math.random() * 10),
               window_changes: Math.floor(Math.random() * 3),
@@ -139,9 +140,11 @@ export default function FocusScreen() {
           if (res.status === 401) {
             console.warn("⚠️ Session expired — switching to guest mode.");
             localStorage.removeItem("token");
+          } else if (!res.ok) {
+            console.warn("⚠️ Telemetry send failed:", res.status);
+          } else {
+            console.log("✅ Telemetry sent successfully");
           }
-
-          if (res.ok) console.log("✅ Telemetry sent successfully");
         } catch (err) {
           console.error("❌ Telemetry error:", err);
         }
@@ -175,7 +178,6 @@ export default function FocusScreen() {
     return () => poll && clearInterval(poll);
   }, [isRunning]);
 
-  // ✅ Manual analysis
   const handleFocusAnalysis = async () => {
     setLoading(true);
     setFeedback("Analyzing your focus...");
