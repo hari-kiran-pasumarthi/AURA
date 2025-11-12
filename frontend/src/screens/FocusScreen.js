@@ -13,11 +13,12 @@ export default function FocusScreen() {
   const [loading, setLoading] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [faceVisible, setFaceVisible] = useState(false);
+  const [progress, setProgress] = useState(0);
   const timerRef = useRef(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
-  // ✅ Agent check
+  // ✅ Check backend agent status
   useEffect(() => {
     const checkAgent = async () => {
       try {
@@ -50,6 +51,7 @@ export default function FocusScreen() {
     }
     if (isRunning) startCamera();
     else stopCamera();
+
     return () => stopCamera();
   }, [isRunning]);
 
@@ -61,7 +63,7 @@ export default function FocusScreen() {
     setCameraActive(false);
   };
 
-  // ✅ Face visibility check
+  // ✅ Face visibility check (simple mock indicator)
   useEffect(() => {
     let interval;
     if (cameraActive) {
@@ -76,29 +78,36 @@ export default function FocusScreen() {
     return () => clearInterval(interval);
   }, [cameraActive]);
 
-  // ✅ Timer logic
+  // ✅ Timer logic with cleanup & progress tracking
   useEffect(() => {
-    if (isRunning) {
+    if (isRunning && !timerRef.current) {
       timerRef.current = setInterval(() => {
         setSeconds((prev) => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
+            timerRef.current = null;
             setIsRunning(false);
             setSessions((s) => s + 1);
             handleFocusAnalysis();
             alert("✅ Focus session complete! Take a short break.");
             return 25 * 60;
           }
-          return prev - 1;
+          const newSeconds = prev - 1;
+          setProgress(((25 * 60 - newSeconds) / (25 * 60)) * 100);
+          return newSeconds;
         });
       }, 1000);
-    } else {
+    } else if (!isRunning) {
       clearInterval(timerRef.current);
+      timerRef.current = null;
     }
-    return () => clearInterval(timerRef.current);
+    return () => {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    };
   }, [isRunning]);
 
-  // ✅ Send telemetry periodically (mock + webcam + JWT)
+  // ✅ Send telemetry every 15s (mock + webcam + JWT)
   useEffect(() => {
     let telemetryInterval;
     if (isRunning) {
@@ -116,7 +125,7 @@ export default function FocusScreen() {
           ];
 
           const token = localStorage.getItem("token");
-          console.log("🔍 Sending Telemetry with Token:", token ? "Present ✅" : "Missing ❌");
+          console.log("🔍 Sending Telemetry with Token:", token ? "✅ Present" : "❌ Missing");
 
           const res = await fetch("https://loyal-beauty-production.up.railway.app/focus/telemetry", {
             method: "POST",
@@ -127,11 +136,12 @@ export default function FocusScreen() {
             body: JSON.stringify(telemetryData),
           });
 
-          if (!res.ok) {
-            console.warn("⚠️ Telemetry send failed:", res.status);
-          } else {
-            console.log("✅ Telemetry sent successfully");
+          if (res.status === 401) {
+            console.warn("⚠️ Session expired — switching to guest mode.");
+            localStorage.removeItem("token");
           }
+
+          if (res.ok) console.log("✅ Telemetry sent successfully");
         } catch (err) {
           console.error("❌ Telemetry error:", err);
         }
@@ -140,7 +150,7 @@ export default function FocusScreen() {
     return () => telemetryInterval && clearInterval(telemetryInterval);
   }, [isRunning, faceVisible]);
 
-  // ✅ Poll live focus updates
+  // ✅ Poll for latest focus results (every 10s)
   useEffect(() => {
     let poll;
     if (isRunning) {
@@ -165,6 +175,7 @@ export default function FocusScreen() {
     return () => poll && clearInterval(poll);
   }, [isRunning]);
 
+  // ✅ Manual analysis
   const handleFocusAnalysis = async () => {
     setLoading(true);
     setFeedback("Analyzing your focus...");
@@ -187,6 +198,7 @@ export default function FocusScreen() {
     setSeconds(25 * 60);
     setIsRunning(false);
     setFeedback("");
+    setProgress(0);
     stopCamera();
   };
 
@@ -196,6 +208,9 @@ export default function FocusScreen() {
     return `${m}:${s}`;
   };
 
+  // ==============================
+  // 🎨 UI Section
+  // ==============================
   return (
     <div
       style={{
@@ -270,19 +285,18 @@ export default function FocusScreen() {
         </div>
       </div>
 
-      {/* Timer */}
+      {/* Timer Circle */}
       <div
         style={{
           width: 240,
           height: 240,
           borderRadius: "50%",
           border: "8px solid rgba(255,255,255,0.2)",
+          background: `conic-gradient(#4F46E5 ${progress}%, rgba(255,255,255,0.1) ${progress}%)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           marginTop: 100,
-          background: "rgba(255,255,255,0.1)",
-          backdropFilter: "blur(12px)",
           boxShadow: "0 0 25px rgba(59,130,246,0.4)",
         }}
       >
@@ -324,7 +338,12 @@ export default function FocusScreen() {
         </button>
       </div>
 
-      {/* Camera */}
+      {/* Sessions Counter */}
+      <p style={{ marginTop: 15, fontSize: 15, color: "#A5B4FC" }}>
+        🧠 Sessions completed: {sessions}
+      </p>
+
+      {/* Camera Feed */}
       <video
         ref={videoRef}
         autoPlay
