@@ -28,12 +28,16 @@ class FocusSuggestResponse(BaseModel):
     reason: str
 
 # ---------- Planner ----------
+# ---------- Planner ----------
+from datetime import datetime  # ✅ add this import at the top if missing
+
 class Task(BaseModel):
     name: str
-    due: Optional[str] = None
-    difficulty: int = 3  # 1-5 scale
+    subject: Optional[str] = "General"
+    due: Optional[datetime] = None  # ✅ changed from str → datetime (supports date + time)
+    difficulty: int = 3  # 1–5 scale
     estimated_hours: Optional[float] = None
-    subject: Optional[str] = None
+    completed: Optional[bool] = False  # ✅ added field for completion status
 
 class PlannerRequest(BaseModel):
     tasks: List[Task]
@@ -43,6 +47,7 @@ class PlannerRequest(BaseModel):
 
 class PlannerResponse(BaseModel):
     schedule: List[Dict[str, Any]]
+
 
 # ---------- Doubt Solver ----------
 class DoubtEvent(BaseModel):
