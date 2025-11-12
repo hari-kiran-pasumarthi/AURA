@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import List
+from typing import List, Optional
 from backend.models.schemas import FocusEvent, FocusSuggestResponse
 from backend.routers.auth import get_current_user
 from backend.models.user import User
@@ -78,9 +78,9 @@ def analyze_focus(events: List[FocusEvent]) -> dict:
 # ======================================================
 # 👀 Optional: Camera-based Detection (Safe)
 # ======================================================
-def detect_camera_focus(duration=10):
+def detect_camera_focus(duration=8):
     """Safe camera-based focus detection (skipped on Railway)."""
-    if not CAMERA_AVAILABLE:
+    if not CAMERA_AVAILABLE or os.environ.get("RAILWAY_ENVIRONMENT"):
         print("ℹ️ Skipping camera detection (not supported in this environment).")
         return 0.0
 
@@ -160,9 +160,13 @@ async def send_focus_email(user_email: str, result: dict):
 # 🚀 FocusSense Endpoints
 # ======================================================
 @router.post("/telemetry", response_model=FocusSuggestResponse)
-async def receive_telemetry(events: List[FocusEvent], current_user: User = Depends(get_current_user)):
+async def receive_telemetry(
+    events: List[FocusEvent],
+    current_user: Optional[User] = Depends(get_current_user)
+):
     """Analyze focus state and suggest Pomodoro if needed."""
-    print(f"📡 Telemetry received from {current_user.email}")
+    user_email = current_user.email if current_user else "guest@aura.ai"
+    print(f"📡 Telemetry received from {user_email}")
     result = analyze_focus(events)
 
     # Optional camera detection
@@ -180,17 +184,19 @@ async def receive_telemetry(events: List[FocusEvent], current_user: User = Depen
     else:
         result["message"] = "⚠️ Very low focus — try the Pomodoro technique."
 
-    save_focus_result(result, current_user.email)
+    save_focus_result(result, user_email)
     LATEST_FOCUS_CACHE.update(result)
-    asyncio.create_task(send_focus_email(current_user.email, result))
+    if current_user:
+        asyncio.create_task(send_focus_email(user_email, result))
     return result
 
 
 @router.get("/pomodoro")
-async def get_pomodoro_plan(current_user: User = Depends(get_current_user)):
+async def get_pomodoro_plan(current_user: Optional[User] = Depends(get_current_user)):
     """Provide scientifically proven Pomodoro plan."""
+    user_email = current_user.email if current_user else "guest@aura.ai"
     return {
-        "email": current_user.email,
+        "email": user_email,
         "pomodoro_plan": {
             "work_session": "25 minutes",
             "short_break": "5 minutes",
@@ -202,19 +208,20 @@ async def get_pomodoro_plan(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/saved")
-async def get_saved_focus(current_user: User = Depends(get_current_user)):
+async def get_saved_focus(current_user: Optional[User] = Depends(get_current_user)):
     """Return saved focus sessions."""
+    user_email = current_user.email if current_user else "guest@aura.ai"
     if not os.path.exists(SAVE_FILE):
         return {"entries": []}
     with open(SAVE_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
-    user_data = [d for d in data if d.get("email") == current_user.email]
+    user_data = [d for d in data if d.get("email") == user_email]
     user_data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return {"entries": user_data}
 
 
 # ======================================================
-# 🟢 Live Agent Status + Latest Focus Result (Fix 404s)
+# 🟢 Live Agent Status + Latest Focus Result
 # ======================================================
 @router.get("/status")
 async def get_agent_status():
