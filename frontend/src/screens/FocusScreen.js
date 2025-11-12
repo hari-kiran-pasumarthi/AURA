@@ -10,7 +10,11 @@ export default function FocusScreen() {
   const [feedback, setFeedback] = useState("");
   const [agentStatus, setAgentStatus] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [faceVisible, setFaceVisible] = useState(false);
   const timerRef = useRef(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
 
   // ✅ Agent check
   useEffect(() => {
@@ -27,6 +31,49 @@ export default function FocusScreen() {
     const interval = setInterval(checkAgent, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // ✅ Webcam setup
+  useEffect(() => {
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        streamRef.current = stream;
+        setCameraActive(true);
+      } catch (err) {
+        console.warn("⚠️ Camera access denied or not available:", err);
+        setCameraActive(false);
+      }
+    }
+    if (isRunning) startCamera();
+    else stopCamera();
+    return () => stopCamera();
+  }, [isRunning]);
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setCameraActive(false);
+  };
+
+  // ✅ Simple face visibility check (no ML — just check if camera running)
+  useEffect(() => {
+    let interval;
+    if (cameraActive) {
+      interval = setInterval(() => {
+        if (videoRef.current && videoRef.current.readyState === 4) {
+          setFaceVisible(true);
+        } else {
+          setFaceVisible(false);
+        }
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [cameraActive]);
 
   // ✅ Timer logic
   useEffect(() => {
@@ -49,6 +96,46 @@ export default function FocusScreen() {
     }
     return () => clearInterval(timerRef.current);
   }, [isRunning]);
+
+  // ✅ Send telemetry periodically (mock + webcam state)
+  useEffect(() => {
+    let telemetryInterval;
+    if (isRunning) {
+      telemetryInterval = setInterval(async () => {
+        try {
+          const telemetryData = [
+            {
+              keys_per_min: Math.floor(Math.random() * 100),
+              mouse_clicks: Math.floor(Math.random() * 10),
+              window_changes: Math.floor(Math.random() * 3),
+              app: "chrome",
+              is_study_app: true,
+              camera_focus: faceVisible,
+            },
+          ];
+
+          const res = await fetch("https://loyal-beauty-production.up.railway.app/focus/telemetry", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Add auth header if backend requires it:
+              // Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(telemetryData),
+          });
+
+          if (!res.ok) {
+            console.warn("⚠️ Telemetry send failed:", res.status);
+          } else {
+            console.log("✅ Telemetry sent successfully");
+          }
+        } catch (err) {
+          console.error("❌ Telemetry error:", err);
+        }
+      }, 15000); // every 15 seconds
+    }
+    return () => telemetryInterval && clearInterval(telemetryInterval);
+  }, [isRunning, faceVisible]);
 
   // ✅ Poll live focus updates
   useEffect(() => {
@@ -98,6 +185,7 @@ export default function FocusScreen() {
     setSeconds(25 * 60);
     setIsRunning(false);
     setFeedback("");
+    stopCamera();
   };
 
   const formatTime = (time) => {
@@ -243,8 +331,28 @@ export default function FocusScreen() {
         </button>
       </div>
 
+      {/* 📹 Camera */}
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        style={{
+          marginTop: 30,
+          width: 200,
+          height: 150,
+          borderRadius: 12,
+          border: "2px solid rgba(255,255,255,0.2)",
+          objectFit: "cover",
+          display: cameraActive ? "block" : "none",
+          boxShadow: faceVisible
+            ? "0 0 15px rgba(34,197,94,0.5)"
+            : "0 0 15px rgba(239,68,68,0.5)",
+        }}
+      />
+
       {/* 📊 Sessions */}
-      <p style={{ fontSize: 16, marginTop: 30, color: "#C7C9E0" }}>
+      <p style={{ fontSize: 16, marginTop: 20, color: "#C7C9E0" }}>
         Sessions completed: <b>{sessions}</b>
       </p>
 
