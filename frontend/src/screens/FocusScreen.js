@@ -1,3 +1,4 @@
+// FocusScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -60,7 +61,7 @@ export default function FocusScreen() {
     setCameraActive(false);
   };
 
-  // ✅ Simple face visibility check (no ML — just check if camera running)
+  // ✅ Face visibility check
   useEffect(() => {
     let interval;
     if (cameraActive) {
@@ -97,7 +98,7 @@ export default function FocusScreen() {
     return () => clearInterval(timerRef.current);
   }, [isRunning]);
 
-  // ✅ Send telemetry periodically (mock + webcam state)
+  // ✅ Send telemetry periodically (mock + webcam + JWT)
   useEffect(() => {
     let telemetryInterval;
     if (isRunning) {
@@ -114,12 +115,14 @@ export default function FocusScreen() {
             },
           ];
 
+          const token = localStorage.getItem("token");
+          console.log("🔍 Sending Telemetry with Token:", token ? "Present ✅" : "Missing ❌");
+
           const res = await fetch("https://loyal-beauty-production.up.railway.app/focus/telemetry", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              // Add auth header if backend requires it:
-              // Authorization: `Bearer ${token}`,
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify(telemetryData),
           });
@@ -132,7 +135,7 @@ export default function FocusScreen() {
         } catch (err) {
           console.error("❌ Telemetry error:", err);
         }
-      }, 15000); // every 15 seconds
+      }, 15000);
     }
     return () => telemetryInterval && clearInterval(telemetryInterval);
   }, [isRunning, faceVisible]);
@@ -162,7 +165,6 @@ export default function FocusScreen() {
     return () => poll && clearInterval(poll);
   }, [isRunning]);
 
-  // 🔍 Analyze focus
   const handleFocusAnalysis = async () => {
     setLoading(true);
     setFeedback("Analyzing your focus...");
@@ -209,7 +211,7 @@ export default function FocusScreen() {
         position: "relative",
       }}
     >
-      {/* 🔹 Header */}
+      {/* Header */}
       <div
         style={{
           position: "absolute",
@@ -268,7 +270,7 @@ export default function FocusScreen() {
         </div>
       </div>
 
-      {/* 🕒 Circular Timer */}
+      {/* Timer */}
       <div
         style={{
           width: 240,
@@ -282,23 +284,14 @@ export default function FocusScreen() {
           background: "rgba(255,255,255,0.1)",
           backdropFilter: "blur(12px)",
           boxShadow: "0 0 25px rgba(59,130,246,0.4)",
-          transition: "all 0.3s ease",
         }}
       >
-        <span
-          style={{
-            fontSize: 48,
-            fontWeight: "bold",
-            color: "#EAEAF5",
-            fontFamily: "monospace",
-            textShadow: "0 0 8px rgba(255,255,255,0.2)",
-          }}
-        >
+        <span style={{ fontSize: 48, fontWeight: "bold", color: "#EAEAF5" }}>
           {formatTime(seconds)}
         </span>
       </div>
 
-      {/* 🎛 Controls */}
+      {/* Buttons */}
       <div style={{ display: "flex", gap: 20, marginTop: 40 }}>
         <button
           onClick={() => setIsRunning(true)}
@@ -331,7 +324,7 @@ export default function FocusScreen() {
         </button>
       </div>
 
-      {/* 📹 Camera */}
+      {/* Camera */}
       <video
         ref={videoRef}
         autoPlay
@@ -351,12 +344,7 @@ export default function FocusScreen() {
         }}
       />
 
-      {/* 📊 Sessions */}
-      <p style={{ fontSize: 16, marginTop: 20, color: "#C7C9E0" }}>
-        Sessions completed: <b>{sessions}</b>
-      </p>
-
-      {/* 💬 Feedback */}
+      {/* Feedback */}
       {feedback && (
         <div
           style={{
@@ -368,24 +356,12 @@ export default function FocusScreen() {
             maxWidth: 420,
             textAlign: "center",
             color: feedback.includes("⚠️") ? "#FCA5A5" : "#86EFAC",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             backdropFilter: "blur(10px)",
-            animation: "fadeIn 0.6s ease",
-            whiteSpace: "pre-wrap",
           }}
         >
           {loading ? "⏳ Analyzing..." : feedback}
         </div>
       )}
-
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
     </div>
   );
 }
