@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
 from backend.models.schemas import FocusEvent, FocusSuggestResponse
 from backend.routers.auth import get_current_user
-from backend.models.user import User
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
 from datetime import datetime
@@ -19,9 +18,9 @@ except Exception:
 
 router = APIRouter(prefix="/focus", tags=["FocusSense"])
 
-# ---------------------------
-# Configuration
-# ---------------------------
+# ======================================================
+# 🔧 Configuration
+# ======================================================
 STUDY_APPS = {"vscode", "code", "word", "excel", "chrome", "notion", "pdf", "jupyter", "pycharm"}
 
 BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,9 +32,6 @@ if not os.path.exists(SAVE_FILE):
     with open(SAVE_FILE, "w", encoding="utf-8") as f:
         json.dump([], f, indent=2)
 
-# ======================================================
-# 🔁 Cache (for /focus/latest)
-# ======================================================
 LATEST_FOCUS_CACHE = {
     "focused": True,
     "attention_score": 0.0,
@@ -44,7 +40,7 @@ LATEST_FOCUS_CACHE = {
 }
 
 # ======================================================
-# 🧠 Focus Detection (Keyboard + Mouse + App Activity)
+# 🧠 Focus Analysis
 # ======================================================
 def analyze_focus(events: List[FocusEvent]) -> dict:
     if not events:
@@ -76,12 +72,12 @@ def analyze_focus(events: List[FocusEvent]) -> dict:
     }
 
 # ======================================================
-# 👀 Optional: Camera-based Detection (Safe)
+# 👀 Camera Focus (Optional)
 # ======================================================
 def detect_camera_focus(duration=8):
-    """Safe camera-based focus detection (skipped on Railway)."""
+    """Safe camera-based focus detection."""
     if not CAMERA_AVAILABLE or os.environ.get("RAILWAY_ENVIRONMENT"):
-        print("ℹ️ Skipping camera detection (not supported in this environment).")
+        print("ℹ️ Skipping camera detection (not supported).")
         return 0.0
 
     try:
@@ -153,28 +149,29 @@ async def send_focus_email(user_email: str, result: dict):
         """
         msg = MessageSchema(subject=subject, recipients=[user_email], body=body, subtype="html")
         await fm.send_message(msg)
+        print(f"📨 Focus summary email sent to {user_email}")
     except Exception as e:
         print(f"⚠️ Email send failed: {e}")
 
 # ======================================================
-# 🚀 FocusSense Endpoints
+# 🚀 Endpoints
 # ======================================================
 @router.post("/telemetry", response_model=FocusSuggestResponse)
 async def receive_telemetry(
     events: List[FocusEvent],
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: Optional[dict] = Depends(get_current_user),  # ✅ dict, not User
 ):
     """Analyze focus state and suggest Pomodoro if needed."""
-    user_email = current_user.email if current_user else "guest@aura.ai"
+    user_email = current_user.get("email") if current_user else "guest@aura.ai"
     print(f"📡 Telemetry received from {user_email}")
     result = analyze_focus(events)
 
-    # Optional camera detection
+    # Optional camera check
     camera_focus = detect_camera_focus(duration=8)
     result["camera_attention"] = round(camera_focus * 100, 2)
     result["attention_score"] = round((result["attention_score"] * 0.7) + (camera_focus * 100 * 0.3), 2)
 
-    # Add motivational messages
+    # Motivational message
     if result["attention_score"] >= 85:
         result["message"] = "🔥 Excellent focus! You’re in deep work mode!"
     elif result["attention_score"] >= 65:
@@ -192,7 +189,7 @@ async def receive_telemetry(
 
 
 @router.get("/pomodoro")
-async def get_pomodoro_plan(current_user: Optional[User] = Depends(get_current_user)):
+async def get_pomodoro_plan(current_user: Optional[dict] = Depends(get_current_user)):
     """Provide scientifically proven Pomodoro plan."""
     user_email = current_user.get("email") if current_user else "guest@aura.ai"
     return {
@@ -202,15 +199,15 @@ async def get_pomodoro_plan(current_user: Optional[User] = Depends(get_current_u
             "short_break": "5 minutes",
             "long_break": "15–30 minutes",
             "cycles_before_long_break": 4,
-            "description": "Work for 25 minutes, rest for 5, repeat 4 times, then take a longer break."
-        }
+            "description": "Work for 25 minutes, rest for 5, repeat 4 times, then take a longer break.",
+        },
     }
 
 
 @router.get("/saved")
-async def get_saved_focus(current_user: Optional[User] = Depends(get_current_user)):
+async def get_saved_focus(current_user: Optional[dict] = Depends(get_current_user)):
     """Return saved focus sessions."""
-    user_email = current_user.email if current_user else "guest@aura.ai"
+    user_email = current_user.get("email") if current_user else "guest@aura.ai"
     if not os.path.exists(SAVE_FILE):
         return {"entries": []}
     with open(SAVE_FILE, "r", encoding="utf-8") as f:
@@ -220,12 +217,8 @@ async def get_saved_focus(current_user: Optional[User] = Depends(get_current_use
     return {"entries": user_data}
 
 
-# ======================================================
-# 🟢 Live Agent Status + Latest Focus Result
-# ======================================================
 @router.get("/status")
 async def get_agent_status():
-    """Return backend agent status for FocusScreen frontend."""
     return {"active": True, "message": "Focus agent online and monitoring."}
 
 
