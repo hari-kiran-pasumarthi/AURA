@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { plannerGenerate, savePlanner } from "../api"; // ✅ use centralized axios API
+import { plannerGenerate, savePlanner } from "../api"; // centralized axios API
 
 export default function PlannerScreen() {
   const navigate = useNavigate();
   const [task, setTask] = useState("");
   const [due, setDue] = useState("");
+  const [time, setTime] = useState(""); // ⏰ added time input
   const [difficulty, setDifficulty] = useState(3);
   const [tasks, setTasks] = useState([]);
   const [plan, setPlan] = useState([]);
@@ -18,14 +19,16 @@ export default function PlannerScreen() {
   }, []);
 
   const addTask = () => {
-    if (!task.trim() || !due.trim())
-      return alert("Please enter task and select due date!");
+    if (!task.trim() || !due.trim() || !time.trim())
+      return alert("Please enter task name, date, and time!");
+
+    const dueDateTime = `${due}T${time}`;
     setTasks([
       ...tasks,
       {
         name: task,
         subject: "General",
-        due,
+        due: dueDateTime,
         difficulty,
         estimated_hours: difficulty * 1.5,
         completed: false,
@@ -33,6 +36,7 @@ export default function PlannerScreen() {
     ]);
     setTask("");
     setDue("");
+    setTime("");
     setDifficulty(3);
   };
 
@@ -43,7 +47,7 @@ export default function PlannerScreen() {
     setTasks(updated);
   };
 
-  // ✅ Generate AI Plan (via axios)
+  // ✅ Generate AI Plan
   const generatePlan = async () => {
     if (tasks.length === 0) return alert("Please add at least one task!");
     setLoading(true);
@@ -66,7 +70,6 @@ export default function PlannerScreen() {
         alert("✨ Smart Study Plan Generated!");
       } else {
         alert("⚠️ Failed to generate plan. Please try again.");
-        console.log(data);
       }
     } catch (err) {
       if (err.response?.status === 401) {
@@ -82,7 +85,7 @@ export default function PlannerScreen() {
     }
   };
 
-  // ✅ Save Plan (via axios)
+  // ✅ Save Plan
   const handleSavePlan = async () => {
     if (plan.length === 0) return alert("No plan to save!");
     setSaving(true);
@@ -207,6 +210,12 @@ export default function PlannerScreen() {
           style={inputStyle}
         />
         <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          style={inputStyle}
+        />
+        <input
           type="number"
           min={1}
           max={5}
@@ -251,7 +260,7 @@ export default function PlannerScreen() {
                 </button>
               </div>
               <p style={{ margin: "4px 0", color: "#C7C9E0" }}>
-                📅 {t.due} | ⚙️ Difficulty: {t.difficulty}
+                📅 {new Date(t.due).toLocaleString()} | ⚙️ Difficulty: {t.difficulty}
               </p>
               <label style={{ fontSize: 14 }}>
                 <input
