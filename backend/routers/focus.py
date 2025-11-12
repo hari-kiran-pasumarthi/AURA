@@ -34,6 +34,16 @@ if not os.path.exists(SAVE_FILE):
         json.dump([], f, indent=2)
 
 # ======================================================
+# 🔁 Cache (for /focus/latest)
+# ======================================================
+LATEST_FOCUS_CACHE = {
+    "focused": True,
+    "attention_score": 0.0,
+    "reason": "Waiting for first telemetry data.",
+    "timestamp": datetime.utcnow().isoformat(),
+}
+
+# ======================================================
 # 🧠 Focus Detection (Keyboard + Mouse + App Activity)
 # ======================================================
 def analyze_focus(events: List[FocusEvent]) -> dict:
@@ -171,8 +181,10 @@ async def receive_telemetry(events: List[FocusEvent], current_user: User = Depen
         result["message"] = "⚠️ Very low focus — try the Pomodoro technique."
 
     save_focus_result(result, current_user.email)
+    LATEST_FOCUS_CACHE.update(result)
     asyncio.create_task(send_focus_email(current_user.email, result))
     return result
+
 
 @router.get("/pomodoro")
 async def get_pomodoro_plan(current_user: User = Depends(get_current_user)):
@@ -188,6 +200,7 @@ async def get_pomodoro_plan(current_user: User = Depends(get_current_user)):
         }
     }
 
+
 @router.get("/saved")
 async def get_saved_focus(current_user: User = Depends(get_current_user)):
     """Return saved focus sessions."""
@@ -198,3 +211,24 @@ async def get_saved_focus(current_user: User = Depends(get_current_user)):
     user_data = [d for d in data if d.get("email") == current_user.email]
     user_data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return {"entries": user_data}
+
+
+# ======================================================
+# 🟢 Live Agent Status + Latest Focus Result (Fix 404s)
+# ======================================================
+@router.get("/status")
+async def get_agent_status():
+    """Return backend agent status for FocusScreen frontend."""
+    return {"active": True, "message": "Focus agent online and monitoring."}
+
+
+@router.get("/latest")
+async def get_latest_focus():
+    """Return the most recent focus result."""
+    if os.path.exists(SAVE_FILE):
+        with open(SAVE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if data:
+            latest = data[-1]
+            LATEST_FOCUS_CACHE.update(latest)
+    return LATEST_FOCUS_CACHE
