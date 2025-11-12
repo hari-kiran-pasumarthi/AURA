@@ -194,7 +194,7 @@ async def receive_telemetry(
 @router.get("/pomodoro")
 async def get_pomodoro_plan(current_user: Optional[User] = Depends(get_current_user)):
     """Provide scientifically proven Pomodoro plan."""
-    user_email = current_user.email if current_user else "guest@aura.ai"
+    user_email = current_user.get("email") if current_user else "guest@aura.ai"
     return {
         "email": user_email,
         "pomodoro_plan": {
