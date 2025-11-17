@@ -6,7 +6,7 @@ export default function PlannerScreen() {
   const navigate = useNavigate();
   const [task, setTask] = useState("");
   const [due, setDue] = useState("");
-  const [time, setTime] = useState(""); // ⏰ added time input
+  const [time, setTime] = useState(""); // ⏰ time input
   const [difficulty, setDifficulty] = useState(3);
   const [tasks, setTasks] = useState([]);
   const [plan, setPlan] = useState([]);
@@ -28,7 +28,7 @@ export default function PlannerScreen() {
       {
         name: task,
         subject: "General",
-        due: dueDateTime,
+        due: dueDateTime,          // full datetime string
         difficulty,
         estimated_hours: difficulty * 1.5,
         completed: false,
@@ -47,16 +47,19 @@ export default function PlannerScreen() {
     setTasks(updated);
   };
 
-  // ✅ Generate AI Plan
+  // ✅ Generate AI Plan with Option B behaviour
   const generatePlan = async () => {
     if (tasks.length === 0) return alert("Please add at least one task!");
     setLoading(true);
     setPlan([]);
 
     try {
+      // ⏰ Send full current datetime (not just date)
+      const currentDateTimeISO = new Date().toISOString();
+
       const res = await plannerGenerate(
         tasks,
-        new Date().toISOString().split("T")[0],
+        currentDateTimeISO, // <-- start_datetime for backend
         null,
         4
       );
@@ -90,7 +93,12 @@ export default function PlannerScreen() {
     if (plan.length === 0) return alert("No plan to save!");
     setSaving(true);
     try {
-      await savePlanner(summary, plan, tasks, new Date().toISOString().split("T")[0]);
+      await savePlanner(
+        summary,
+        plan,
+        tasks,
+        new Date().toISOString().split("T")[0]
+      );
       alert("💾 Plan saved successfully!");
     } catch (err) {
       if (err.response?.status === 401) {
@@ -260,7 +268,8 @@ export default function PlannerScreen() {
                 </button>
               </div>
               <p style={{ margin: "4px 0", color: "#C7C9E0" }}>
-                📅 {new Date(t.due).toLocaleString()} | ⚙️ Difficulty: {t.difficulty}
+                📅 {new Date(t.due).toLocaleString()} | ⚙️ Difficulty:{" "}
+                {t.difficulty}
               </p>
               <label style={{ fontSize: 14 }}>
                 <input
@@ -329,7 +338,7 @@ export default function PlannerScreen() {
                           fontSize: 13,
                           textAlign: "center",
                           lineHeight: `${height}px`,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)`,
                         }}
                         title={`${b.task} (${b.start_time}–${b.end_time})`}
                       >
@@ -415,7 +424,11 @@ const timelineColumn = {
   boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
   border: "1px solid rgba(255,255,255,0.1)",
 };
-const timelineDayGrid = { position: "relative", height: 600, borderLeft: "2px solid rgba(255,255,255,0.2)" };
+const timelineDayGrid = {
+  position: "relative",
+  height: 600,
+  borderLeft: "2px solid rgba(255,255,255,0.2)",
+};
 const hourLine = {
   height: 40,
   borderBottom: "1px dashed rgba(255,255,255,0.1)",
