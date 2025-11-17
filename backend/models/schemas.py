@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 
 # ---------- Autonote ----------
 class TranscriptRequest(BaseModel):
@@ -11,39 +12,43 @@ class TranscriptResponse(BaseModel):
     highlights: List[str]
     bullets: List[str]
 
+
 # ---------- Focus ----------
 class FocusEvent(BaseModel):
-    timestamp: Optional[float] = None  # 👈 make optional
+    timestamp: Optional[float] = None
     app: str
     is_study_app: bool
     keys_per_min: float
     mouse_clicks: int
     window_changes: int
-    camera_focus: Optional[bool] = None  # 👈 optional camera data support
-
+    camera_focus: Optional[bool] = None
 
 class FocusSuggestResponse(BaseModel):
     focused: bool
     suggest_pomodoro: bool
     reason: str
 
-# ---------- Planner ----------
-# ---------- Planner ----------
-from datetime import datetime  # ✅ add this import at the top if missing
 
+# ---------- Planner (UPDATED for Option B) ----------
 class Task(BaseModel):
     name: str
     subject: Optional[str] = "General"
-    due: Optional[datetime] = None  # ✅ changed from str → datetime (supports date + time)
-    difficulty: int = 3  # 1–5 scale
+    due: Optional[datetime] = None
+    difficulty: int = 3
     estimated_hours: Optional[float] = None
-    completed: Optional[bool] = False  # ✅ added field for completion status
+    completed: Optional[bool] = False
 
 class PlannerRequest(BaseModel):
     tasks: List[Task]
-    daily_hours: float = 4.0
-    start_date: Optional[str] = None  # ISO format
-    end_date: Optional[str] = None
+
+    # ⏰ Required for OPTION B
+    start_datetime: datetime                   # FULL ISO datetime
+
+    # Optional end date (not used in Option B but kept for extensibility)
+    end_date: Optional[datetime] = None
+
+    # Preferred daily hours to plan
+    preferred_hours: Optional[int] = 4
 
 class PlannerResponse(BaseModel):
     schedule: List[Dict[str, Any]]
@@ -52,12 +57,13 @@ class PlannerResponse(BaseModel):
 # ---------- Doubt Solver ----------
 class DoubtEvent(BaseModel):
     timestamp: float
-    event: str  # e.g., "tab_switch", "scroll_up", "pause", "rewind"
+    event: str
     context: Optional[str] = None
 
 class DoubtReport(BaseModel):
     topics: List[str]
     notes: List[str]
+
 
 # ---------- Flashcards ----------
 class FlashcardRequest(BaseModel):
@@ -74,16 +80,19 @@ class Flashcard(BaseModel):
 class FlashcardResponse(BaseModel):
     cards: List[Flashcard]
 
+
 # ---------- Mood Tracker ----------
 class MoodEvent(BaseModel):
-    mood: str               # e.g., "Happy"
-    emoji: str              # e.g., "😄"
+    mood: str
+    emoji: str
     note: Optional[str] = None
-    timestamp: Optional[float] = None  # Unix timestamp
+    timestamp: Optional[float] = None
+
 
 # ---------- Distraction Blocker ----------
 class DistractionConfig(BaseModel):
     blocked_apps: List[str] = Field(default_factory=lambda: ["instagram", "tiktok", "youtube", "steam"])
+
 
 # ---------- Time Predictor ----------
 class TimeRecord(BaseModel):
@@ -98,10 +107,12 @@ class TimePredictRequest(BaseModel):
 class TimePredictResponse(BaseModel):
     y_pred: List[float]
 
+
 # ---------- Brain Dump ----------
 class BrainDump(BaseModel):
     text: str
     tags: List[str] = []
+
 
 # ---------- Confusion Tracker ----------
 class ConfusionRequest(BaseModel):
