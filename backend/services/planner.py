@@ -141,7 +141,7 @@ def get_free_slots(
 
 
 # ==============================================================
-// 🚀 MAIN PLANNER LOGIC — uses start_datetime
+# 🚀 MAIN PLANNER LOGIC — uses start_datetime
 # ==============================================================
 def generate(req: PlannerRequest) -> PlannerResponse:
     print("🧠 Planner Started (Option A mode)")
