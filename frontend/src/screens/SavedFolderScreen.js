@@ -72,7 +72,6 @@ export default function SavedFolderScreen() {
           }
         );
         const data = await res.json();
-        console.log("📜 Mood logs response:", data);
         setMoodLogs(Array.isArray(data.entries) ? data.entries : []);
       } catch (err) {
         console.warn("⚠️ Failed to fetch mood logs:", err);
@@ -96,7 +95,7 @@ export default function SavedFolderScreen() {
         padding: 20,
       }}
     >
-      {/* 🔹 Header */}
+      {/* HEADER */}
       <div
         style={{
           display: "flex",
@@ -144,16 +143,17 @@ export default function SavedFolderScreen() {
       ) : (
         modules.map((mod) => {
           const modEntries = getEntries(mod);
+
           const sectionTitle =
-  mod === "planner"
-    ? "📘 AI Study Planner"
-    : mod === "doubts"
-    ? "❓ Doubt History"
-    : mod === "autonote"
-    ? "📝 AutoNotes"
-    : mod === "braindump"
-    ? "🧠 Brain Dump"
-    : `📘 ${mod.charAt(0).toUpperCase() + mod.slice(1)}`;
+            mod === "planner"
+              ? "📘 AI Study Planner"
+              : mod === "doubts"
+              ? "❓ Doubt History"
+              : mod === "autonote"
+              ? "📝 AutoNotes"
+              : mod === "braindump"
+              ? "🧠 Brain Dump"
+              : `📘 ${mod.charAt(0).toUpperCase() + mod.slice(1)}`;
 
           return (
             <div
@@ -184,19 +184,17 @@ export default function SavedFolderScreen() {
                       cursor: "pointer",
                       transition: "transform 0.25s ease, box-shadow 0.25s ease",
                     }}
-                    onMouseEnter={(el) => {
-                      el.currentTarget.style.transform = "translateY(-3px)";
-                      el.currentTarget.style.boxShadow =
-                        "0 6px 20px rgba(200,200,255,0.25)";
-                    }}
-                    onMouseLeave={(el) => {
-                      el.currentTarget.style.transform = "translateY(0)";
-                      el.currentTarget.style.boxShadow = "none";
-                    }}
                   >
+                    {/* TITLE FIXED */}
                     <p style={{ margin: 0, fontWeight: 600, color: "#EAEAF5" }}>
-                      {e.title || e.topic || "Untitled"}
+                      {e.title ||
+                        e.topic ||
+                        e.organized_text?.slice(0, 40) ||
+                        e.input_text?.slice(0, 40) ||
+                        "Brain Dump"}
                     </p>
+
+                    {/* CONTENT PREVIEW FIXED */}
                     <p
                       style={{
                         color: "#C7C9E0",
@@ -207,11 +205,14 @@ export default function SavedFolderScreen() {
                         textOverflow: "ellipsis",
                       }}
                     >
-                      {e.content ||
+                      {e.organized_text ||
+                        e.input_text ||
+                        e.content ||
                         e.response ||
                         e.summary ||
                         "[No content available]"}
                     </p>
+
                     <p style={{ fontSize: 12, color: "#A8B0D0" }}>
                       🕒 {e.timestamp || "N/A"}
                     </p>
@@ -227,7 +228,7 @@ export default function SavedFolderScreen() {
         })
       )}
 
-      {/* 🧠 Mood Logs */}
+      {/* MOOD LOGS */}
       <div
         style={{
           background: "rgba(255,255,255,0.08)",
@@ -267,7 +268,7 @@ export default function SavedFolderScreen() {
         )}
       </div>
 
-      {/* 🪟 Modal Popup */}
+      {/* MODAL */}
       {selectedNote && (
         <div
           onClick={() => setSelectedNote(null)}
@@ -297,10 +298,32 @@ export default function SavedFolderScreen() {
               backdropFilter: "blur(12px)",
             }}
           >
-            <h2>{selectedNote.title || selectedNote.topic || "Untitled"}</h2>
+            <h2>
+              {selectedNote.title ||
+                selectedNote.topic ||
+                selectedNote.organized_text?.slice(0, 40) ||
+                selectedNote.input_text?.slice(0, 40) ||
+                "Brain Dump"}
+            </h2>
             <p style={{ color: "#C7C9E0", fontSize: 13 }}>
               🕒 {selectedNote.timestamp || "N/A"}
             </p>
+
+            {selectedNote.organized_text && (
+              <>
+                <h3>🧠 Organized Thoughts</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>
+                  {selectedNote.organized_text}
+                </p>
+              </>
+            )}
+
+            {selectedNote.input_text && (
+              <>
+                <h3>✍️ Original Text</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>{selectedNote.input_text}</p>
+              </>
+            )}
 
             {selectedNote.summary && (
               <>
@@ -308,12 +331,7 @@ export default function SavedFolderScreen() {
                 <p style={{ whiteSpace: "pre-wrap" }}>{selectedNote.summary}</p>
               </>
             )}
-            {selectedNote.content && (
-              <>
-                <h3>📝 Content</h3>
-                <p style={{ whiteSpace: "pre-wrap" }}>{selectedNote.content}</p>
-              </>
-            )}
+
             {selectedNote.response && (
               <>
                 <h3>💬 AI Clarification</h3>
