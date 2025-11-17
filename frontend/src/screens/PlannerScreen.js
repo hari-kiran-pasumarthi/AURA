@@ -4,11 +4,24 @@ import { plannerGenerate, savePlanner } from "../api";
 
 export default function PlannerScreen() {
   const navigate = useNavigate();
+
+  // -------------------------------
+  // Task Inputs
+  // -------------------------------
   const [task, setTask] = useState("");
   const [due, setDue] = useState("");
   const [time, setTime] = useState("");
   const [difficulty, setDifficulty] = useState(3);
+
+  // -------------------------------
+  // States
+  // -------------------------------
   const [tasks, setTasks] = useState([]);
+  const [routine, setRoutine] = useState([]);     // ← NEW
+  const [activity, setActivity] = useState("");   // for routine builder
+  const [rStart, setRStart] = useState("");
+  const [rEnd, setREnd] = useState("");
+
   const [plan, setPlan] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -18,17 +31,19 @@ export default function PlannerScreen() {
     if ("Notification" in window) Notification.requestPermission();
   }, []);
 
+  // -------------------------------
+  // Add task
+  // -------------------------------
   const addTask = () => {
     if (!task.trim() || !due.trim() || !time.trim()) {
-      alert("Please enter task name, date, and time!");
+      alert("Please enter task, date & time!");
       return;
     }
 
-    // Full ISO datetime in IST for the due date
     const dueDateTime = `${due}T${time}:00+05:30`;
 
-    setTasks([
-      ...tasks,
+    setTasks((prev) => [
+      ...prev,
       {
         name: task,
         subject: "General",
@@ -45,7 +60,8 @@ export default function PlannerScreen() {
     setDifficulty(3);
   };
 
-  const deleteTask = (i) => setTasks(tasks.filter((_, idx) => idx !== i));
+  const deleteTask = (i) =>
+    setTasks(tasks.filter((_, idx) => idx !== i));
 
   const toggleCompletion = (i) => {
     const updated = [...tasks];
@@ -53,10 +69,34 @@ export default function PlannerScreen() {
     setTasks(updated);
   };
 
-  // 🚀 Generate Plan (Option A aligned with backend)
+  // -------------------------------
+  // Add Routine Slot
+  // -------------------------------
+  const addRoutine = () => {
+    if (!activity.trim() || !rStart || !rEnd) {
+      alert("Please enter activity & timings!");
+      return;
+    }
+
+    setRoutine((prev) => [
+      ...prev,
+      { activity, start: rStart, end: rEnd },
+    ]);
+
+    setActivity("");
+    setRStart("");
+    setREnd("");
+  };
+
+  const deleteRoutine = (i) =>
+    setRoutine(routine.filter((_, idx) => idx !== i));
+
+  // -------------------------------
+  // Generate plan
+  // -------------------------------
   const generatePlan = async () => {
     if (tasks.length === 0) {
-      alert("Please add at least one task!");
+      alert("Add at least one task!");
       return;
     }
 
@@ -64,16 +104,16 @@ export default function PlannerScreen() {
     setPlan([]);
 
     try {
-      // Current IST datetime in ISO format (no offset)
       const currentDateTimeIST = new Date()
         .toLocaleString("sv-SE", { timeZone: "Asia/Kolkata" })
-        .replace(" ", "T"); // e.g. "2025-11-18T21:30:45"
+        .replace(" ", "T");
 
       const payload = {
         tasks,
+        routine,         // ← SEND CUSTOM ROUTINE
         start_datetime: currentDateTimeIST,
-        preferred_hours: 4, // daily study limit in hours
-        end_date: null, // backend will default to start + 7 days
+        preferred_hours: 4,
+        end_date: null,
       };
 
       const res = await plannerGenerate(payload);
@@ -82,30 +122,26 @@ export default function PlannerScreen() {
       if (data.schedule?.length) {
         setPlan(data.schedule);
         setSummary(
-          `✅ Plan generated for ${data.schedule.length} days covering ${tasks.length} tasks.`
+          `Plan generated for ${data.schedule.length} days covering ${tasks.length} tasks.`
         );
-        alert("✨ Smart Study Plan Generated!");
+        alert("✨ Smart Plan Generated!");
       } else {
-        alert("⚠️ Failed to generate plan. Please try again.");
+        alert("⚠️ Could not generate plan.");
       }
     } catch (err) {
       console.error("Planner error:", err);
-      if (err.response?.status === 401) {
-        alert("⚠️ Session expired. Please log in again.");
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      } else {
-        alert("⚠️ Could not connect to backend.");
-      }
+      alert("⚠️ Backend error.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 💾 Save Plan
+  // -------------------------------
+  // Save Plan
+  // -------------------------------
   const handleSavePlan = async () => {
     if (plan.length === 0) {
-      alert("No plan to save!");
+      alert("Nothing to save!");
       return;
     }
 
@@ -117,127 +153,83 @@ export default function PlannerScreen() {
         tasks,
         new Date().toISOString().split("T")[0]
       );
-      alert("💾 Plan saved successfully!");
+      alert("Saved!");
     } catch (err) {
-      console.error("Save plan error:", err);
-      if (err.response?.status === 401) {
-        alert("⚠️ Session expired. Please log in.");
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      } else {
-        alert("⚠️ Failed to save plan.");
-      }
+      alert("Save failed.");
     } finally {
       setSaving(false);
     }
   };
-
-  const progress =
+    const progress =
     tasks.length === 0
       ? 0
       : (tasks.filter((t) => t.completed).length / tasks.length) * 100;
 
   const toFloatHour = (t) => {
-    if (!t || t === "N/A") return 7;
+    if (!t) return 0;
     const [h, m] = t.split(":").map(Number);
     return h + m / 60;
   };
 
-  const getColor = (diff) => {
+  const getColor = (name, diff) => {
+    // Routine = fixed pastel blue
+    if (name !== "task") return "rgba(59,130,246,0.6)";
     if (diff <= 2) return "#22c55e";
     if (diff === 3) return "#facc15";
     return "#ef4444";
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
-        color: "#EAEAF5",
-        fontFamily: "'Poppins', sans-serif",
-        padding: 20,
-      }}
-    >
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          background: "none",
-          border: "none",
-          color: "#C7C9E0",
-          fontSize: 16,
-          marginBottom: 10,
-          cursor: "pointer",
-        }}
-      >
-        ← Back
-      </button>
+    <div style={page}>
+      {/* Back Button */}
+      <button onClick={() => navigate(-1)} style={backBtn}>← Back</button>
 
-      <h2 style={{ fontSize: 28, fontWeight: "700" }}>📅 AURA Smart Planner</h2>
-      <p style={{ color: "#BFC2D5", marginBottom: 10 }}>
-        Organize, track and let AI plan your study sessions.
-      </p>
+      <h2 style={heading}>📅 AURA Smart Planner</h2>
 
-      {/* Progress */}
-      <div
-        style={{
-          background: "rgba(255,255,255,0.15)",
-          height: 10,
-          borderRadius: 6,
-          overflow: "hidden",
-          marginBottom: 15,
-        }}
-      >
-        <div
-          style={{
-            width: `${progress}%`,
-            height: "100%",
-            background: "#22c55e",
-            transition: "width 0.3s",
-          }}
-        />
-      </div>
-
-      {/* Inputs */}
+      {/* Routines ------------------------------------------------------ */}
       <div style={cardBox}>
+        <h3>⏰ Your Daily Routine</h3>
+
         <input
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
-          placeholder="Enter task name"
+          value={activity}
+          onChange={(e) => setActivity(e.target.value)}
+          placeholder="Activity (Breakfast)"
           style={inputStyle}
         />
-        <input
-          type="date"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-          style={inputStyle}
-        />
+
         <input
           type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
+          value={rStart}
+          onChange={(e) => setRStart(e.target.value)}
           style={inputStyle}
         />
+
         <input
-          type="number"
-          min={1}
-          max={5}
-          value={difficulty}
-          onChange={(e) => setDifficulty(Number(e.target.value))}
-          placeholder="Difficulty (1–5)"
+          type="time"
+          value={rEnd}
+          onChange={(e) => setREnd(e.target.value)}
           style={inputStyle}
         />
 
-        <button onClick={addTask} style={addBtn}>
-          ➕ Add Task
+        <button onClick={addRoutine} style={addBtn}>
+          ➕ Add Routine Slot
         </button>
 
-        <button onClick={generatePlan} disabled={loading} style={mainBtn}>
-          {loading ? "⏳ Generating..." : "⚡ Generate AI Plan"}
-        </button>
+        {routine.length > 0 &&
+          routine.map((r, i) => (
+            <div key={i} style={routineCard}>
+              <b>{r.activity}</b> — {r.start} to {r.end}
+              <button
+                onClick={() => deleteRoutine(i)}
+                style={deleteSmall}
+              >
+                ✖
+              </button>
+            </div>
+          ))}
       </div>
 
-      {/* Task list */}
+      {/* Tasks ---------------------------------------------------------- */}
       {tasks.length > 0 && (
         <div style={cardBox}>
           <h3>🧾 Your Tasks</h3>
@@ -245,58 +237,43 @@ export default function PlannerScreen() {
             <div key={i} style={taskCard}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <b>{t.name}</b>
-                <button
-                  onClick={() => deleteTask(i)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#ef4444",
-                    cursor: "pointer",
-                    fontSize: 18,
-                  }}
-                >
+                <button onClick={() => deleteTask(i)} style={deleteSmall}>
                   🗑
                 </button>
               </div>
+
               <p style={{ margin: "4px 0", color: "#C7C9E0" }}>
-                📅 {new Date(t.due).toLocaleString("en-IN")} | ⚙️ Difficulty:{" "}
-                {t.difficulty}
+                📅 {new Date(t.due).toLocaleString("en-IN")}  
+                | ⚙️ Difficulty: {t.difficulty}
               </p>
+
               <label style={{ fontSize: 14 }}>
                 <input
                   type="checkbox"
                   checked={t.completed}
                   onChange={() => toggleCompletion(i)}
                 />{" "}
-                Mark as completed
+                Mark complete
               </label>
             </div>
           ))}
         </div>
       )}
 
+      {/* Summary -------------------------------------------------------- */}
       {summary && (
-        <div
-          style={{
-            background: "rgba(255,255,255,0.1)",
-            borderRadius: 10,
-            padding: 12,
-            marginBottom: 20,
-            color: "#A5B4FC",
-          }}
-        >
-          {summary}
-        </div>
+        <div style={summaryBox}>{summary}</div>
       )}
 
-      {/* Timeline */}
+      {/* Timeline -------------------------------------------------------- */}
       {plan.length > 0 && (
         <div style={{ marginTop: 10 }}>
-          <h3>🧠 Study Timeline</h3>
+          <h3>🧠 24-Hour Smart Timetable</h3>
+
           <div style={timelineWrapper}>
             {plan.map((day, i) => (
               <div key={i} style={timelineColumn}>
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>
+                <div style={dateHeader}>
                   {new Date(day.date).toLocaleDateString("en-IN", {
                     weekday: "short",
                     month: "short",
@@ -304,35 +281,51 @@ export default function PlannerScreen() {
                   })}
                 </div>
 
+                {/* 24-hour grid */}
                 <div style={timelineDayGrid}>
-                  {Array.from({ length: 15 }).map((_, idx) => (
+                  {Array.from({ length: 24 }).map((_, idx) => (
                     <div key={idx} style={hourLine}>
-                      <span style={{ fontSize: 10 }}>{7 + idx}:00</span>
+                      <span style={hourLabel}>{idx}:00</span>
                     </div>
                   ))}
 
-                  {day.blocks.map((b, idx) => {
-                    const start = toFloatHour(b.start_time);
-                    const end = toFloatHour(b.end_time);
-                    const top = (start - 7) * 40;
+                  {/* Render user routine */}
+                  {routine.map((r, idx) => {
+                    const start = toFloatHour(r.start);
+                    const end = toFloatHour(r.end);
+                    const top = start * 40;
                     const height = (end - start) * 40;
 
                     return (
                       <div
-                        key={idx}
+                        key={`r${idx}`}
                         style={{
-                          position: "absolute",
+                          ...blockBase,
+                          background: getColor("routine"),
                           top,
-                          left: "10%",
-                          width: "80%",
                           height,
-                          background: getColor(b.difficulty),
-                          borderRadius: 6,
-                          color: "#fff",
-                          fontSize: 13,
-                          textAlign: "center",
-                          lineHeight: `${height}px`,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                        }}
+                      >
+                        {r.activity}
+                      </div>
+                    );
+                  })}
+
+                  {/* Render AI scheduled tasks */}
+                  {day.blocks.map((b, idx) => {
+                    const start = toFloatHour(b.start_time);
+                    const end = toFloatHour(b.end_time);
+                    const top = start * 40;
+                    const height = (end - start) * 40;
+
+                    return (
+                      <div
+                        key={`b${idx}`}
+                        style={{
+                          ...blockBase,
+                          background: getColor("task", b.difficulty),
+                          top,
+                          height,
                         }}
                       >
                         {b.task}
@@ -347,7 +340,7 @@ export default function PlannerScreen() {
           <button
             onClick={handleSavePlan}
             disabled={saving}
-            style={{ ...mainBtn, marginTop: 25 }}
+            style={mainBtn}
           >
             {saving ? "Saving..." : "💾 Save Plan"}
           </button>
@@ -357,7 +350,29 @@ export default function PlannerScreen() {
   );
 }
 
-/* Styles */
+/* --------------------------------------------------
+   Styles
+-------------------------------------------------- */
+
+const page = {
+  minHeight: "100vh",
+  background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+  color: "#EAEAF5",
+  fontFamily: "'Poppins', sans-serif",
+  padding: 20,
+};
+
+const backBtn = {
+  background: "none",
+  border: "none",
+  color: "#C7C9E0",
+  fontSize: 16,
+  marginBottom: 10,
+  cursor: "pointer",
+};
+
+const heading = { fontSize: 28, fontWeight: "700" };
+
 const cardBox = {
   background: "rgba(255,255,255,0.08)",
   borderRadius: 15,
@@ -397,6 +412,7 @@ const mainBtn = {
   width: "100%",
   fontWeight: 600,
   cursor: "pointer",
+  marginTop: 20,
 };
 
 const taskCard = {
@@ -408,32 +424,84 @@ const taskCard = {
   boxShadow: "0 3px 8px rgba(0,0,0,0.3)",
 };
 
+const routineCard = {
+  background: "rgba(255,255,255,0.05)",
+  padding: 10,
+  borderRadius: 8,
+  marginBottom: 8,
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+};
+
+const deleteSmall = {
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  color: "#ef4444",
+  fontSize: 18,
+};
+
+const summaryBox = {
+  background: "rgba(255,255,255,0.1)",
+  padding: 12,
+  borderRadius: 10,
+  color: "#A5B4FC",
+  marginBottom: 20,
+};
+
 const timelineWrapper = {
   display: "flex",
   gap: 20,
   overflowX: "auto",
-  padding: "10px 0",
+  paddingTop: 10,
 };
 
 const timelineColumn = {
-  minWidth: 180,
-  position: "relative",
+  minWidth: 220,
   background: "rgba(255,255,255,0.08)",
   borderRadius: 10,
   padding: 10,
+  position: "relative",
   boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-  border: "1px solid rgba(255,255,255,0.1)",
 };
 
 const timelineDayGrid = {
   position: "relative",
-  height: 600,
+  height: 960, // 24 hours x 40px
   borderLeft: "2px solid rgba(255,255,255,0.2)",
 };
 
 const hourLine = {
   height: 40,
   borderBottom: "1px dashed rgba(255,255,255,0.1)",
-  position: "relative",
+  display: "flex",
+  alignItems: "center",
   paddingLeft: 4,
 };
+
+const hourLabel = {
+  fontSize: 10,
+  color: "#ccc",
+};
+
+const dateHeader = {
+  fontWeight: 600,
+  marginBottom: 8,
+  color: "#fff",
+};
+
+const blockBase = {
+  position: "absolute",
+  left: "12%",
+  width: "80%",
+  borderRadius: 6,
+  color: "#fff",
+  textAlign: "center",
+  fontSize: 12,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+};
+
