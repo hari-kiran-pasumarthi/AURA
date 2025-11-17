@@ -41,14 +41,14 @@ class Task(BaseModel):
 class PlannerRequest(BaseModel):
     tasks: List[Task]
 
-    # Used by router (Option B)
-    start_datetime: datetime                      # 👈 required
+    # ⏰ required for planning from "now"
+    start_datetime: datetime                # full ISO datetime string
 
-    # Optional
-    end_datetime: Optional[datetime] = None       # 👈 must match router
+    # optional end date range
+    end_date: Optional[datetime] = None
 
-    # Must match router + frontend
-    daily_hours: float = 4.0         
+    # preferred daily hours
+    preferred_hours: Optional[int] = 4
 
 class PlannerResponse(BaseModel):
     schedule: List[Dict[str, Any]]
