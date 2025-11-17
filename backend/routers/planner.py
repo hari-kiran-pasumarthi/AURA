@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Body
 from backend.models.schemas import PlannerRequest, PlannerResponse
 from backend.services import planner
-from backend.services.smart_calendar import save_to_calendar, list_calendar
 from backend.routers.auth import get_current_user
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
@@ -28,7 +27,6 @@ for f in [SAVE_FILE, TASKS_FILE]:
 # 📧 Email Helper
 # ---------------------------
 async def send_planner_email(user_email: str, summary: str, schedule: list):
-    """Send a confirmation email after generating a study plan."""
     try:
         fm = FastMail(conf)
         subject = "📅 AURA | Study Plan Confirmed!"
@@ -37,11 +35,15 @@ async def send_planner_email(user_email: str, summary: str, schedule: list):
         <p><b>Summary:</b> {summary}</p>
         <p><b>Total Sessions:</b> {len(schedule)}</p>
         <hr>
-        <p>Your study schedule has been added successfully. 
-        You'll receive reminders before each session.</p>
+        <p>Your study schedule has been added successfully.</p>
         <p style="color:gray;font-size:12px;">This is an automated message from AURA.</p>
         """
-        message = MessageSchema(subject=subject, recipients=[user_email], body=body, subtype="html")
+        message = MessageSchema(
+            subject=subject,
+            recipients=[user_email],
+            body=body,
+            subtype="html",
+        )
         await fm.send_message(message)
     except Exception as e:
         print(f"⚠️ Email sending failed: {e}")
@@ -54,13 +56,6 @@ async def generate_plan(
     req: PlannerRequest = Body(...),
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Generate a personalized AI-assisted study plan.
-
-    Option B behaviour:
-    - Uses user-provided task due datetime.
-    - Also uses *current* datetime (start_datetime) to avoid scheduling in the past.
-    """
     try:
         print("🔑 Current user:", current_user.get("email"))
 
@@ -70,52 +65,31 @@ async def generate_plan(
                 detail="No tasks provided. Please include at least one task.",
             )
 
-        # 🧭 Safely validate task due datetime values (accept both string & datetime)
+        # let pydantic parse datetimes; just log them for debugging
         for t in req.tasks:
-            if isinstance(t.due, str):
-                try:
-                    t.due = datetime.fromisoformat(t.due)
-                except Exception:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Invalid due datetime for task '{t.name}'",
-                    )
-            elif not isinstance(t.due, datetime) and t.due is not None:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Invalid datetime format for task '{t.name}'",
-                )
-
             print(f"📘 Task: {t.name} | Due: {t.due} | Difficulty: {t.difficulty}")
 
-        # 🕒 Ensure start_datetime exists and is a valid datetime (for Option B)
-        #    This is the anchor from which we start scheduling (can't schedule in the past).
-        start_dt = getattr(req, "start_datetime", None)
-
-        if start_dt is None:
-            # If frontend didn't send it for some reason, fall back to "now"
-            start_dt = datetime.utcnow()
-            setattr(req, "start_datetime", start_dt)
-        elif isinstance(start_dt, str):
+        # ensure start_datetime is a valid datetime
+        start_dt = req.start_datetime
+        if isinstance(start_dt, str):
             try:
                 start_dt = datetime.fromisoformat(start_dt)
-                setattr(req, "start_datetime", start_dt)
+                req.start_datetime = start_dt
             except Exception:
                 raise HTTPException(
                     status_code=400,
                     detail="Invalid start_datetime format. Use ISO 8601.",
                 )
 
-        print("⏰ Using start_datetime for planning:", start_dt.isoformat())
+        print("⏰ Using start_datetime for planning:", req.start_datetime.isoformat())
 
-        # Generate plan using smart planner (which should respect start_datetime)
         response = planner.generate(req)
         print(
             f"✅ Plan generated successfully for {current_user['email']} "
             f"({len(response.schedule)} days)"
         )
 
-        # Send email asynchronously
+        # async email
         asyncio.create_task(
             send_planner_email(
                 current_user["email"],
@@ -139,7 +113,6 @@ async def generate_plan(
 # ---------------------------
 @router.post("/save")
 async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
-    """Save a generated or custom study plan."""
     try:
         summary = data.get("summary", "Untitled Plan")
         schedule = data.get("schedule", [])
@@ -184,7 +157,6 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
 # ---------------------------
 @router.get("/saved")
 async def get_saved_plans(current_user: dict = Depends(get_current_user)):
-    """Retrieve all saved study plans for the logged-in user."""
     try:
         if not os.path.exists(SAVE_FILE):
             return {"entries": []}
@@ -198,95 +170,3 @@ async def get_saved_plans(current_user: dict = Depends(get_current_user)):
         return {"entries": user_plans}
     except Exception as e:
         raise HTTPException(500, f"Failed to load saved plans: {e}")
-
-# ---------------------------
-# 📅 Upcoming Plans
-# ---------------------------
-@router.get("/upcoming")
-async def get_upcoming_plans(current_user: dict = Depends(get_current_user)):
-    """Fetch plans starting within the next 5 minutes."""
-    try:
-        if not os.path.exists(SAVE_FILE):
-            return {"upcoming": []}
-
-        with open(SAVE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        now = datetime.utcnow()
-        upcoming = []
-
-        for plan in data:
-            if plan["email"] != current_user["email"]:
-                continue
-            for session in plan.get("schedule", []):
-                try:
-                    sessions = session.get("blocks", []) if "blocks" in session else [session]
-                    for s in sessions:
-                        session_time_str = f"{plan['date']} {s.get('start_time', '00:00')}"
-                        session_time = datetime.strptime(session_time_str, "%Y-%m-%d %H:%M")
-                        if now <= session_time <= now + timedelta(minutes=5):
-                            upcoming.append({
-                                "summary": plan["summary"],
-                                "start_time": s["start_time"],
-                                "date": plan["date"],
-                            })
-                except Exception as e:
-                    print("⚠️ Time parse error:", e)
-                    continue
-
-        return {"upcoming": upcoming}
-    except Exception as e:
-        raise HTTPException(500, f"Failed to fetch upcoming plans: {e}")
-
-# ---------------------------
-# ✅ Manage Tasks
-# ---------------------------
-@router.post("/tasks/add")
-async def add_task(task: dict, current_user: dict = Depends(get_current_user)):
-    """Add a new task to the planner (supports datetime)."""
-    try:
-        task["created_at"] = datetime.utcnow().isoformat()
-        task["email"] = current_user["email"]
-        task["status"] = "pending"
-
-        # Ensure due is valid datetime
-        if "due" in task:
-            try:
-                datetime.fromisoformat(task["due"])
-            except Exception:
-                raise HTTPException(400, f"Invalid datetime format for due: {task['due']}")
-
-        with open(TASKS_FILE, "r+", encoding="utf-8") as f:
-            data = json.load(f)
-            data.append(task)
-            f.seek(0)
-            json.dump(data, f, indent=2)
-
-        return {"status": "success", "task": task}
-    except Exception as e:
-        raise HTTPException(500, f"Failed to add task: {e}")
-
-@router.post("/tasks/update")
-async def update_task(task_id: str, status: str, current_user: dict = Depends(get_current_user)):
-    """Update or mark a task as completed."""
-    try:
-        if not os.path.exists(TASKS_FILE):
-            raise HTTPException(404, "No task file found.")
-
-        with open(TASKS_FILE, "r+", encoding="utf-8") as f:
-            data = json.load(f)
-            updated = False
-            for task in data:
-                if task.get("id") == task_id and task.get("email") == current_user["email"]:
-                    task["status"] = status
-                    updated = True
-                    break
-            f.seek(0)
-            json.dump(data, f, indent=2)
-
-        if not updated:
-            raise HTTPException(404, f"Task with id '{task_id}' not found.")
-        return {"status": "updated", "task_id": task_id, "new_status": status}
-
-    except Exception as e:
-        raise HTTPException(500, f"Failed to update task: {e}")
