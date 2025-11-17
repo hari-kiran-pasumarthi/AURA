@@ -223,7 +223,7 @@ def generate(req: PlannerRequest) -> PlannerResponse:
         else:
             due_dt = datetime.fromisoformat(str(task.due))
     except Exception:
-        # fallback: if due invalid, allow all days
+        # fallback: if due invalid, allow full range
         due_dt = datetime.combine(end_date, dt_time(23, 59))
 
     due_date = due_dt.date()
@@ -242,6 +242,48 @@ def generate(req: PlannerRequest) -> PlannerResponse:
         used_today = sum(x["hours"] for x in buckets[current_day])
         if used_today >= daily_limit:
             current_day += timedelta(days=1)
+            continue
+
+        free_slots = get_free_slots(current_day, existing_tasks, start_dt)
+
+        for fs, fe in free_slots:
+
+            # ⛔ Rule 2 — If due-day, don't schedule after due TIME
+            if current_day == due_date and fs.time() >= due_time:
+                continue
+
+            # Trim slot end time to due time
+            if current_day == due_date:
+                fe = min(fe, datetime.combine(current_day, due_time))
+
+            if remaining <= 0:
+                break
+
+            slot_duration = (fe - fs).seconds / 3600
+            if slot_duration <= 0:
+                continue
+
+            available = min(slot_duration, daily_limit - used_today, remaining)
+            if available <= 0:
+                continue
+
+            end_time = fs + timedelta(hours=available)
+
+            buckets[current_day].append({
+                "task": task.name,
+                "subject": task.subject,
+                "difficulty": task.difficulty,
+                "hours": round(available, 2),
+                "start_time": fs.strftime("%H:%M"),
+                "end_time": end_time.strftime("%H:%M"),
+                "due": task.due.isoformat() if isinstance(task.due, datetime) else str(task.due),
+            })
+
+            remaining -= available
+            used_today += available
+
+        current_day += timedelta(days=1)
+
             continue
 
         free_slots = get_free_slots(current_day, existing_tasks, start_dt)
