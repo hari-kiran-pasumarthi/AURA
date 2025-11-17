@@ -64,7 +64,7 @@ export default function PlannerScreen() {
     setPlan([]);
 
     try {
-      // Current IST datetime in ISO format, no offset (backend uses it as local clock anchor)
+      // Current IST datetime in ISO format (no offset)
       const currentDateTimeIST = new Date()
         .toLocaleString("sv-SE", { timeZone: "Asia/Kolkata" })
         .replace(" ", "T"); // e.g. "2025-11-18T21:30:45"
@@ -332,7 +332,7 @@ export default function PlannerScreen() {
                           fontSize: 13,
                           textAlign: "center",
                           lineHeight: `${height}px`,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)`,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
                         }}
                       >
                         {b.task}
