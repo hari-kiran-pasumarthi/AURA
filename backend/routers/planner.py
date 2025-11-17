@@ -67,11 +67,17 @@ async def generate_plan(
                 detail="No tasks provided. Please include at least one task.",
             )
 
+        # Routine Support (NEW)
+        if hasattr(req, "routine") and req.routine:
+            print(f"⏳ Custom routine received: {len(req.routine)} slots")
+        else:
+            print("ℹ️ No custom routine sent — using default routine")
+
         # Debug tasks
         for t in req.tasks:
             print(f"📘 Task: {t.name} | Due: {t.due} | Difficulty: {t.difficulty}")
 
-        # ensure start_datetime is a valid datetime (frontend sends local IST string)
+        # Parse start_datetime
         start_dt = req.start_datetime
         if isinstance(start_dt, str):
             try:
@@ -85,20 +91,19 @@ async def generate_plan(
 
         print("⏰ Using start_datetime for planning:", req.start_datetime.isoformat())
 
-        response = planner.generate(req)
+        # Pass the request + routine to planner service
+        response = planner.generate(req, custom_routine=req.routine)
+
         print(
             f"✅ Plan generated successfully for {current_user['email']} "
             f"({len(response.schedule)} days)"
         )
 
-        # async email
-        asyncio.create_task(
-            send_planner_email(
-                current_user["email"],
-                "Your AI Study Plan is Ready!",
-                response.schedule,
-            )
-        )
+        asyncio.create_task(send_planner_email(
+            current_user["email"],
+            "Your AI Study Plan is Ready!",
+            response.schedule,
+        ))
 
         return response
 
@@ -112,7 +117,7 @@ async def generate_plan(
 
 
 # ---------------------------
-# 💾 Save Plan
+# 💾 Save Plan (Routine Included)
 # ---------------------------
 @router.post("/save")
 async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
@@ -120,6 +125,7 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
         summary = data.get("summary", "Untitled Plan")
         schedule = data.get("schedule", [])
         tasks = data.get("tasks", [])
+        routine = data.get("routine", [])   # ⭐ NEW: Save routine
         date_str = data.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
 
         if not schedule:
@@ -129,19 +135,20 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
             "email": current_user["email"],
             "summary": summary,
             "date": date_str,
+            "routine": routine,          # ⭐ Saved for user
             "schedule": schedule,
             "tasks": tasks,
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-        # append to log file
+        # Append to log
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data_log = json.load(f)
             data_log.append(entry)
             f.seek(0)
             json.dump(data_log, f, indent=2)
 
-        # save individual JSON
+        # Save individual file
         file_name = (
             f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_"
             f"{current_user['email'].replace('@','_')}.json"
@@ -153,6 +160,7 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
         asyncio.create_task(
             send_planner_email(current_user["email"], summary, schedule)
         )
+
         print(f"💾 Saved planner entry for {current_user['email']}")
         return {"message": "Plan saved successfully", "file": file_name}
 
@@ -167,9 +175,6 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
 @router.get("/saved")
 async def get_saved_plans(current_user: dict = Depends(get_current_user)):
     try:
-        if not os.path.exists(SAVE_FILE):
-            return {"entries": []}
-
         with open(SAVE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
 
