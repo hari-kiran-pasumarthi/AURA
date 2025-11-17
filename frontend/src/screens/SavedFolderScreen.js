@@ -12,6 +12,7 @@ export default function SavedFolderScreen() {
     "confusion",
     "timepredict",
     "doubts",
+    "braindump",
   ];
 
   const [entries, setEntries] = useState({});
@@ -144,13 +145,15 @@ export default function SavedFolderScreen() {
         modules.map((mod) => {
           const modEntries = getEntries(mod);
           const sectionTitle =
-            mod === "planner"
-              ? "📘 AI Study Planner"
-              : mod === "doubts"
-              ? "❓ Doubt History"
-              : mod === "autonote"
-              ? "📝 AutoNotes"
-              : `📘 ${mod.charAt(0).toUpperCase() + mod.slice(1)}`;
+  mod === "planner"
+    ? "📘 AI Study Planner"
+    : mod === "doubts"
+    ? "❓ Doubt History"
+    : mod === "autonote"
+    ? "📝 AutoNotes"
+    : mod === "braindump"
+    ? "🧠 Brain Dump"
+    : `📘 ${mod.charAt(0).toUpperCase() + mod.slice(1)}`;
 
           return (
             <div
