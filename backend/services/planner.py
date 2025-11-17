@@ -211,10 +211,81 @@ def generate(req: PlannerRequest) -> PlannerResponse:
     # Allocate tasks day-by-day
     # ------------------------------------------------------
     for score, task, remaining in scored_tasks:
-        current_day = start_date
+    current_day = start_date
 
-        while remaining > 0 and current_day <= end_date:
-            used_today = sum(x["hours"] for x in buckets[current_day])
+    # -------------------------------
+    # ENFORCE HARD DUE DATE + TIME
+    # -------------------------------
+    try:
+        # Task may come with full ISO datetime (date + time)
+        if isinstance(task.due, datetime):
+            due_dt = task.due
+        else:
+            due_dt = datetime.fromisoformat(str(task.due))
+    except Exception:
+        # fallback: if due invalid, allow all days
+        due_dt = datetime.combine(end_date, dt_time(23, 59))
+
+    due_date = due_dt.date()
+    due_time = due_dt.time()
+
+    # --------------------------------------------------------
+    # Allocation loop
+    # --------------------------------------------------------
+    while remaining > 0 and current_day <= end_date:
+
+        # ⛔ Rule 1 — DO NOT schedule after due DATE
+        if current_day > due_date:
+            print(f"⚠️ Stopping '{task.name}' because due date passed.")
+            break
+
+        used_today = sum(x["hours"] for x in buckets[current_day])
+        if used_today >= daily_limit:
+            current_day += timedelta(days=1)
+            continue
+
+        free_slots = get_free_slots(current_day, existing_tasks, start_dt)
+
+        for fs, fe in free_slots:
+
+            # ⛔ Rule 2 — If this is the due-day, do not exceed due TIME
+            if current_day == due_date and fs.time() >= due_time:
+                continue
+
+            # Limit to due time if needed
+            if current_day == due_date:
+                fe = min(fe, datetime.combine(current_day, due_time))
+
+            if remaining <= 0:
+                break
+
+            slot_duration = (fe - fs).seconds / 3600
+            if slot_duration <= 0:
+                continue
+
+            available = min(slot_duration, daily_limit - used_today, remaining)
+            if available <= 0:
+                continue
+
+            end_time = fs + timedelta(hours=available)
+
+            buckets[current_day].append(
+                {
+                    "task": task.name,
+                    "subject": task.subject,
+                    "difficulty": task.difficulty,
+                    "hours": round(available, 2),
+                    "start_time": fs.strftime("%H:%M"),
+                    "end_time": end_time.strftime("%H:%M"),
+                    "due": task.due.isoformat() if isinstance(task.due, datetime) else str(task.due),
+                }
+            )
+
+            remaining -= available
+            used_today += available
+
+        current_day += timedelta(days=1)
+
             if used_today >= daily_limit:
                 current_day += timedelta(days=1)
                 continue
