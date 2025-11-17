@@ -338,7 +338,7 @@ export default function PlannerScreen() {
                           fontSize: 13,
                           textAlign: "center",
                           lineHeight: `${height}px`,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)`,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
                         }}
                         title={`${b.task} (${b.start_time}–${b.end_time})`}
                       >
