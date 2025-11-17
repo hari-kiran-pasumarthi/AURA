@@ -4,7 +4,7 @@ from backend.services import planner
 from backend.routers.auth import get_current_user
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
-from datetime import datetime, timedelta
+from datetime import datetime
 import os, json, asyncio
 
 router = APIRouter(prefix="/planner", tags=["Planner"])
@@ -22,6 +22,7 @@ for f in [SAVE_FILE, TASKS_FILE]:
     if not os.path.exists(f):
         with open(f, "w", encoding="utf-8") as file:
             json.dump([], file, indent=2)
+
 
 # ---------------------------
 # 📧 Email Helper
@@ -48,6 +49,7 @@ async def send_planner_email(user_email: str, summary: str, schedule: list):
     except Exception as e:
         print(f"⚠️ Email sending failed: {e}")
 
+
 # ---------------------------
 # 📅 Generate Plan
 # ---------------------------
@@ -65,11 +67,11 @@ async def generate_plan(
                 detail="No tasks provided. Please include at least one task.",
             )
 
-        # let pydantic parse datetimes; just log them for debugging
+        # Debug tasks
         for t in req.tasks:
             print(f"📘 Task: {t.name} | Due: {t.due} | Difficulty: {t.difficulty}")
 
-        # ensure start_datetime is a valid datetime
+        # ensure start_datetime is a valid datetime (frontend sends local IST string)
         start_dt = req.start_datetime
         if isinstance(start_dt, str):
             try:
@@ -108,6 +110,7 @@ async def generate_plan(
             status_code=500, detail=f"Planner generation failed: {str(e)}"
         )
 
+
 # ---------------------------
 # 💾 Save Plan
 # ---------------------------
@@ -117,7 +120,7 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
         summary = data.get("summary", "Untitled Plan")
         schedule = data.get("schedule", [])
         tasks = data.get("tasks", [])
-        date = data.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
+        date_str = data.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
 
         if not schedule:
             raise HTTPException(400, "Missing schedule data.")
@@ -125,19 +128,24 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
         entry = {
             "email": current_user["email"],
             "summary": summary,
-            "date": date,
+            "date": date_str,
             "schedule": schedule,
             "tasks": tasks,
             "timestamp": datetime.utcnow().isoformat(),
         }
 
+        # append to log file
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             data_log = json.load(f)
             data_log.append(entry)
             f.seek(0)
             json.dump(data_log, f, indent=2)
 
-        file_name = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{current_user['email'].replace('@','_')}.json"
+        # save individual JSON
+        file_name = (
+            f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_"
+            f"{current_user['email'].replace('@','_')}.json"
+        )
         file_path = os.path.join(SAVE_DIR, file_name)
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(entry, f, indent=2)
@@ -151,6 +159,7 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
     except Exception as e:
         print(f"❌ Save failed: {e}")
         raise HTTPException(500, f"Failed to save plan: {e}")
+
 
 # ---------------------------
 # 📂 Fetch Saved Plans
