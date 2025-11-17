@@ -1,7 +1,13 @@
 from backend.models.schemas import PlannerRequest, PlannerResponse
 from datetime import date, timedelta, datetime, time as dt_time
 from typing import List, Dict, Any, Tuple
+from zoneinfo import ZoneInfo
 import os, json
+
+# ------------------------------------------------------
+# Timezone (all internal datetimes will use IST)
+# ------------------------------------------------------
+IST = ZoneInfo("Asia/Kolkata")
 
 # ------------------------------------------------------
 # Default Blocked Routine
@@ -71,8 +77,8 @@ def merge_busy_slots(routine, existing):
 # Find free slots for a specific day
 # ------------------------------------------------------
 def get_free_slots(for_date, existing_tasks, start_datetime):
-    full_day_start = datetime.combine(for_date, dt_time(7, 0))
-    full_day_end = datetime.combine(for_date, dt_time(22, 30))
+    full_day_start = datetime.combine(for_date, dt_time(7, 0), IST)
+    full_day_end = datetime.combine(for_date, dt_time(22, 30), IST)
 
     if for_date == start_datetime.date():
         full_day_start = max(full_day_start, start_datetime + timedelta(minutes=5))
@@ -84,8 +90,16 @@ def get_free_slots(for_date, existing_tasks, start_datetime):
 
     for b_start, b_end in busy_blocks:
         try:
-            bs = datetime.combine(for_date, datetime.strptime(b_start, "%H:%M").time())
-            be = datetime.combine(for_date, datetime.strptime(b_end, "%H:%M").time())
+            bs = datetime.combine(
+                for_date,
+                datetime.strptime(b_start, "%H:%M").time(),
+                IST,
+            )
+            be = datetime.combine(
+                for_date,
+                datetime.strptime(b_end, "%H:%M").time(),
+                IST,
+            )
         except Exception:
             continue
 
@@ -104,26 +118,40 @@ def get_free_slots(for_date, existing_tasks, start_datetime):
 
 
 # ------------------------------------------------------
-# MAIN PLANNER LOGIC — WITH HARD DUE DATE AND TIME
+# MAIN PLANNER LOGIC — FULLY TIMEZONE-AWARE
 # ------------------------------------------------------
 def generate(req: PlannerRequest) -> PlannerResponse:
+
+    # Make start_datetime timezone aware
     start_dt = req.start_datetime
     if isinstance(start_dt, str):
         start_dt = datetime.fromisoformat(start_dt)
 
+    if start_dt.tzinfo is None:
+        start_dt = start_dt.replace(tzinfo=IST)
+    else:
+        start_dt = start_dt.astimezone(IST)
+
     start_date = start_dt.date()
 
+    # Planning horizon
     if req.end_date:
-        end_date = req.end_date.date()
+        end_dt = req.end_date
+        if isinstance(end_dt, str):
+            end_dt = datetime.fromisoformat(end_dt)
+        if end_dt.tzinfo is None:
+            end_dt = end_dt.replace(tzinfo=IST)
+        else:
+            end_dt = end_dt.astimezone(IST)
+        end_date = end_dt.date()
     else:
         end_date = start_date + timedelta(days=7)
 
     daily_limit = float(req.preferred_hours or 4)
-    horizon_days = (end_date - start_date).days + 1
 
+    horizon_days = (end_date - start_date).days + 1
     buckets: Dict[date, List[Dict[str, Any]]] = {
-        start_date + timedelta(days=i): []
-        for i in range(horizon_days)
+        start_date + timedelta(days=i): [] for i in range(horizon_days)
     }
 
     existing_tasks = load_existing_tasks()
@@ -131,40 +159,42 @@ def generate(req: PlannerRequest) -> PlannerResponse:
     # Score tasks
     scored_tasks = []
     for t in req.tasks:
+
+        # Parse due datetime with timezone
         try:
             if isinstance(t.due, datetime):
-                due_date = t.due.date()
+                due_dt = t.due
             else:
-                due_date = datetime.fromisoformat(str(t.due)).date()
+                due_dt = datetime.fromisoformat(str(t.due))
+
+            if due_dt.tzinfo is None:
+                due_dt = due_dt.replace(tzinfo=IST)
+            else:
+                due_dt = due_dt.astimezone(IST)
+
+            due_date = due_dt.date()
             urgency = 1 / max(1, (due_date - start_date).days)
+
         except:
             urgency = 1
+            due_dt = datetime.combine(end_date, dt_time(23, 59), IST)
 
         est = float(t.estimated_hours or (t.difficulty * 1.5))
         score = urgency * t.difficulty
-        scored_tasks.append((score, t, est))
+        scored_tasks.append((score, t, est, due_dt))
 
     scored_tasks.sort(key=lambda x: x[0], reverse=True)
 
-    # Allocate tasks
-    for score, task, remaining in scored_tasks:
+    # Schedule tasks
+    for score, task, remaining, due_dt in scored_tasks:
+
         current_day = start_date
-
-        # Parse due datetime fully (date + time)
-        try:
-            if isinstance(task.due, datetime):
-                due_dt = task.due
-            else:
-                due_dt = datetime.fromisoformat(str(task.due))
-        except:
-            due_dt = datetime.combine(end_date, dt_time(23, 59))
-
         due_date = due_dt.date()
         due_time = due_dt.time()
 
         while remaining > 0 and current_day <= end_date:
 
-            # Stop if date passed
+            # Stop scheduling after due date
             if current_day > due_date:
                 break
 
@@ -177,13 +207,13 @@ def generate(req: PlannerRequest) -> PlannerResponse:
 
             for fs, fe in free_slots:
 
-                # If due-day, block times past due_time
+                # On due-day: block after due-time
                 if current_day == due_date:
                     if fs.time() >= due_time:
                         continue
-                    fe = min(fe, datetime.combine(current_day, due_time))
+                    fe = min(fe, datetime.combine(current_day, due_time, IST))
 
-                slot_duration = (fe - fs).seconds / 3600
+                slot_duration = (fe - fs).total_seconds() / 3600
                 if slot_duration <= 0:
                     continue
 
@@ -200,7 +230,7 @@ def generate(req: PlannerRequest) -> PlannerResponse:
                     "hours": round(available, 2),
                     "start_time": fs.strftime("%H:%M"),
                     "end_time": end_time.strftime("%H:%M"),
-                    "due": str(task.due),
+                    "due": due_dt.isoformat(),
                 })
 
                 remaining -= available
@@ -208,19 +238,19 @@ def generate(req: PlannerRequest) -> PlannerResponse:
 
             current_day += timedelta(days=1)
 
-    # Build schedule output
+    # Build final schedule
     schedule = [
         {"date": d.isoformat(), "blocks": blocks}
         for d, blocks in buckets.items()
         if blocks
     ]
 
-    # Save snapshot for future blocking
+    # Save snapshot
     try:
         save_dir = os.path.join("saved_files", "notes", "planner")
         os.makedirs(save_dir, exist_ok=True)
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        data = {"schedule": schedule, "timestamp": datetime.utcnow().isoformat()}
+        ts = datetime.now(IST).strftime("%Y%m%d_%H%M%S")
+        data = {"schedule": schedule, "timestamp": datetime.now(IST).isoformat()}
         with open(os.path.join(save_dir, f"planner_{ts}.json"), "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
     except:
