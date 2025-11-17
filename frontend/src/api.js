@@ -82,18 +82,17 @@ export const getSavedFocus = () => API.get("/focus/saved");
 // -------------------------------------------------------------
 // 📅 PLANNER – Smart Study Planner
 // -------------------------------------------------------------
-export const plannerGenerate = (tasks, start_date, end_date, daily_hours = 4) =>
-  API.post("/planner/generate", {
-    start_date,
-    end_date,
-    daily_hours,
-    tasks,
-  });
+// -------------------------------------------------------------
+// 📅 PLANNER – Smart Study Planner
+// -------------------------------------------------------------
+export const plannerGenerate = (body) =>
+  API.post("/planner/generate", body);
 
 export const savePlanner = (summary, schedule, tasks, date) =>
   API.post("/planner/save", { summary, schedule, tasks, date });
 
 export const getSavedPlanner = () => API.get("/planner/saved");
+
 
 // -------------------------------------------------------------
 // ❓ DOUBTS – Question Handling
