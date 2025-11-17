@@ -22,7 +22,7 @@ export default function PlannerScreen() {
     if (!task.trim() || !due.trim() || !time.trim())
       return alert("Please enter task name, date, and time!");
 
-    const dueDateTime = `${due}T${time}`;
+    const dueDateTime = `${due}T${time}:00+05:30`;
     setTasks([
       ...tasks,
       {
