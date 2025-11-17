@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Tuple
 import os, json
 
 # ------------------------------------------------------
-# 🕒 Default Blocked Routine (non-study time)
+# Default Blocked Routine
 # ------------------------------------------------------
 DEFAULT_ROUTINE = [
     {"activity": "Wake Up", "start": "07:00", "end": "07:30"},
@@ -17,14 +17,9 @@ DEFAULT_ROUTINE = [
 
 
 # ------------------------------------------------------
-# 📂 Load Previous Tasks to Block Slots
+# Load previous tasks to block slots
 # ------------------------------------------------------
 def load_existing_tasks() -> Dict[date, List[Tuple[str, str]]]:
-    """
-    Reads previous saved planner files from saved_files/notes/planner
-    and returns a dict: { date: [(start_time_str, end_time_str), ...], ... }
-    These blocks will be treated as 'busy' when creating a new plan.
-    """
     base_dir = os.path.join("saved_files", "notes", "planner")
     if not os.path.exists(base_dir):
         return {}
@@ -53,109 +48,71 @@ def load_existing_tasks() -> Dict[date, List[Tuple[str, str]]]:
 
                     booked.setdefault(d, []).append((start_str, end_str))
         except Exception:
-            # ignore broken files quietly
             continue
 
     return booked
 
 
 # ------------------------------------------------------
-# Merge routine + existing busy slots
+# Merge routine and existing busy slots
 # ------------------------------------------------------
-def merge_busy_slots(
-    routine: List[Dict[str, str]], existing: List[Tuple[str, str]]
-) -> List[Tuple[str, str]]:
-    """
-    Combine default routine (excluding sleep) with existing booked sessions.
-    Returns a sorted list of (start_str, end_str) by time.
-    """
-    busy: List[Tuple[str, str]] = [
+def merge_busy_slots(routine, existing):
+    busy = [
         (r["start"], r["end"])
         for r in routine
         if r.get("activity", "").lower() != "sleep"
     ]
     busy.extend(existing or [])
-
-    # HH:MM string sort works as time sort
     busy.sort(key=lambda x: x[0])
     return busy
 
 
 # ------------------------------------------------------
-# Get free slots for a specific day
+# Find free slots for a specific day
 # ------------------------------------------------------
-def get_free_slots(
-    for_date: date,
-    existing_tasks: Dict[date, List[Tuple[str, str]]],
-    start_datetime: datetime,
-) -> List[Tuple[datetime, datetime]]:
-    """
-    For a given date, return a list of (start_dt, end_dt) free slots
-    between 07:00 and 22:30, excluding:
-      - default routine (non-sleep)
-      - already scheduled planner blocks (from old saved_files)
-      - past time on the first day
-    """
+def get_free_slots(for_date, existing_tasks, start_datetime):
     full_day_start = datetime.combine(for_date, dt_time(7, 0))
     full_day_end = datetime.combine(for_date, dt_time(22, 30))
 
-    # If this is the first day of planning, start *after now*
     if for_date == start_datetime.date():
-        # small buffer so we don't schedule exactly at "now"
         full_day_start = max(full_day_start, start_datetime + timedelta(minutes=5))
 
     busy_blocks = merge_busy_slots(DEFAULT_ROUTINE, existing_tasks.get(for_date, []))
 
-    free: List[Tuple[datetime, datetime]] = []
+    free = []
     pointer = full_day_start
 
     for b_start, b_end in busy_blocks:
         try:
-            bs_time = datetime.strptime(b_start, "%H:%M").time()
-            be_time = datetime.strptime(b_end, "%H:%M").time()
+            bs = datetime.combine(for_date, datetime.strptime(b_start, "%H:%M").time())
+            be = datetime.combine(for_date, datetime.strptime(b_end, "%H:%M").time())
         except Exception:
-            # ignore malformed times
             continue
 
-        bs = datetime.combine(for_date, bs_time)
-        be = datetime.combine(for_date, be_time)
-
-        # if busy-block entirely before our pointer, ignore
         if be <= pointer:
             continue
 
-        # gap between pointer and start of busy block
         if bs > pointer:
             free.append((pointer, bs))
 
-        # move pointer to end of busy block
         pointer = max(pointer, be)
 
-    # leftover gap until end of day
     if pointer < full_day_end:
         free.append((pointer, full_day_end))
 
-    # filter out negative/zero slots
-    free = [(s, e) for s, e in free if e > s]
-    return free
+    return [(s, e) for s, e in free if e > s]
 
 
-# ==============================================================
-# 🚀 MAIN PLANNER LOGIC — uses start_datetime
-# ==============================================================
+# ------------------------------------------------------
+# MAIN PLANNER LOGIC — WITH HARD DUE DATE AND TIME
+# ------------------------------------------------------
 def generate(req: PlannerRequest) -> PlannerResponse:
-    print("🧠 Planner Started (Option A mode)")
-
-    # ensure start_datetime is datetime
-    start_dt: datetime = req.start_datetime
+    start_dt = req.start_datetime
     if isinstance(start_dt, str):
-        # fallback in case something passes string from router
         start_dt = datetime.fromisoformat(start_dt)
 
     start_date = start_dt.date()
-    print("⏰ Planning starts from:", start_dt.isoformat())
 
-    # end_date window (defaults to +7 days if not provided)
     if req.end_date:
         end_date = req.end_date.date()
     else:
@@ -165,169 +122,53 @@ def generate(req: PlannerRequest) -> PlannerResponse:
     horizon_days = (end_date - start_date).days + 1
 
     buckets: Dict[date, List[Dict[str, Any]]] = {
-        start_date + timedelta(days=i): [] for i in range(horizon_days)
+        start_date + timedelta(days=i): []
+        for i in range(horizon_days)
     }
 
-    # Load already scheduled tasks from previous planner runs
     existing_tasks = load_existing_tasks()
-    print(f"📚 Existing booked days: {list(existing_tasks.keys())}")
 
-    # ------------------------------------------------------
-    # Score tasks by urgency × difficulty
-    # ------------------------------------------------------
+    # Score tasks
     scored_tasks = []
-    total_estimated = 0.0
-
     for t in req.tasks:
-        hours = float(t.estimated_hours or (t.difficulty * 1.5))
-        total_estimated += hours
-
-        # urgency calculation based on due date
         try:
             if isinstance(t.due, datetime):
                 due_date = t.due.date()
-            elif t.due:
-                # handle ISO with or without offset
-                due_dt = datetime.fromisoformat(str(t.due))
-                due_date = due_dt.date()
             else:
-                due_date = end_date
+                due_date = datetime.fromisoformat(str(t.due)).date()
+            urgency = 1 / max(1, (due_date - start_date).days)
+        except:
+            urgency = 1
 
-            days_left = max(1, (due_date - start_date).days)
-            urgency = 1 / days_left
-        except Exception:
-            urgency = 1.0
-
+        est = float(t.estimated_hours or (t.difficulty * 1.5))
         score = urgency * t.difficulty
-        scored_tasks.append((score, t, hours))
+        scored_tasks.append((score, t, est))
 
     scored_tasks.sort(key=lambda x: x[0], reverse=True)
-    print(
-        f"🧾 {len(scored_tasks)} tasks sorted for scheduling "
-        f"(total ~{total_estimated:.1f} hrs)."
-    )
 
-    # ------------------------------------------------------
-    # Allocate tasks day-by-day
-    # ------------------------------------------------------
+    # Allocate tasks
     for score, task, remaining in scored_tasks:
-    current_day = start_date
+        current_day = start_date
 
-    # -------------------------------
-    # ENFORCE HARD DUE DATE + TIME
-    # -------------------------------
-    try:
-        # Task may come with full ISO datetime (date + time)
-        if isinstance(task.due, datetime):
-            due_dt = task.due
-        else:
-            due_dt = datetime.fromisoformat(str(task.due))
-    except Exception:
-        # fallback: if due invalid, allow full range
-        due_dt = datetime.combine(end_date, dt_time(23, 59))
+        # Parse due datetime fully (date + time)
+        try:
+            if isinstance(task.due, datetime):
+                due_dt = task.due
+            else:
+                due_dt = datetime.fromisoformat(str(task.due))
+        except:
+            due_dt = datetime.combine(end_date, dt_time(23, 59))
 
-    due_date = due_dt.date()
-    due_time = due_dt.time()
+        due_date = due_dt.date()
+        due_time = due_dt.time()
 
-    # --------------------------------------------------------
-    # Allocation loop
-    # --------------------------------------------------------
-    while remaining > 0 and current_day <= end_date:
+        while remaining > 0 and current_day <= end_date:
 
-        # ⛔ Rule 1 — DO NOT schedule after due DATE
-        if current_day > due_date:
-            print(f"⚠️ Stopping '{task.name}' because due date passed.")
-            break
-
-        used_today = sum(x["hours"] for x in buckets[current_day])
-        if used_today >= daily_limit:
-            current_day += timedelta(days=1)
-            continue
-
-        free_slots = get_free_slots(current_day, existing_tasks, start_dt)
-
-        for fs, fe in free_slots:
-
-            # ⛔ Rule 2 — If due-day, don't schedule after due TIME
-            if current_day == due_date and fs.time() >= due_time:
-                continue
-
-            # Trim slot end time to due time
-            if current_day == due_date:
-                fe = min(fe, datetime.combine(current_day, due_time))
-
-            if remaining <= 0:
+            # Stop if date passed
+            if current_day > due_date:
                 break
 
-            slot_duration = (fe - fs).seconds / 3600
-            if slot_duration <= 0:
-                continue
-
-            available = min(slot_duration, daily_limit - used_today, remaining)
-            if available <= 0:
-                continue
-
-            end_time = fs + timedelta(hours=available)
-
-            buckets[current_day].append({
-                "task": task.name,
-                "subject": task.subject,
-                "difficulty": task.difficulty,
-                "hours": round(available, 2),
-                "start_time": fs.strftime("%H:%M"),
-                "end_time": end_time.strftime("%H:%M"),
-                "due": task.due.isoformat() if isinstance(task.due, datetime) else str(task.due),
-            })
-
-            remaining -= available
-            used_today += available
-
-        current_day += timedelta(days=1)
-
-            continue
-
-        free_slots = get_free_slots(current_day, existing_tasks, start_dt)
-
-        for fs, fe in free_slots:
-
-            # ⛔ Rule 2 — If this is the due-day, do not exceed due TIME
-            if current_day == due_date and fs.time() >= due_time:
-                continue
-
-            # Limit to due time if needed
-            if current_day == due_date:
-                fe = min(fe, datetime.combine(current_day, due_time))
-
-            if remaining <= 0:
-                break
-
-            slot_duration = (fe - fs).seconds / 3600
-            if slot_duration <= 0:
-                continue
-
-            available = min(slot_duration, daily_limit - used_today, remaining)
-            if available <= 0:
-                continue
-
-            end_time = fs + timedelta(hours=available)
-
-            buckets[current_day].append(
-                {
-                    "task": task.name,
-                    "subject": task.subject,
-                    "difficulty": task.difficulty,
-                    "hours": round(available, 2),
-                    "start_time": fs.strftime("%H:%M"),
-                    "end_time": end_time.strftime("%H:%M"),
-                    "due": task.due.isoformat() if isinstance(task.due, datetime) else str(task.due),
-                }
-            )
-
-            remaining -= available
-            used_today += available
-
-        current_day += timedelta(days=1)
-
+            used_today = sum(x["hours"] for x in buckets[current_day])
             if used_today >= daily_limit:
                 current_day += timedelta(days=1)
                 continue
@@ -335,62 +176,54 @@ def generate(req: PlannerRequest) -> PlannerResponse:
             free_slots = get_free_slots(current_day, existing_tasks, start_dt)
 
             for fs, fe in free_slots:
-                if remaining <= 0:
-                    break
+
+                # If due-day, block times past due_time
+                if current_day == due_date:
+                    if fs.time() >= due_time:
+                        continue
+                    fe = min(fe, datetime.combine(current_day, due_time))
 
                 slot_duration = (fe - fs).seconds / 3600
-                available = min(slot_duration, daily_limit - used_today, remaining)
+                if slot_duration <= 0:
+                    continue
 
+                available = min(slot_duration, daily_limit - used_today, remaining)
                 if available <= 0:
                     continue
 
                 end_time = fs + timedelta(hours=available)
 
-                buckets[current_day].append(
-                    {
-                        "task": task.name,
-                        "subject": task.subject,
-                        "difficulty": task.difficulty,
-                        "hours": round(available, 2),
-                        "start_time": fs.strftime("%H:%M"),
-                        "end_time": end_time.strftime("%H:%M"),
-                        "due": (
-                            task.due.isoformat()
-                            if isinstance(task.due, datetime)
-                            else str(task.due)
-                        ),
-                    }
-                )
+                buckets[current_day].append({
+                    "task": task.name,
+                    "subject": task.subject,
+                    "difficulty": task.difficulty,
+                    "hours": round(available, 2),
+                    "start_time": fs.strftime("%H:%M"),
+                    "end_time": end_time.strftime("%H:%M"),
+                    "due": str(task.due),
+                })
 
                 remaining -= available
                 used_today += available
 
             current_day += timedelta(days=1)
 
-    # Build final schedule
+    # Build schedule output
     schedule = [
         {"date": d.isoformat(), "blocks": blocks}
         for d, blocks in buckets.items()
         if blocks
     ]
 
-    print(f"✅ Planner generated {len(schedule)} day(s) of schedule.")
-
-    # Snapshot for future blocking: saved_files/notes/planner
+    # Save snapshot for future blocking
     try:
         save_dir = os.path.join("saved_files", "notes", "planner")
         os.makedirs(save_dir, exist_ok=True)
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        data = {
-            "title": f"AI Study Plan - {ts}",
-            "schedule": schedule,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
-        path = os.path.join(save_dir, f"planner_{ts}.json")
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        print(f"💾 Planner snapshot saved at {path}")
-    except Exception as e:
-        print(f"⚠️ Planner snapshot save failed: {e}")
+        data = {"schedule": schedule, "timestamp": datetime.utcnow().isoformat()}
+        with open(os.path.join(save_dir, f"planner_{ts}.json"), "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except:
+        pass
 
     return PlannerResponse(schedule=schedule)
