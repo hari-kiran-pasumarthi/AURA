@@ -66,8 +66,8 @@ export default function PlannerScreen() {
       const res = await plannerGenerate({
         tasks: tasks,
         daily_hours: 4,
-        start_date: currentDateTimeIST,
-        end_date: null,
+        start_datetime: currentDateTimeIST,
+        end_datetime: null,
       });
 
       const data = res.data;
