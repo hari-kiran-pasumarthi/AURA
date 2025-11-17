@@ -38,6 +38,12 @@ class Task(BaseModel):
     estimated_hours: Optional[float] = None
     completed: Optional[bool] = False
 
+class RoutineItem(BaseModel):
+    label: str
+    start: str    # "HH:MM"
+    end: str      # "HH:MM"
+    type: Optional[str] = "routine"
+
 class PlannerRequest(BaseModel):
     tasks: List[Task]
 
