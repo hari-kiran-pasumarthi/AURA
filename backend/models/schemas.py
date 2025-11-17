@@ -41,8 +41,11 @@ class Task(BaseModel):
 class PlannerRequest(BaseModel):
     tasks: List[Task]
 
-    # ⏰ required for planning from "now"
-    start_datetime: datetime                # full ISO datetime string
+    # NEW — optional user routine
+    routine: Optional[List[RoutineItem]] = []   # ⭐ FIXED
+
+    # required start datetime
+    start_datetime: datetime
 
     # optional end date range
     end_date: Optional[datetime] = None
