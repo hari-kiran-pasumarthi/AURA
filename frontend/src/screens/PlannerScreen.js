@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { plannerGenerate, savePlanner } from "../api"; 
+import { plannerGenerate, savePlanner } from "../api";
 
 export default function PlannerScreen() {
   const navigate = useNavigate();
@@ -19,9 +19,12 @@ export default function PlannerScreen() {
   }, []);
 
   const addTask = () => {
-    if (!task.trim() || !due.trim() || !time.trim())
-      return alert("Please enter task name, date, and time!");
+    if (!task.trim() || !due.trim() || !time.trim()) {
+      alert("Please enter task name, date, and time!");
+      return;
+    }
 
+    // Full ISO datetime in IST for the due date
     const dueDateTime = `${due}T${time}:00+05:30`;
 
     setTasks([
@@ -50,26 +53,30 @@ export default function PlannerScreen() {
     setTasks(updated);
   };
 
-  // 🚀 FIXED GENERATE PLAN
+  // 🚀 Generate Plan (Option A aligned with backend)
   const generatePlan = async () => {
-    if (tasks.length === 0) return alert("Please add at least one task!");
+    if (tasks.length === 0) {
+      alert("Please add at least one task!");
+      return;
+    }
 
     setLoading(true);
     setPlan([]);
 
     try {
-      const currentDateTimeIST = new Date().toLocaleString("sv-SE", {
-        timeZone: "Asia/Kolkata",
-      }).replace(" ", "T");
+      // Current IST datetime in ISO format, no offset (backend uses it as local clock anchor)
+      const currentDateTimeIST = new Date()
+        .toLocaleString("sv-SE", { timeZone: "Asia/Kolkata" })
+        .replace(" ", "T"); // e.g. "2025-11-18T21:30:45"
 
-      // 🔥 FIX: SEND JSON OBJECT EXACTLY LIKE BACKEND EXPECTS
-      const res = await plannerGenerate({
-        tasks: tasks,
-        daily_hours: 4,
+      const payload = {
+        tasks,
         start_datetime: currentDateTimeIST,
-        end_datetime: null,
-      });
+        preferred_hours: 4, // daily study limit in hours
+        end_date: null, // backend will default to start + 7 days
+      };
 
+      const res = await plannerGenerate(payload);
       const data = res.data;
 
       if (data.schedule?.length) {
@@ -82,12 +89,12 @@ export default function PlannerScreen() {
         alert("⚠️ Failed to generate plan. Please try again.");
       }
     } catch (err) {
+      console.error("Planner error:", err);
       if (err.response?.status === 401) {
         alert("⚠️ Session expired. Please log in again.");
         localStorage.removeItem("token");
         window.location.href = "/login";
       } else {
-        console.error(err);
         alert("⚠️ Could not connect to backend.");
       }
     } finally {
@@ -97,7 +104,10 @@ export default function PlannerScreen() {
 
   // 💾 Save Plan
   const handleSavePlan = async () => {
-    if (plan.length === 0) return alert("No plan to save!");
+    if (plan.length === 0) {
+      alert("No plan to save!");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -109,12 +119,12 @@ export default function PlannerScreen() {
       );
       alert("💾 Plan saved successfully!");
     } catch (err) {
+      console.error("Save plan error:", err);
       if (err.response?.status === 401) {
         alert("⚠️ Session expired. Please log in.");
         localStorage.removeItem("token");
         window.location.href = "/login";
       } else {
-        console.error(err);
         alert("⚠️ Failed to save plan.");
       }
     } finally {
@@ -218,7 +228,9 @@ export default function PlannerScreen() {
           style={inputStyle}
         />
 
-        <button onClick={addTask} style={addBtn}>➕ Add Task</button>
+        <button onClick={addTask} style={addBtn}>
+          ➕ Add Task
+        </button>
 
         <button onClick={generatePlan} disabled={loading} style={mainBtn}>
           {loading ? "⏳ Generating..." : "⚡ Generate AI Plan"}
@@ -284,9 +296,7 @@ export default function PlannerScreen() {
           <div style={timelineWrapper}>
             {plan.map((day, i) => (
               <div key={i} style={timelineColumn}>
-                <div
-                  style={{ fontWeight: 600, marginBottom: 8 }}
-                >
+                <div style={{ fontWeight: 600, marginBottom: 8 }}>
                   {new Date(day.date).toLocaleDateString("en-IN", {
                     weekday: "short",
                     month: "short",
@@ -322,7 +332,7 @@ export default function PlannerScreen() {
                           fontSize: 13,
                           textAlign: "center",
                           lineHeight: `${height}px`,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)`,
                         }}
                       >
                         {b.task}
