@@ -50,39 +50,89 @@ async def send_planner_email(user_email: str, summary: str, schedule: list):
 # 📅 Generate Plan
 # ---------------------------
 @router.post("/generate", response_model=PlannerResponse)
-async def generate_plan(req: PlannerRequest = Body(...), current_user: dict = Depends(get_current_user)):
-    """Generate a personalized AI-assisted study plan."""
+async def generate_plan(
+    req: PlannerRequest = Body(...),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Generate a personalized AI-assisted study plan.
+
+    Option B behaviour:
+    - Uses user-provided task due datetime.
+    - Also uses *current* datetime (start_datetime) to avoid scheduling in the past.
+    """
     try:
         print("🔑 Current user:", current_user.get("email"))
 
         if not req.tasks or len(req.tasks) == 0:
-            raise HTTPException(status_code=400, detail="No tasks provided. Please include at least one task.")
+            raise HTTPException(
+                status_code=400,
+                detail="No tasks provided. Please include at least one task.",
+            )
 
-        # 🧭 Safely validate datetime values (accept both string & datetime)
+        # 🧭 Safely validate task due datetime values (accept both string & datetime)
         for t in req.tasks:
             if isinstance(t.due, str):
                 try:
                     t.due = datetime.fromisoformat(t.due)
                 except Exception:
-                    raise HTTPException(status_code=400, detail=f"Invalid due datetime for task '{t.name}'")
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid due datetime for task '{t.name}'",
+                    )
             elif not isinstance(t.due, datetime) and t.due is not None:
-                raise HTTPException(status_code=400, detail=f"Invalid datetime format for task '{t.name}'")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid datetime format for task '{t.name}'",
+                )
 
             print(f"📘 Task: {t.name} | Due: {t.due} | Difficulty: {t.difficulty}")
 
-        # Generate plan using smart planner
+        # 🕒 Ensure start_datetime exists and is a valid datetime (for Option B)
+        #    This is the anchor from which we start scheduling (can't schedule in the past).
+        start_dt = getattr(req, "start_datetime", None)
+
+        if start_dt is None:
+            # If frontend didn't send it for some reason, fall back to "now"
+            start_dt = datetime.utcnow()
+            setattr(req, "start_datetime", start_dt)
+        elif isinstance(start_dt, str):
+            try:
+                start_dt = datetime.fromisoformat(start_dt)
+                setattr(req, "start_datetime", start_dt)
+            except Exception:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid start_datetime format. Use ISO 8601.",
+                )
+
+        print("⏰ Using start_datetime for planning:", start_dt.isoformat())
+
+        # Generate plan using smart planner (which should respect start_datetime)
         response = planner.generate(req)
-        print(f"✅ Plan generated successfully for {current_user['email']} ({len(response.schedule)} days)")
+        print(
+            f"✅ Plan generated successfully for {current_user['email']} "
+            f"({len(response.schedule)} days)"
+        )
 
         # Send email asynchronously
-        asyncio.create_task(send_planner_email(current_user["email"], "Your AI Study Plan is Ready!", response.schedule))
+        asyncio.create_task(
+            send_planner_email(
+                current_user["email"],
+                "Your AI Study Plan is Ready!",
+                response.schedule,
+            )
+        )
 
         return response
+
     except HTTPException:
         raise
     except Exception as e:
         print(f"❌ Planner generation error: {e}")
-        raise HTTPException(status_code=500, detail=f"Planner generation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Planner generation failed: {str(e)}"
+        )
 
 # ---------------------------
 # 💾 Save Plan
@@ -119,7 +169,9 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(entry, f, indent=2)
 
-        asyncio.create_task(send_planner_email(current_user["email"], summary, schedule))
+        asyncio.create_task(
+            send_planner_email(current_user["email"], summary, schedule)
+        )
         print(f"💾 Saved planner entry for {current_user['email']}")
         return {"message": "Plan saved successfully", "file": file_name}
 
