@@ -51,7 +51,7 @@ async def send_planner_email(user_email: str, summary: str, schedule: list):
 
 
 # =====================================================================
-# 📅 Generate Plan
+# 📅 Generate Plan  (NO MORE ROUTINE SUPPORT)
 # =====================================================================
 @router.post("/generate", response_model=PlannerResponse)
 async def generate_plan(
@@ -64,45 +64,26 @@ async def generate_plan(
         if not req.tasks:
             raise HTTPException(400, "No tasks provided")
 
-        # ---------------------------
-        # ⭐ Convert RoutineItem objects → dicts
-        # ---------------------------
-        routine_slots = []
-        if hasattr(req, "routine") and req.routine:
-            for r in req.routine:
-                routine_slots.append({
-                    "label": r.label,
-                    "start": r.start,
-                    "end": r.end,
-                })
-
-            print(f"⏳ Custom routine converted → dict ({len(routine_slots)} slots)")
-        else:
-            print("ℹ️ No custom routine sent — using default routine")
-
-        # Debug tasks
-        for t in req.tasks:
-            print(f"📘 Task: {t.name} | Due: {t.due} | Difficulty: {t.difficulty}")
-
         # Parse start_datetime
         start_dt = req.start_datetime
         if isinstance(start_dt, str):
-            start_dt = datetime.fromisoformat(start_dt)
-            req.start_datetime = start_dt
+            try:
+                start_dt = datetime.fromisoformat(start_dt)
+                req.start_datetime = start_dt
+            except:
+                raise HTTPException(400, "Invalid start_datetime format")
 
-        print("⏰ Using start_datetime:", req.start_datetime.isoformat())
+        print("⏰ Planning from:", req.start_datetime)
 
-        # ---------------------------
-        # ⭐ Pass routine_slots to planner
-        # ---------------------------
-        response = planner.generate(req, custom_routine=routine_slots)
+        # ⭐ NO ROUTINE PASSED — DEFAULT ROUTINE IS ALWAYS USED
+        response = planner.generate(req)
 
         print(
             f"✅ Plan generated successfully for {current_user['email']} "
             f"({len(response.schedule)} days)"
         )
 
-        # Send email asynchronously
+        # Email send async
         asyncio.create_task(send_planner_email(
             current_user["email"],
             "Your AI Study Plan is Ready!",
@@ -111,13 +92,18 @@ async def generate_plan(
 
         return response
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Planner generation error: {e}")
-        raise HTTPException(500, f"Planner generation failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Planner generation failed: {str(e)}",
+        )
 
 
 # =====================================================================
-# 💾 Save Plan (Routine Included)
+# 💾 Save Plan
 # =====================================================================
 @router.post("/save")
 async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
@@ -125,7 +111,6 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
         summary = data.get("summary", "Untitled Plan")
         schedule = data.get("schedule", [])
         tasks = data.get("tasks", [])
-        routine = data.get("routine", [])
         date_str = data.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
 
         if not schedule:
@@ -135,7 +120,6 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
             "email": current_user["email"],
             "summary": summary,
             "date": date_str,
-            "routine": routine,
             "schedule": schedule,
             "tasks": tasks,
             "timestamp": datetime.utcnow().isoformat(),
@@ -148,7 +132,7 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
             f.seek(0)
             json.dump(data_log, f, indent=2)
 
-        # Save individual entry
+        # Write individual file
         file_name = (
             f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_"
             f"{current_user['email'].replace('@','_')}.json"
