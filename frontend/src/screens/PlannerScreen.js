@@ -33,7 +33,7 @@ export default function PlannerScreen() {
   }, []);
 
   // -------------------------------
-  // Add task
+  // Add Task
   // -------------------------------
   const addTask = () => {
     if (!task.trim() || !due.trim() || !time.trim()) {
@@ -61,11 +61,10 @@ export default function PlannerScreen() {
     setDifficulty(3);
   };
 
-  const deleteTask = (i) =>
-    setTasks(tasks.filter((_, idx) => idx !== i));
+  const deleteTask = (i) => setTasks(tasks.filter((_, idx) => idx !== i));
 
   // -------------------------------
-  // Add Routine Slot
+  // Routine Add
   // -------------------------------
   const addRoutine = () => {
     if (!activity.trim() || !rStart || !rEnd) {
@@ -83,11 +82,10 @@ export default function PlannerScreen() {
     setREnd("");
   };
 
-  const deleteRoutine = (i) =>
-    setRoutine(routine.filter((_, idx) => idx !== i));
+  const deleteRoutine = (i) => setRoutine(routine.filter((_, idx) => idx !== i));
 
   // -------------------------------
-  // Generate plan
+  // Generate Plan
   // -------------------------------
   const generatePlan = async () => {
     if (tasks.length === 0) {
@@ -114,18 +112,17 @@ export default function PlannerScreen() {
       const res = await plannerGenerate(payload);
       const data = res.data;
 
-      if (data.schedule?.length) {
+      if (data.schedule?.length > 0) {
         setPlan(data.schedule);
         setSummary(
           `Plan generated for ${data.schedule.length} days covering ${tasks.length} tasks.`
         );
-        alert("✨ Smart Plan Generated!");
       } else {
-        alert("⚠️ Could not generate plan.");
+        alert("⚠️ Backend could not generate a plan.");
       }
     } catch (err) {
       console.error("Planner error:", err);
-      alert("⚠️ Backend error.");
+      alert("⚠️ Backend error while generating plan.");
     } finally {
       setLoading(false);
     }
@@ -136,18 +133,13 @@ export default function PlannerScreen() {
   // -------------------------------
   const handleSavePlan = async () => {
     if (plan.length === 0) {
-      alert("Nothing to save!");
+      alert("Nothing to save！");
       return;
     }
 
     setSaving(true);
     try {
-      await savePlanner(
-        summary,
-        plan,
-        tasks,
-        new Date().toISOString().split("T")[0]
-      );
+      await savePlanner(summary, plan, tasks, new Date().toISOString().split("T")[0]);
       alert("Saved!");
     } catch {
       alert("Save failed.");
@@ -157,7 +149,7 @@ export default function PlannerScreen() {
   };
 
   // -------------------------------
-  // Helper
+  // Helpers
   // -------------------------------
   const toFloatHour = (t) => {
     if (!t) return 0;
@@ -210,38 +202,39 @@ export default function PlannerScreen() {
           ➕ Add Routine Slot
         </button>
 
-        {routine.length > 0 &&
-          routine.map((r, i) => (
-            <div key={i} style={routineCard}>
-              <b>{r.label}</b> — {r.start} to {r.end}
-              <button onClick={() => deleteRoutine(i)} style={deleteSmall}>
-                ✖
-              </button>
-            </div>
-          ))}
+        {routine.map((r, i) => (
+          <div key={i} style={routineCard}>
+            <b>{r.label}</b> — {r.start} to {r.end}
+            <button onClick={() => deleteRoutine(i)} style={deleteSmall}>✖</button>
+          </div>
+        ))}
       </div>
 
-      {/* Tasks */}
+      {/* Task Builder */}
       <div style={cardBox}>
         <h3>🧾 Add a Task</h3>
+
         <input
           value={task}
           onChange={(e) => setTask(e.target.value)}
           placeholder="Task name"
           style={inputStyle}
         />
+
         <input
           type="date"
           value={due}
           onChange={(e) => setDue(e.target.value)}
           style={inputStyle}
         />
+
         <input
           type="time"
           value={time}
           onChange={(e) => setTime(e.target.value)}
           style={inputStyle}
         />
+
         <input
           type="number"
           min={1}
@@ -275,16 +268,14 @@ export default function PlannerScreen() {
         </div>
       )}
 
-      {/* Generate Plan Button */}
-      {tasks.length > 0 && (
-        <button
-          onClick={generatePlan}
-          disabled={loading}
-          style={generateBtn}
-        >
-          {loading ? "Generating..." : "⚡ Generate Smart Study Plan"}
-        </button>
-      )}
+      {/* ALWAYS VISIBLE BUTTON */}
+      <button
+        onClick={generatePlan}
+        disabled={loading || tasks.length === 0}
+        style={generateBtn}
+      >
+        {loading ? "Generating..." : "⚡ Generate Smart Study Plan"}
+      </button>
 
       {/* Summary */}
       {summary && <div style={summaryBox}>{summary}</div>}
@@ -312,7 +303,7 @@ export default function PlannerScreen() {
                     </div>
                   ))}
 
-                  {/* Render Routine */}
+                  {/* Routine */}
                   {routine.map((r, idx) => {
                     const start = toFloatHour(r.start);
                     const end = toFloatHour(r.end);
@@ -331,7 +322,7 @@ export default function PlannerScreen() {
                     );
                   })}
 
-                  {/* Render Tasks */}
+                  {/* Tasks */}
                   {day.blocks.map((b, idx) => {
                     const start = toFloatHour(b.start_time);
                     const end = toFloatHour(b.end_time);
@@ -533,4 +524,3 @@ const blockBase = {
   justifyContent: "center",
   boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
 };
-
