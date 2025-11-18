@@ -302,6 +302,26 @@ export default function PlannerScreen() {
         </button>
       )}
 
+<button
+  onClick={generatePlan}
+  disabled={loading}
+  style={{
+    background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+    color: "white",
+    padding: "12px",
+    borderRadius: 8,
+    border: "none",
+    width: "100%",
+    fontWeight: 600,
+    cursor: "pointer",
+    marginTop: 10,
+    marginBottom: 20,
+  }}
+>
+  {loading ? "Generating..." : "⚡ Generate Smart Study Plan"}
+</button>
+
+
       {/* Summary */}
       {summary && <div style={summaryBox}>{summary}</div>}
 
