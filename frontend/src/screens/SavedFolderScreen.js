@@ -4,15 +4,14 @@ import { useNavigate } from "react-router-dom";
 export default function SavedFolderScreen() {
   const navigate = useNavigate();
 
+  // ✅ Only the modules you care about in Saved Files
   const modules = [
     "autonote",
     "planner",
-    "focus",
     "flashcards",
-    "confusion",
-    "timepredict",
     "doubts",
     "braindump",
+    "chatbot",
   ];
 
   const [entries, setEntries] = useState({});
@@ -28,6 +27,7 @@ export default function SavedFolderScreen() {
       for (const mod of modules) {
         try {
           let url = "";
+
           if (mod === "doubts") {
             url =
               "https://loyal-beauty-production.up.railway.app/doubts/history";
@@ -43,21 +43,28 @@ export default function SavedFolderScreen() {
           });
           const data = await res.json();
 
+          let entriesData = [];
+
           if (mod === "doubts") {
-            all[mod] = Array.isArray(data.entries)
-              ? data.entries.slice(0, 3)
-              : [];
-          } else {
-            const entriesData = data?.entries || [];
-            all[mod] = Array.isArray(entriesData)
-              ? entriesData.slice(0, 3)
-              : [];
+            entriesData = Array.isArray(data.entries) ? data.entries : [];
+          } else if (Array.isArray(data.entries)) {
+            entriesData = data.entries;
+          } else if (Array.isArray(data)) {
+            // In case the backend directly returns an array
+            entriesData = data;
           }
+
+          // ✅ Tag each entry with its module and limit to latest 3–5
+          all[mod] = entriesData.slice(0, 3).map((e) => ({
+            ...e,
+            module: mod,
+          }));
         } catch (err) {
           console.warn(`⚠️ Failed to fetch ${mod}:`, err);
           all[mod] = [];
         }
       }
+
       setEntries(all);
       setLoading(false);
     };
@@ -84,6 +91,35 @@ export default function SavedFolderScreen() {
   }, []);
 
   const getEntries = (mod) => (Array.isArray(entries[mod]) ? entries[mod] : []);
+
+  const getSectionTitle = (mod) => {
+    switch (mod) {
+      case "planner":
+        return "📘 AI Study Planner";
+      case "doubts":
+        return "❓ Doubt History";
+      case "autonote":
+        return "📝 AutoNotes";
+      case "braindump":
+        return "🧠 Brain Dump";
+      case "flashcards":
+        return "🎴 Flashcards";
+      case "chatbot":
+        return "💬 Chatbot Conversations";
+      default:
+        return `📘 ${mod.charAt(0).toUpperCase() + mod.slice(1)}`;
+    }
+  };
+
+  const getFallbackTitle = (mod) => {
+    if (mod === "braindump") return "Brain Dump";
+    if (mod === "planner") return "Study Plan";
+    if (mod === "autonote") return "AutoNote";
+    if (mod === "doubts") return "Doubt";
+    if (mod === "flashcards") return "Flashcard";
+    if (mod === "chatbot") return "Chat";
+    return "Saved Entry";
+  };
 
   return (
     <div
@@ -143,17 +179,7 @@ export default function SavedFolderScreen() {
       ) : (
         modules.map((mod) => {
           const modEntries = getEntries(mod);
-
-          const sectionTitle =
-            mod === "planner"
-              ? "📘 AI Study Planner"
-              : mod === "doubts"
-              ? "❓ Doubt History"
-              : mod === "autonote"
-              ? "📝 AutoNotes"
-              : mod === "braindump"
-              ? "🧠 Brain Dump"
-              : `📘 ${mod.charAt(0).toUpperCase() + mod.slice(1)}`;
+          const sectionTitle = getSectionTitle(mod);
 
           return (
             <div
@@ -185,16 +211,18 @@ export default function SavedFolderScreen() {
                       transition: "transform 0.25s ease, box-shadow 0.25s ease",
                     }}
                   >
-                    {/* TITLE FIXED */}
+                    {/* TITLE (module-aware fallback) */}
                     <p style={{ margin: 0, fontWeight: 600, color: "#EAEAF5" }}>
                       {e.title ||
                         e.topic ||
+                        e.question ||
                         e.organized_text?.slice(0, 40) ||
                         e.input_text?.slice(0, 40) ||
-                        "Brain Dump"}
+                        e.prompt?.slice(0, 40) ||
+                        getFallbackTitle(mod)}
                     </p>
 
-                    {/* CONTENT PREVIEW FIXED */}
+                    {/* CONTENT PREVIEW */}
                     <p
                       style={{
                         color: "#C7C9E0",
@@ -209,7 +237,9 @@ export default function SavedFolderScreen() {
                         e.input_text ||
                         e.content ||
                         e.response ||
+                        e.answer ||
                         e.summary ||
+                        e.ai_message ||
                         "[No content available]"}
                     </p>
 
@@ -301,9 +331,11 @@ export default function SavedFolderScreen() {
             <h2>
               {selectedNote.title ||
                 selectedNote.topic ||
+                selectedNote.question ||
                 selectedNote.organized_text?.slice(0, 40) ||
                 selectedNote.input_text?.slice(0, 40) ||
-                "Brain Dump"}
+                selectedNote.prompt?.slice(0, 40) ||
+                getFallbackTitle(selectedNote.module)}
             </h2>
             <p style={{ color: "#C7C9E0", fontSize: 13 }}>
               🕒 {selectedNote.timestamp || "N/A"}
@@ -321,7 +353,9 @@ export default function SavedFolderScreen() {
             {selectedNote.input_text && (
               <>
                 <h3>✍️ Original Text</h3>
-                <p style={{ whiteSpace: "pre-wrap" }}>{selectedNote.input_text}</p>
+                <p style={{ whiteSpace: "pre-wrap" }}>
+                  {selectedNote.input_text}
+                </p>
               </>
             )}
 
@@ -337,6 +371,22 @@ export default function SavedFolderScreen() {
                 <h3>💬 AI Clarification</h3>
                 <p style={{ whiteSpace: "pre-wrap" }}>
                   {selectedNote.response}
+                </p>
+              </>
+            )}
+
+            {selectedNote.answer && (
+              <>
+                <h3>🎴 Flashcard Answer</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>{selectedNote.answer}</p>
+              </>
+            )}
+
+            {selectedNote.ai_message && (
+              <>
+                <h3>🤖 Chatbot Reply</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>
+                  {selectedNote.ai_message}
                 </p>
               </>
             )}
