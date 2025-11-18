@@ -64,12 +64,6 @@ export default function PlannerScreen() {
   const deleteTask = (i) =>
     setTasks(tasks.filter((_, idx) => idx !== i));
 
-  const toggleCompletion = (i) => {
-    const updated = [...tasks];
-    updated[i].completed = !updated[i].completed;
-    setTasks(updated);
-  };
-
   // -------------------------------
   // Add Routine Slot
   // -------------------------------
@@ -163,7 +157,7 @@ export default function PlannerScreen() {
   };
 
   // -------------------------------
-  // Helper functions
+  // Helper
   // -------------------------------
   const toFloatHour = (t) => {
     if (!t) return 0;
@@ -286,41 +280,11 @@ export default function PlannerScreen() {
         <button
           onClick={generatePlan}
           disabled={loading}
-          style={{
-            background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
-            color: "white",
-            padding: "12px",
-            borderRadius: 8,
-            border: "none",
-            width: "100%",
-            fontWeight: 600,
-            cursor: "pointer",
-            marginBottom: 20,
-          }}
+          style={generateBtn}
         >
           {loading ? "Generating..." : "⚡ Generate Smart Study Plan"}
         </button>
       )}
-
-<button
-  onClick={generatePlan}
-  disabled={loading}
-  style={{
-    background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
-    color: "white",
-    padding: "12px",
-    borderRadius: 8,
-    border: "none",
-    width: "100%",
-    fontWeight: 600,
-    cursor: "pointer",
-    marginTop: 10,
-    marginBottom: 20,
-  }}
->
-  {loading ? "Generating..." : "⚡ Generate Smart Study Plan"}
-</button>
-
 
       {/* Summary */}
       {summary && <div style={summaryBox}>{summary}</div>}
@@ -348,7 +312,7 @@ export default function PlannerScreen() {
                     </div>
                   ))}
 
-                  {/* Routine */}
+                  {/* Render Routine */}
                   {routine.map((r, idx) => {
                     const start = toFloatHour(r.start);
                     const end = toFloatHour(r.end);
@@ -367,7 +331,7 @@ export default function PlannerScreen() {
                     );
                   })}
 
-                  {/* Tasks */}
+                  {/* Render Tasks */}
                   {day.blocks.map((b, idx) => {
                     const start = toFloatHour(b.start_time);
                     const end = toFloatHour(b.end_time);
@@ -454,6 +418,18 @@ const addBtn = {
   width: "100%",
   marginBottom: 10,
   cursor: "pointer",
+};
+
+const generateBtn = {
+  background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+  color: "white",
+  padding: "12px",
+  borderRadius: 8,
+  border: "none",
+  width: "100%",
+  fontWeight: 600,
+  cursor: "pointer",
+  marginBottom: 20,
 };
 
 const mainBtn = {
@@ -557,3 +533,4 @@ const blockBase = {
   justifyContent: "center",
   boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
 };
+
