@@ -105,10 +105,11 @@ def get_free_slots(for_date, routine, existing_tasks, start_datetime):
 # ------------------------------------------------------
 # MAIN PLANNER LOGIC
 # ------------------------------------------------------
-def generate(req: PlannerRequest) -> PlannerResponse:
+def generate(req: PlannerRequest, custom_routine=None) -> PlannerResponse:
 
     # Determine routine to use for THIS planning session only
-    USER_ROUTINE = req.routine or DEFAULT_ROUTINE
+    USER_ROUTINE = custom_routine or getattr(req, "routine", None) or DEFAULT_ROUTINE
+
 
     # Start datetime (IST-aware)
     start_dt = req.start_datetime
