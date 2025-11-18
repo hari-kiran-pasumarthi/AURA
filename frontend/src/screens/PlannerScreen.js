@@ -1,3 +1,5 @@
+// ---- PlannerScreen.jsx (FULL FIXED VERSION) ---- //
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { plannerGenerate, savePlanner } from "../api";
@@ -5,17 +7,13 @@ import { plannerGenerate, savePlanner } from "../api";
 export default function PlannerScreen() {
   const navigate = useNavigate();
 
-  // -------------------------------
-  // Task Inputs
-  // -------------------------------
+  // ------------------------------- Task Inputs
   const [task, setTask] = useState("");
   const [due, setDue] = useState("");
   const [time, setTime] = useState("");
   const [difficulty, setDifficulty] = useState(3);
 
-  // -------------------------------
-  // States
-  // -------------------------------
+  // ------------------------------- States
   const [tasks, setTasks] = useState([]);
   const [routine, setRoutine] = useState([]);
 
@@ -32,15 +30,14 @@ export default function PlannerScreen() {
     if ("Notification" in window) Notification.requestPermission();
   }, []);
 
-  // -------------------------------
-  // Add Task
-  // -------------------------------
+  // ------------------------------- Add Task
   const addTask = () => {
     if (!task.trim() || !due.trim() || !time.trim()) {
       alert("Please enter task, date & time!");
       return;
     }
 
+    // Correct ISO datetime with IST timezone
     const dueDateTime = `${due}T${time}:00+05:30`;
 
     setTasks((prev) => [
@@ -63,19 +60,14 @@ export default function PlannerScreen() {
 
   const deleteTask = (i) => setTasks(tasks.filter((_, idx) => idx !== i));
 
-  // -------------------------------
-  // Routine Add
-  // -------------------------------
+  // ------------------------------- Add Routine Slot
   const addRoutine = () => {
     if (!activity.trim() || !rStart || !rEnd) {
       alert("Please enter activity & timings!");
       return;
     }
 
-    setRoutine((prev) => [
-      ...prev,
-      { label: activity, start: rStart, end: rEnd },
-    ]);
+    setRoutine((prev) => [...prev, { label: activity, start: rStart, end: rEnd }]);
 
     setActivity("");
     setRStart("");
@@ -84,14 +76,9 @@ export default function PlannerScreen() {
 
   const deleteRoutine = (i) => setRoutine(routine.filter((_, idx) => idx !== i));
 
-  // -------------------------------
-  // Generate Plan
-  // -------------------------------
+  // ------------------------------- Generate Plan
   const generatePlan = async () => {
-    if (tasks.length === 0) {
-      alert("Add at least one task!");
-      return;
-    }
+    if (tasks.length === 0) return alert("Add at least one task!");
 
     setLoading(true);
     setPlan([]);
@@ -128,14 +115,9 @@ export default function PlannerScreen() {
     }
   };
 
-  // -------------------------------
-  // Save Plan
-  // -------------------------------
+  // ------------------------------- Save Plan
   const handleSavePlan = async () => {
-    if (plan.length === 0) {
-      alert("Nothing to save！");
-      return;
-    }
+    if (plan.length === 0) return alert("Nothing to save!");
 
     setSaving(true);
     try {
@@ -148,9 +130,7 @@ export default function PlannerScreen() {
     }
   };
 
-  // -------------------------------
-  // Helpers
-  // -------------------------------
+  // ------------------------------- Helpers
   const toFloatHour = (t) => {
     if (!t) return 0;
     const [h, m] = t.split(":").map(Number);
@@ -164,9 +144,7 @@ export default function PlannerScreen() {
     return "#ef4444";
   };
 
-  // --------------------------------------------------------------
-  // UI
-  // --------------------------------------------------------------
+  // -------------------------------------------------------------- UI
   return (
     <div style={page}>
       <button onClick={() => navigate(-1)} style={backBtn}>← Back</button>
@@ -177,30 +155,16 @@ export default function PlannerScreen() {
       <div style={cardBox}>
         <h3>⏰ Your Daily Routine</h3>
 
-        <input
-          value={activity}
-          onChange={(e) => setActivity(e.target.value)}
-          placeholder="Activity (Breakfast)"
-          style={inputStyle}
-        />
+        <input value={activity} onChange={(e) => setActivity(e.target.value)}
+          placeholder="Activity (Breakfast)" style={inputStyle} />
 
-        <input
-          type="time"
-          value={rStart}
-          onChange={(e) => setRStart(e.target.value)}
-          style={inputStyle}
-        />
+        <input type="time" value={rStart}
+          onChange={(e) => setRStart(e.target.value)} style={inputStyle} />
 
-        <input
-          type="time"
-          value={rEnd}
-          onChange={(e) => setREnd(e.target.value)}
-          style={inputStyle}
-        />
+        <input type="time" value={rEnd}
+          onChange={(e) => setREnd(e.target.value)} style={inputStyle} />
 
-        <button onClick={addRoutine} style={addBtn}>
-          ➕ Add Routine Slot
-        </button>
+        <button onClick={addRoutine} style={addBtn}>➕ Add Routine Slot</button>
 
         {routine.map((r, i) => (
           <div key={i} style={routineCard}>
@@ -214,39 +178,20 @@ export default function PlannerScreen() {
       <div style={cardBox}>
         <h3>🧾 Add a Task</h3>
 
-        <input
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
-          placeholder="Task name"
-          style={inputStyle}
-        />
+        <input value={task} onChange={(e) => setTask(e.target.value)}
+          placeholder="Task name" style={inputStyle} />
 
-        <input
-          type="date"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-          style={inputStyle}
-        />
+        <input type="date" value={due}
+          onChange={(e) => setDue(e.target.value)} style={inputStyle} />
 
-        <input
-          type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          style={inputStyle}
-        />
+        <input type="time" value={time}
+          onChange={(e) => setTime(e.target.value)} style={inputStyle} />
 
-        <input
-          type="number"
-          min={1}
-          max={5}
-          value={difficulty}
+        <input type="number" min={1} max={5} value={difficulty}
           onChange={(e) => setDifficulty(Number(e.target.value))}
-          style={inputStyle}
-        />
+          style={inputStyle} />
 
-        <button onClick={addTask} style={addBtn}>
-          ➕ Add Task
-        </button>
+        <button onClick={addTask} style={addBtn}>➕ Add Task</button>
       </div>
 
       {/* Task List */}
@@ -268,7 +213,7 @@ export default function PlannerScreen() {
         </div>
       )}
 
-      {/* ALWAYS VISIBLE BUTTON */}
+      {/* Generate Button */}
       <button
         onClick={generatePlan}
         disabled={loading || tasks.length === 0}
@@ -277,7 +222,6 @@ export default function PlannerScreen() {
         {loading ? "Generating..." : "⚡ Generate Smart Study Plan"}
       </button>
 
-      {/* Summary */}
       {summary && <div style={summaryBox}>{summary}</div>}
 
       {/* Timeline */}
@@ -297,45 +241,42 @@ export default function PlannerScreen() {
                 </div>
 
                 <div style={timelineDayGrid}>
+                  {/* Hour Marks */}
                   {Array.from({ length: 24 }).map((_, idx) => (
                     <div key={idx} style={hourLine}>
                       <span style={hourLabel}>{idx}:00</span>
                     </div>
                   ))}
 
-                  {/* Routine */}
+                  {/* Routine Blocks */}
                   {routine.map((r, idx) => {
                     const start = toFloatHour(r.start);
                     const end = toFloatHour(r.end);
                     return (
-                      <div
-                        key={`r${idx}`}
+                      <div key={`r${idx}`}
                         style={{
                           ...blockBase,
                           background: getColor("routine"),
                           top: start * 40,
                           height: Math.max((end - start) * 40, 15),
-                        }}
-                      >
+                        }}>
                         {r.label}
                       </div>
                     );
                   })}
 
-                  {/* Tasks */}
+                  {/* Task Blocks */}
                   {day.blocks.map((b, idx) => {
                     const start = toFloatHour(b.start_time);
                     const end = toFloatHour(b.end_time);
                     return (
-                      <div
-                        key={`b${idx}`}
+                      <div key={`b${idx}`}
                         style={{
                           ...blockBase,
                           background: getColor("task", b.difficulty),
                           top: start * 40,
                           height: Math.max((end - start) * 40, 15),
-                        }}
-                      >
+                        }}>
                         {b.task}
                       </div>
                     );
@@ -359,7 +300,7 @@ export default function PlannerScreen() {
 }
 
 /* --------------------------------------------------
-   Styles
+   Styles (unchanged)
 -------------------------------------------------- */
 
 const page = {
