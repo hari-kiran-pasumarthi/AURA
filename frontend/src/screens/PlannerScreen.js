@@ -1,4 +1,4 @@
-// ---- PlannerScreen.jsx (FULL FIXED VERSION) ---- //
+// ---- PlannerScreen.jsx (ROUTINE REMOVED VERSION) ---- //
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,11 +15,6 @@ export default function PlannerScreen() {
 
   // ------------------------------- States
   const [tasks, setTasks] = useState([]);
-  const [routine, setRoutine] = useState([]);
-
-  const [activity, setActivity] = useState("");
-  const [rStart, setRStart] = useState("");
-  const [rEnd, setREnd] = useState("");
 
   const [plan, setPlan] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -37,7 +32,7 @@ export default function PlannerScreen() {
       return;
     }
 
-    // Correct ISO datetime with IST timezone
+    // ISO datetime with IST timezone
     const dueDateTime = `${due}T${time}:00+05:30`;
 
     setTasks((prev) => [
@@ -60,22 +55,6 @@ export default function PlannerScreen() {
 
   const deleteTask = (i) => setTasks(tasks.filter((_, idx) => idx !== i));
 
-  // ------------------------------- Add Routine Slot
-  const addRoutine = () => {
-    if (!activity.trim() || !rStart || !rEnd) {
-      alert("Please enter activity & timings!");
-      return;
-    }
-
-    setRoutine((prev) => [...prev, { label: activity, start: rStart, end: rEnd }]);
-
-    setActivity("");
-    setRStart("");
-    setREnd("");
-  };
-
-  const deleteRoutine = (i) => setRoutine(routine.filter((_, idx) => idx !== i));
-
   // ------------------------------- Generate Plan
   const generatePlan = async () => {
     if (tasks.length === 0) return alert("Add at least one task!");
@@ -90,7 +69,7 @@ export default function PlannerScreen() {
 
       const payload = {
         tasks,
-        routine,
+        routine: [],          // ROUTINE REMOVED
         start_datetime: currentDateTimeIST,
         preferred_hours: 4,
         end_date: null,
@@ -130,49 +109,23 @@ export default function PlannerScreen() {
     }
   };
 
-  // ------------------------------- Helpers
   const toFloatHour = (t) => {
     if (!t) return 0;
     const [h, m] = t.split(":").map(Number);
     return h + m / 60;
   };
 
-  const getColor = (type, diff) => {
-    if (type === "routine") return "rgba(102,153,255,0.4)";
+  const getColor = (diff) => {
     if (diff <= 2) return "#22c55e";
     if (diff === 3) return "#facc15";
     return "#ef4444";
   };
 
-  // -------------------------------------------------------------- UI
   return (
     <div style={page}>
       <button onClick={() => navigate(-1)} style={backBtn}>← Back</button>
 
       <h2 style={heading}>📅 AURA Smart Planner</h2>
-
-      {/* Routine Builder */}
-      <div style={cardBox}>
-        <h3>⏰ Your Daily Routine</h3>
-
-        <input value={activity} onChange={(e) => setActivity(e.target.value)}
-          placeholder="Activity (Breakfast)" style={inputStyle} />
-
-        <input type="time" value={rStart}
-          onChange={(e) => setRStart(e.target.value)} style={inputStyle} />
-
-        <input type="time" value={rEnd}
-          onChange={(e) => setREnd(e.target.value)} style={inputStyle} />
-
-        <button onClick={addRoutine} style={addBtn}>➕ Add Routine Slot</button>
-
-        {routine.map((r, i) => (
-          <div key={i} style={routineCard}>
-            <b>{r.label}</b> — {r.start} to {r.end}
-            <button onClick={() => deleteRoutine(i)} style={deleteSmall}>✖</button>
-          </div>
-        ))}
-      </div>
 
       {/* Task Builder */}
       <div style={cardBox}>
@@ -248,23 +201,6 @@ export default function PlannerScreen() {
                     </div>
                   ))}
 
-                  {/* Routine Blocks */}
-                  {routine.map((r, idx) => {
-                    const start = toFloatHour(r.start);
-                    const end = toFloatHour(r.end);
-                    return (
-                      <div key={`r${idx}`}
-                        style={{
-                          ...blockBase,
-                          background: getColor("routine"),
-                          top: start * 40,
-                          height: Math.max((end - start) * 40, 15),
-                        }}>
-                        {r.label}
-                      </div>
-                    );
-                  })}
-
                   {/* Task Blocks */}
                   {day.blocks.map((b, idx) => {
                     const start = toFloatHour(b.start_time);
@@ -273,7 +209,7 @@ export default function PlannerScreen() {
                       <div key={`b${idx}`}
                         style={{
                           ...blockBase,
-                          background: getColor("task", b.difficulty),
+                          background: getColor(b.difficulty),
                           top: start * 40,
                           height: Math.max((end - start) * 40, 15),
                         }}>
@@ -299,8 +235,9 @@ export default function PlannerScreen() {
   );
 }
 
+
 /* --------------------------------------------------
-   Styles (unchanged)
+   STYLES (same as before)
 -------------------------------------------------- */
 
 const page = {
@@ -374,16 +311,6 @@ const mainBtn = {
   fontWeight: 600,
   cursor: "pointer",
   marginTop: 20,
-};
-
-const routineCard = {
-  background: "rgba(255,255,255,0.05)",
-  padding: 10,
-  borderRadius: 8,
-  marginBottom: 8,
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
 };
 
 const deleteSmall = {
