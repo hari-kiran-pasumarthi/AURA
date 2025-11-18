@@ -81,7 +81,7 @@ export default function PlannerScreen() {
 
     setRoutine((prev) => [
       ...prev,
-      { label: activity, start: rStart, end: rEnd },   // FIXED
+      { label: activity, start: rStart, end: rEnd },
     ]);
 
     setActivity("");
@@ -111,7 +111,7 @@ export default function PlannerScreen() {
 
       const payload = {
         tasks,
-        routine, // ← MATCHES BACKEND
+        routine,
         start_datetime: currentDateTimeIST,
         preferred_hours: 4,
         end_date: null,
@@ -155,7 +155,7 @@ export default function PlannerScreen() {
         new Date().toISOString().split("T")[0]
       );
       alert("Saved!");
-    } catch (err) {
+    } catch {
       alert("Save failed.");
     } finally {
       setSaving(false);
@@ -172,16 +172,11 @@ export default function PlannerScreen() {
   };
 
   const getColor = (type, diff) => {
-    if (type === "routine") return "rgba(102,153,255,0.35)"; // pastel blue
+    if (type === "routine") return "rgba(102,153,255,0.4)";
     if (diff <= 2) return "#22c55e";
     if (diff === 3) return "#facc15";
     return "#ef4444";
   };
-
-  const progress =
-    tasks.length === 0
-      ? 0
-      : (tasks.filter((t) => t.completed).length / tasks.length) * 100;
 
   // --------------------------------------------------------------
   // UI
@@ -225,10 +220,7 @@ export default function PlannerScreen() {
           routine.map((r, i) => (
             <div key={i} style={routineCard}>
               <b>{r.label}</b> — {r.start} to {r.end}
-              <button
-                onClick={() => deleteRoutine(i)}
-                style={deleteSmall}
-              >
+              <button onClick={() => deleteRoutine(i)} style={deleteSmall}>
                 ✖
               </button>
             </div>
@@ -278,9 +270,7 @@ export default function PlannerScreen() {
             <div key={i} style={taskCard}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <b>{t.name}</b>
-                <button onClick={() => deleteTask(i)} style={deleteSmall}>
-                  🗑
-                </button>
+                <button onClick={() => deleteTask(i)} style={deleteSmall}>🗑</button>
               </div>
               <p style={{ margin: "4px 0", color: "#C7C9E0" }}>
                 📅 {new Date(t.due).toLocaleString("en-IN")}
@@ -289,6 +279,27 @@ export default function PlannerScreen() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Generate Plan Button */}
+      {tasks.length > 0 && (
+        <button
+          onClick={generatePlan}
+          disabled={loading}
+          style={{
+            background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+            color: "white",
+            padding: "12px",
+            borderRadius: 8,
+            border: "none",
+            width: "100%",
+            fontWeight: 600,
+            cursor: "pointer",
+            marginBottom: 20,
+          }}
+        >
+          {loading ? "Generating..." : "⚡ Generate Smart Study Plan"}
+        </button>
       )}
 
       {/* Summary */}
@@ -317,22 +328,18 @@ export default function PlannerScreen() {
                     </div>
                   ))}
 
-                  {/* Render Routine */}
+                  {/* Routine */}
                   {routine.map((r, idx) => {
                     const start = toFloatHour(r.start);
                     const end = toFloatHour(r.end);
-
-                    const top = start * 40;
-                    const height = Math.max((end - start) * 40, 15);
-
                     return (
                       <div
                         key={`r${idx}`}
                         style={{
                           ...blockBase,
                           background: getColor("routine"),
-                          top,
-                          height,
+                          top: start * 40,
+                          height: Math.max((end - start) * 40, 15),
                         }}
                       >
                         {r.label}
@@ -340,22 +347,18 @@ export default function PlannerScreen() {
                     );
                   })}
 
-                  {/* Render Scheduled Tasks */}
+                  {/* Tasks */}
                   {day.blocks.map((b, idx) => {
                     const start = toFloatHour(b.start_time);
                     const end = toFloatHour(b.end_time);
-
-                    const top = start * 40;
-                    const height = Math.max((end - start) * 40, 15);
-
                     return (
                       <div
                         key={`b${idx}`}
                         style={{
                           ...blockBase,
                           background: getColor("task", b.difficulty),
-                          top,
-                          height,
+                          top: start * 40,
+                          height: Math.max((end - start) * 40, 15),
                         }}
                       >
                         {b.task}
