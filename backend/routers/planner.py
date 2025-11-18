@@ -9,9 +9,9 @@ import os, json, asyncio
 
 router = APIRouter(prefix="/planner", tags=["Planner"])
 
-# ---------------------------
+# =====================================================================
 # 📁 Directory Setup
-# ---------------------------
+# =====================================================================
 SAVE_DIR = os.path.join("saved_files", "planner_schedules")
 os.makedirs(SAVE_DIR, exist_ok=True)
 
@@ -24,9 +24,9 @@ for f in [SAVE_FILE, TASKS_FILE]:
             json.dump([], file, indent=2)
 
 
-# ---------------------------
+# =====================================================================
 # 📧 Email Helper
-# ---------------------------
+# =====================================================================
 async def send_planner_email(user_email: str, summary: str, schedule: list):
     try:
         fm = FastMail(conf)
@@ -50,9 +50,9 @@ async def send_planner_email(user_email: str, summary: str, schedule: list):
         print(f"⚠️ Email sending failed: {e}")
 
 
-# ---------------------------
+# =====================================================================
 # 📅 Generate Plan
-# ---------------------------
+# =====================================================================
 @router.post("/generate", response_model=PlannerResponse)
 async def generate_plan(
     req: PlannerRequest = Body(...),
@@ -61,15 +61,22 @@ async def generate_plan(
     try:
         print("🔑 Current user:", current_user.get("email"))
 
-        if not req.tasks or len(req.tasks) == 0:
-            raise HTTPException(
-                status_code=400,
-                detail="No tasks provided. Please include at least one task.",
-            )
+        if not req.tasks:
+            raise HTTPException(400, "No tasks provided")
 
-        # Routine Support (NEW)
+        # ---------------------------
+        # ⭐ Convert RoutineItem objects → dicts
+        # ---------------------------
+        routine_slots = []
         if hasattr(req, "routine") and req.routine:
-            print(f"⏳ Custom routine received: {len(req.routine)} slots")
+            for r in req.routine:
+                routine_slots.append({
+                    "label": r.label,
+                    "start": r.start,
+                    "end": r.end,
+                })
+
+            print(f"⏳ Custom routine converted → dict ({len(routine_slots)} slots)")
         else:
             print("ℹ️ No custom routine sent — using default routine")
 
@@ -80,25 +87,22 @@ async def generate_plan(
         # Parse start_datetime
         start_dt = req.start_datetime
         if isinstance(start_dt, str):
-            try:
-                start_dt = datetime.fromisoformat(start_dt)
-                req.start_datetime = start_dt
-            except Exception:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid start_datetime format. Use ISO 8601.",
-                )
+            start_dt = datetime.fromisoformat(start_dt)
+            req.start_datetime = start_dt
 
-        print("⏰ Using start_datetime for planning:", req.start_datetime.isoformat())
+        print("⏰ Using start_datetime:", req.start_datetime.isoformat())
 
-        # Pass the request + routine to planner service
-        response = planner.generate(req, custom_routine=req.routine)
+        # ---------------------------
+        # ⭐ Pass routine_slots to planner
+        # ---------------------------
+        response = planner.generate(req, custom_routine=routine_slots)
 
         print(
             f"✅ Plan generated successfully for {current_user['email']} "
             f"({len(response.schedule)} days)"
         )
 
+        # Send email asynchronously
         asyncio.create_task(send_planner_email(
             current_user["email"],
             "Your AI Study Plan is Ready!",
@@ -107,25 +111,21 @@ async def generate_plan(
 
         return response
 
-    except HTTPException:
-        raise
     except Exception as e:
         print(f"❌ Planner generation error: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Planner generation failed: {str(e)}"
-        )
+        raise HTTPException(500, f"Planner generation failed: {e}")
 
 
-# ---------------------------
+# =====================================================================
 # 💾 Save Plan (Routine Included)
-# ---------------------------
+# =====================================================================
 @router.post("/save")
 async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
     try:
         summary = data.get("summary", "Untitled Plan")
         schedule = data.get("schedule", [])
         tasks = data.get("tasks", [])
-        routine = data.get("routine", [])   # ⭐ NEW: Save routine
+        routine = data.get("routine", [])
         date_str = data.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
 
         if not schedule:
@@ -135,7 +135,7 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
             "email": current_user["email"],
             "summary": summary,
             "date": date_str,
-            "routine": routine,          # ⭐ Saved for user
+            "routine": routine,
             "schedule": schedule,
             "tasks": tasks,
             "timestamp": datetime.utcnow().isoformat(),
@@ -148,7 +148,7 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
             f.seek(0)
             json.dump(data_log, f, indent=2)
 
-        # Save individual file
+        # Save individual entry
         file_name = (
             f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_"
             f"{current_user['email'].replace('@','_')}.json"
@@ -169,9 +169,9 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
         raise HTTPException(500, f"Failed to save plan: {e}")
 
 
-# ---------------------------
+# =====================================================================
 # 📂 Fetch Saved Plans
-# ---------------------------
+# =====================================================================
 @router.get("/saved")
 async def get_saved_plans(current_user: dict = Depends(get_current_user)):
     try:
@@ -182,5 +182,6 @@ async def get_saved_plans(current_user: dict = Depends(get_current_user)):
         user_plans.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
 
         return {"entries": user_plans}
+
     except Exception as e:
         raise HTTPException(500, f"Failed to load saved plans: {e}")
