@@ -26,7 +26,7 @@ export default function AutoNoteScreen() {
     if (!token) {
       alert("⚠️ Please log in first!");
       window.location.href = "/login";
-      return {};
+      return null;
     }
     return isJSON
       ? {
@@ -54,6 +54,8 @@ export default function AutoNoteScreen() {
         setAudioBlob(blob);
         setRecording(false);
         clearInterval(timerRef.current);
+        // stop tracks so mic is released
+        stream.getTracks().forEach((t) => t.stop());
       };
 
       mediaRecorder.start();
@@ -71,7 +73,9 @@ export default function AutoNoteScreen() {
 
   // 🛑 Stop Recording
   const stopRecording = () => {
-    if (mediaRecorderRef.current) mediaRecorderRef.current.stop();
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
     setRecording(false);
   };
 
@@ -88,10 +92,13 @@ export default function AutoNoteScreen() {
     setLoadingText(true);
     setSaved(false);
 
+    const headers = getAuthHeaders(true);
+    if (!headers) return;
+
     try {
       const res = await fetch(`${API_BASE}/autonote/text`, {
         method: "POST",
-        headers: getAuthHeaders(true),
+        headers,
         body: JSON.stringify({ text: note }),
       });
 
@@ -112,13 +119,16 @@ export default function AutoNoteScreen() {
     setTranscribing(true);
     setSaved(false);
 
+    const headers = getAuthHeaders(false);
+    if (!headers) return;
+
     const formData = new FormData();
     formData.append("file", audioBlob, "lecture.webm");
 
     try {
       const res = await fetch(`${API_BASE}/autonote/audio`, {
         method: "POST",
-        headers: getAuthHeaders(false),
+        headers,
         body: formData,
       });
       const data = await res.json();
@@ -137,13 +147,16 @@ export default function AutoNoteScreen() {
     setUploading(true);
     setSaved(false);
 
+    const headers = getAuthHeaders(false);
+    if (!headers) return;
+
     const formData = new FormData();
     formData.append("file", file);
 
     try {
       const res = await fetch(`${API_BASE}/autonote/upload`, {
         method: "POST",
-        headers: getAuthHeaders(false),
+        headers,
         body: formData,
       });
       const data = await res.json();
@@ -162,14 +175,17 @@ export default function AutoNoteScreen() {
     const title = prompt("Enter note title:", "New AutoNote");
     if (!title) return;
 
+    const headers = getAuthHeaders(true);
+    if (!headers) return;
+
     try {
       const res = await fetch(`${API_BASE}/autonote/save`, {
         method: "POST",
-        headers: getAuthHeaders(true),
+        headers,
         body: JSON.stringify({
           title,
           summary,
-          transcript: "", // optional: you can track transcript too
+          transcript: "",
           highlights: [],
           bullets: [],
         }),
