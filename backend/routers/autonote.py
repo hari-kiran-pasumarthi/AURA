@@ -202,9 +202,22 @@ async def manual_save(payload: ManualSaveRequest, current_user: dict = Depends(g
 
 @router.get("/saved")
 async def saved_notes(current_user: dict = Depends(get_current_user)):
-    with open(SAVE_FILE, "r") as f:
-        data = json.load(f)
+    # Ensure file exists
+    if not os.path.exists(SAVE_FILE):
+        return {"entries": []}
 
-    notes = [n for n in data if n["email"] == current_user["email"]]
-    notes.sort(key=lambda x: x["timestamp"], reverse=True)
+    # Read safely
+    try:
+        with open(SAVE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except:
+        data = []
+
+    # FIX: Use n.get("email") so KeyError never happens
+    notes = [n for n in data if n.get("email") == current_user["email"]]
+
+    # Sort safely
+    notes.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+
     return {"entries": notes}
+
