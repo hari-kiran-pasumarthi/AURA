@@ -129,14 +129,14 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-        # Save to file system as before
+        # Save log
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
             logs = json.load(f)
             logs.append(entry)
             f.seek(0)
             json.dump(logs, f, indent=2)
 
-        # Write individual backup file
+        # Write backup file
         file_name = (
             f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_"
             f"{current_user['email'].replace('@','_')}.json"
@@ -145,36 +145,33 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
             json.dump(entry, f, indent=2)
 
         # ================================
-        # ⭐ FINAL STEP: SCHEDULE REMINDERS
+        # ⭐ Schedule task reminders + daily summaries
         # ================================
-       # ========== ⭐ Schedule task reminders + daily summaries ==================
+        for day in schedule:
+            day_date = day.get("date")
+            blocks = day.get("blocks", [])
 
-for day in schedule:
-    day_date = day.get("date")
-    blocks = day.get("blocks", [])
+            # 1. Schedule individual task reminders
+            for block in blocks:
+                start = block.get("start_time")
+                run_at = datetime.fromisoformat(f"{day_date}T{start}:00")
 
-    # 1. Schedule individual task reminders
-    for block in blocks:
-        start = block.get("start_time")
-        run_at = datetime.fromisoformat(f"{day_date}T{start}:00")
+                schedule_task(
+                    email=current_user["email"],
+                    task_name=block.get("task", "Study Session"),
+                    run_time=run_at,
+                )
 
-        schedule_task(
-            email=current_user["email"],
-            task_name=block.get("task", "Study Session"),
-            run_time=run_at,
-        )
-
-    # 2. Schedule daily 7:00 AM summary
-    schedule_daily_summary(
-        email=current_user["email"],
-        date_str=day_date,
-        blocks=blocks
-    )
-
+            # 2. Schedule daily 7AM summary
+            schedule_daily_summary(
+                email=current_user["email"],
+                date_str=day_date,
+                blocks=blocks
+            )
 
         print(f"⏰ Scheduled reminders for {current_user['email']}")
 
-        # optional: confirmation email
+        # Send confirmation email
         asyncio.create_task(
             send_planner_email(current_user["email"], summary, schedule)
         )
@@ -184,7 +181,6 @@ for day in schedule:
     except Exception as e:
         print(f"❌ Save failed: {e}")
         raise HTTPException(500, f"Failed to save plan: {e}")
-
 
 
 # =====================================================================
