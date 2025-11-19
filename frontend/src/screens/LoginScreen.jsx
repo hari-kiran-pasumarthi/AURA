@@ -6,7 +6,7 @@ export default function LoginScreen() {
   const API_BASE = "https://loyal-beauty-production.up.railway.app";
   const navigate = useNavigate();
 
-  const GOOGLE_CLIENT_ID = " 705610149365-e94563lljmj5f0ukb3aq7sqiicc6q6ab.apps.googleusercontent.com ";
+  const GOOGLE_CLIENT_ID = "705610149365-e94563lljmj5f0ukb3aq7sqiicc6q6ab.apps.googleusercontent.com";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
