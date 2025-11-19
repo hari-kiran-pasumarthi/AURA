@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Body
 from backend.models.schemas import PlannerRequest, PlannerResponse
 from backend.services import planner
+from backend.services.scheduler import schedule_task
 from backend.routers.auth import get_current_user
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
@@ -105,6 +106,9 @@ async def generate_plan(
 # =====================================================================
 # 💾 Save Plan
 # =====================================================================
+# =====================================================================
+# 💾 Save Plan + Schedule Notifications
+# =====================================================================
 @router.post("/save")
 async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
     try:
@@ -125,32 +129,52 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-        # Append to log
+        # Save to file system as before
         with open(SAVE_FILE, "r+", encoding="utf-8") as f:
-            data_log = json.load(f)
-            data_log.append(entry)
+            logs = json.load(f)
+            logs.append(entry)
             f.seek(0)
-            json.dump(data_log, f, indent=2)
+            json.dump(logs, f, indent=2)
 
-        # Write individual file
+        # Write individual backup file
         file_name = (
             f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_"
             f"{current_user['email'].replace('@','_')}.json"
         )
-        file_path = os.path.join(SAVE_DIR, file_name)
-        with open(file_path, "w", encoding="utf-8") as f:
+        with open(os.path.join(SAVE_DIR, file_name), "w", encoding="utf-8") as f:
             json.dump(entry, f, indent=2)
 
+        # ================================
+        # ⭐ FINAL STEP: SCHEDULE REMINDERS
+        # ================================
+        for day in schedule:
+            day_date = day.get("date")  # e.g., "2025-11-21"
+            for block in day.get("blocks", []):
+                start = block.get("start_time")  # e.g., "10:30"
+
+                # Convert to datetime object
+                run_at = datetime.fromisoformat(f"{day_date}T{start}:00")
+
+                # Schedule the reminder
+                schedule_task(
+                    email=current_user["email"],
+                    task_name=block.get("task", "Study Session"),
+                    run_at=run_at,
+                )
+
+        print(f"⏰ Scheduled reminders for {current_user['email']}")
+
+        # optional: confirmation email
         asyncio.create_task(
             send_planner_email(current_user["email"], summary, schedule)
         )
 
-        print(f"💾 Saved planner entry for {current_user['email']}")
         return {"message": "Plan saved successfully", "file": file_name}
 
     except Exception as e:
         print(f"❌ Save failed: {e}")
         raise HTTPException(500, f"Failed to save plan: {e}")
+
 
 
 # =====================================================================
