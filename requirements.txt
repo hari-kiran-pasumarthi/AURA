@@ -84,3 +84,4 @@ PyPDF2==3.0.1
 colorama==0.4.6
 pynput==1.8.1
 typing-extensions==4.15.0
+apscheduler
