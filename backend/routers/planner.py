@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Body
 from backend.models.schemas import PlannerRequest, PlannerResponse
 from backend.services import planner
-from backend.services.scheduler import schedule_task
+from backend.services.scheduler import schedule_task, schedule_daily_summary
 from backend.routers.auth import get_current_user
 from fastapi_mail import FastMail, MessageSchema
 from backend.services.mail_config import conf
@@ -147,20 +147,30 @@ async def save_plan(data: dict, current_user: dict = Depends(get_current_user)):
         # ================================
         # ⭐ FINAL STEP: SCHEDULE REMINDERS
         # ================================
-        for day in schedule:
-            day_date = day.get("date")  # e.g., "2025-11-21"
-            for block in day.get("blocks", []):
-                start = block.get("start_time")  # e.g., "10:30"
+       # ========== ⭐ Schedule task reminders + daily summaries ==================
 
-                # Convert to datetime object
-                run_at = datetime.fromisoformat(f"{day_date}T{start}:00")
+for day in schedule:
+    day_date = day.get("date")
+    blocks = day.get("blocks", [])
 
-                # Schedule the reminder
-                schedule_task(
-                    email=current_user["email"],
-                    task_name=block.get("task", "Study Session"),
-                    run_at=run_at,
-                )
+    # 1. Schedule individual task reminders
+    for block in blocks:
+        start = block.get("start_time")
+        run_at = datetime.fromisoformat(f"{day_date}T{start}:00")
+
+        schedule_task(
+            email=current_user["email"],
+            task_name=block.get("task", "Study Session"),
+            run_time=run_at,
+        )
+
+    # 2. Schedule daily 7:00 AM summary
+    schedule_daily_summary(
+        email=current_user["email"],
+        date_str=day_date,
+        blocks=blocks
+    )
+
 
         print(f"⏰ Scheduled reminders for {current_user['email']}")
 
