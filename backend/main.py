@@ -22,6 +22,9 @@ from backend.routers import (
     confusion,
     chatbot,
 )
+from backend.routers.auth_google import router as google_auth_router
+
+
 
 # ------------------
 # Initialize FastAPI
@@ -58,6 +61,7 @@ app.include_router(timepredict.router)
 app.include_router(braindump.router)
 app.include_router(confusion.router)
 app.include_router(chatbot.router)
+app.include_router(google_auth_router)
 
 # ---------------------------
 # Root Route
