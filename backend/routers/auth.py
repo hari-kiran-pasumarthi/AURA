@@ -8,14 +8,18 @@ import json, os
 # ---------------------------
 # Configuration
 # ---------------------------
-SECRET_KEY = os.getenv("JWT_SECRET", "aura_super_secret_key")
+
+# 🔥 Use the secret you set in Railway (MUST MATCH GOOGLE LOGIN SECRET)
+SECRET_KEY = os.getenv("JWT_SECRET", "e2a93f1a2054458ef8c97e6c74f7bc1d")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+
+# Make sure users.json stays stable
 USER_FILE = os.path.join(os.path.dirname(__file__), "..", "users.json")
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-# ✅ Stable bcrypt + passlib context
+# BCrypt setup
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Initialize user file
@@ -41,7 +45,6 @@ class LoginRequest(BaseModel):
 # Helper functions
 # ---------------------------
 def get_password_hash(password: str):
-    # ✅ bcrypt supports only 72 bytes; truncate to prevent errors
     return pwd_context.hash(password[:72])
 
 
@@ -83,7 +86,6 @@ async def signup(user: UserCreate):
         "created_at": datetime.utcnow().isoformat(),
     }
 
-    # Save to JSON
     with open(USER_FILE, "r+") as f:
         try:
             users = json.load(f)
@@ -94,7 +96,7 @@ async def signup(user: UserCreate):
         json.dump(users, f, indent=2)
 
     token = create_access_token({"sub": user.email})
-    return {"access_token": token, "token_type": "bearer", "user": user.email}
+    return {"access_token": token, "user": user.email}
 
 
 # ---------------------------
@@ -107,14 +109,14 @@ async def login(request: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token({"sub": user["email"]})
-    return {"access_token": token, "token_type": "bearer", "user": user["email"]}
+    return {"access_token": token, "user": user["email"]}
 
 
 # ---------------------------
-# Get current user (JWT validation)
+# Get current user
 # ---------------------------
 async def get_current_user(Authorization: str = Header(None)):
-    print("🔍 Incoming Authorization header:", Authorization)  # 👈 debug
+    print("🔍 Incoming Authorization header:", Authorization)
 
     if not Authorization:
         raise HTTPException(status_code=401, detail="Missing token")
@@ -124,11 +126,15 @@ async def get_current_user(Authorization: str = Header(None)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+
         if not email:
             raise HTTPException(status_code=401, detail="Invalid token")
+
         user = find_user(email)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+
         return user
+
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
