@@ -6,8 +6,10 @@ export default function AutoNoteScreen() {
   const [note, setNote] = useState("");
   const [summary, setSummary] = useState("");
   const [loadingText, setLoadingText] = useState(false);
+
   const [audioBlob, setAudioBlob] = useState(null);
   const [file, setFile] = useState(null);
+
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -27,8 +29,13 @@ export default function AutoNoteScreen() {
       return {};
     }
     return isJSON
-      ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
-      : { Authorization: `Bearer ${token}` };
+      ? {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        }
+      : {
+          Authorization: `Bearer ${token}`,
+        };
   };
 
   // 🎙️ Start Recording
@@ -52,7 +59,10 @@ export default function AutoNoteScreen() {
       mediaRecorder.start();
       setRecording(true);
       setRecordingTime(0);
-      timerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
+      timerRef.current = setInterval(
+        () => setRecordingTime((t) => t + 1),
+        1000
+      );
     } catch (err) {
       alert("🎤 Microphone permission denied. Please enable it and retry.");
       console.error(err);
@@ -76,14 +86,18 @@ export default function AutoNoteScreen() {
   const summarizeText = async () => {
     if (!note.trim()) return alert("Enter text first!");
     setLoadingText(true);
+    setSaved(false);
+
     try {
-      const res = await fetch(`${API_BASE}/autonote/transcribe`, {
+      const res = await fetch(`${API_BASE}/autonote/text`, {
         method: "POST",
         headers: getAuthHeaders(true),
         body: JSON.stringify({ text: note }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Summarization failed");
+
       setSummary(formatSummary(data));
     } catch (err) {
       alert(`⚠️ ${err.message}`);
@@ -96,6 +110,8 @@ export default function AutoNoteScreen() {
   const summarizeAudio = async () => {
     if (!audioBlob) return alert("Record audio first!");
     setTranscribing(true);
+    setSaved(false);
+
     const formData = new FormData();
     formData.append("file", audioBlob, "lecture.webm");
 
@@ -119,6 +135,8 @@ export default function AutoNoteScreen() {
   const summarizeFile = async () => {
     if (!file) return alert("Select a file first!");
     setUploading(true);
+    setSaved(false);
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -143,13 +161,21 @@ export default function AutoNoteScreen() {
     if (!summary.trim()) return alert("Nothing to save!");
     const title = prompt("Enter note title:", "New AutoNote");
     if (!title) return;
+
     try {
       const res = await fetch(`${API_BASE}/autonote/save`, {
         method: "POST",
         headers: getAuthHeaders(true),
-        body: JSON.stringify({ title, summary }),
+        body: JSON.stringify({
+          title,
+          summary,
+          transcript: "", // optional: you can track transcript too
+          highlights: [],
+          bullets: [],
+        }),
       });
-      if (!res.ok) throw new Error("Save failed");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Save failed");
       alert("✅ Note saved successfully!");
       setSaved(true);
     } catch (err) {
@@ -172,7 +198,8 @@ export default function AutoNoteScreen() {
     <div
       style={{
         minHeight: "100vh",
-        background: "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
+        background:
+          "radial-gradient(circle at 20% 20%, #2B3A55, #0B1020 80%)",
         color: "#EAEAF5",
         padding: 20,
         fontFamily: "'Poppins', sans-serif",
@@ -208,13 +235,23 @@ export default function AutoNoteScreen() {
       >
         <h3>🎧 Audio Recorder</h3>
         <p style={{ margin: "10px 0", fontSize: 16 }}>
-          {recording ? `⏱ Recording... (${formatTime(recordingTime)})` : "Press start to begin"}
+          {recording
+            ? `⏱ Recording... (${formatTime(recordingTime)})`
+            : "Press start to begin"}
         </p>
         <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
-          <button onClick={startRecording} disabled={recording} style={btnStyle("#2563EB")}>
+          <button
+            onClick={startRecording}
+            disabled={recording}
+            style={btnStyle("#2563EB")}
+          >
             🎙️ Start
           </button>
-          <button onClick={stopRecording} disabled={!recording} style={btnStyle("#DC2626")}>
+          <button
+            onClick={stopRecording}
+            disabled={!recording}
+            style={btnStyle("#DC2626")}
+          >
             🛑 Stop
           </button>
         </div>
@@ -229,7 +266,7 @@ export default function AutoNoteScreen() {
             <button
               onClick={summarizeAudio}
               disabled={transcribing}
-              style={btnStyle("#22C55E")}
+              style={{ ...btnStyle("#22C55E"), marginTop: 10, width: "100%" }}
             >
               {transcribing ? "⏳ Transcribing..." : "✨ Summarize Audio"}
             </button>
@@ -237,8 +274,7 @@ export default function AutoNoteScreen() {
         )}
       </div>
 
-      {/* 📝 Text and File Summarization sections (unchanged) */}
-      {/* 🧾 Text Input */}
+      {/* 📝 Text Summarization */}
       <div
         style={{
           background: "rgba(255,255,255,0.08)",
@@ -262,9 +298,14 @@ export default function AutoNoteScreen() {
             color: "#EAEAF5",
             padding: 10,
             fontSize: 15,
+            marginBottom: 10,
           }}
         />
-        <button onClick={summarizeText} disabled={loadingText} style={btnStyle("#6C63FF")}>
+        <button
+          onClick={summarizeText}
+          disabled={loadingText}
+          style={{ ...btnStyle("#6C63FF"), width: "100%" }}
+        >
           {loadingText ? "⏳ Summarizing..." : "✨ Summarize Text"}
         </button>
       </div>
@@ -288,7 +329,7 @@ export default function AutoNoteScreen() {
         <button
           onClick={summarizeFile}
           disabled={!file || uploading}
-          style={btnStyle("#16A34A")}
+          style={{ ...btnStyle("#16A34A"), width: "100%", marginTop: 10 }}
         >
           {uploading ? "⏳ Processing..." : "✨ Summarize File"}
         </button>
@@ -306,7 +347,9 @@ export default function AutoNoteScreen() {
           }}
         >
           <h3>📘 Summary</h3>
-          <pre style={{ whiteSpace: "pre-wrap", color: "#EAEAF5" }}>{summary}</pre>
+          <pre style={{ whiteSpace: "pre-wrap", color: "#EAEAF5" }}>
+            {summary}
+          </pre>
           <button
             onClick={saveNote}
             style={{
@@ -318,6 +361,7 @@ export default function AutoNoteScreen() {
               color: "#fff",
               cursor: "pointer",
               fontWeight: 600,
+              width: "100%",
             }}
           >
             {saved ? "✅ Saved!" : "💾 Save Note"}
