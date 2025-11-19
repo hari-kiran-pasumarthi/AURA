@@ -246,6 +246,15 @@ async def upload_file(file: UploadFile = File(...), current_user: dict = Depends
         raise HTTPException(500, f"File processing failed: {e}")
 
 # =====================================================
+# 🎙 Compatibility Transcription Endpoint (/transcribe)
+# =====================================================
+@router.post("/transcribe")
+async def transcribe_audio(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    """Compatibility wrapper so that /autonote/transcribe also works."""
+    return await summarize_audio(file, current_user)
+
+
+# =====================================================
 # 💾 Manual Save + Retrieval
 # =====================================================
 @router.post("/save")
