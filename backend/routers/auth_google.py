@@ -9,9 +9,11 @@ import json
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
+# 🔥 MUST MATCH EXACTLY WITH main auth.py
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-JWT_SECRET = os.getenv("JWT_SECRET", "supersecret")
+JWT_SECRET = os.getenv("JWT_SECRET", "e2a93f1a2054458ef8c97e6c74f7bc1d")
 
+# Users stored here (same as normal login)
 USERS_FILE = "saved_files/users.json"
 os.makedirs("saved_files", exist_ok=True)
 
@@ -21,7 +23,7 @@ if not os.path.exists(USERS_FILE):
 
 
 # --------------------------
-# Pydantic model to parse JSON
+# Request Model
 # --------------------------
 class GoogleAuthRequest(BaseModel):
     token: str
@@ -43,19 +45,17 @@ def create_or_get_user(email: str, name: str, picture: str):
             "name": name,
             "picture": picture,
             "auth_method": "google",
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": datetime.utcnow().isoformat(),
         }
 
         users.append(new_user)
-
         f.seek(0)
         json.dump(users, f, indent=2)
-
         return new_user
 
 
 # --------------------------
-# Google Login API
+# Google Login Endpoint
 # --------------------------
 @router.post("/google")
 async def google_login(payload: GoogleAuthRequest):
@@ -76,7 +76,7 @@ async def google_login(payload: GoogleAuthRequest):
         # Create or fetch user
         create_or_get_user(email, name, picture)
 
-        # Create JWT
+        # 🔥 Create JWT using the SAME secret as email/password login
         jwt_token = jwt.encode(
             {
                 "sub": email,
@@ -97,4 +97,4 @@ async def google_login(payload: GoogleAuthRequest):
 
     except Exception as e:
         print("GOOGLE LOGIN ERROR:", e)
-        raise HTTPException(400, "Invalid Google Token")
+        raise HTTPException(status_code=400, detail="Invalid Google Token")
